@@ -1,0 +1,42 @@
+name: glance_widget
+description: Create instant-updating Android home screen widgets using Jetpack Glance. Supports Simple, Progress, and List widget templates.
+version: 0.1.0
+# TODO: Replace YOUR_GITHUB_USERNAME with your actual GitHub username before publishing
+homepage: https://github.com/YOUR_GITHUB_USERNAME/glance_widget
+repository: https://github.com/YOUR_GITHUB_USERNAME/glance_widget
+issue_tracker: https://github.com/YOUR_GITHUB_USERNAME/glance_widget/issues
+documentation: https://github.com/YOUR_GITHUB_USERNAME/glance_widget#readme
+
+topics:
+  - widget
+  - android
+  - glance
+  - home-screen
+  - jetpack
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # TODO: Before publishing to pub.dev, replace path dependencies with version constraints:
+  # glance_widget_platform_interface: ^0.1.0
+  # glance_widget_android: ^0.1.0
+  glance_widget_platform_interface:
+    path: glance_widget_platform_interface
+  glance_widget_android:
+    path: glance_widget_android
+  logging: ^1.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        default_package: glance_widget_android

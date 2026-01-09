@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Glance Widget Example</string>
+    <string name="simple_widget_description">Simple widget for displaying title, value, and subtitle</string>
+    <string name="progress_widget_description">Progress widget with circular or linear progress indicator</string>
+    <string name="list_widget_description">List widget for displaying items with optional checkboxes</string>
+</resources>

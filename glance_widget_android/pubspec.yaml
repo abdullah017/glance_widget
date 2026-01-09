@@ -1,0 +1,32 @@
+name: glance_widget_android
+description: Android implementation of the glance_widget plugin using Jetpack Glance.
+version: 0.1.0
+# TODO: Replace YOUR_GITHUB_USERNAME with your actual GitHub username before publishing
+homepage: https://github.com/YOUR_GITHUB_USERNAME/glance_widget
+repository: https://github.com/YOUR_GITHUB_USERNAME/glance_widget/tree/master/glance_widget_android
+issue_tracker: https://github.com/YOUR_GITHUB_USERNAME/glance_widget/issues
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.10.0"
+
+flutter:
+  plugin:
+    implements: glance_widget
+    platforms:
+      android:
+        package: com.example.glance_widget_android
+        pluginClass: GlanceWidgetPlugin
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # TODO: Before publishing to pub.dev, replace path dependency with version constraint:
+  # glance_widget_platform_interface: ^0.1.0
+  glance_widget_platform_interface:
+    path: ../glance_widget_platform_interface
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
