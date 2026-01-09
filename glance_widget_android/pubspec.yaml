@@ -20,9 +20,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  # For development (change to ^0.2.0 before publishing)
-  glance_widget_platform_interface:
-    path: ../glance_widget_platform_interface
+  glance_widget_platform_interface: ^0.2.0
 
 dev_dependencies:
   flutter_test:

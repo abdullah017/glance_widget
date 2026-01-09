@@ -28,6 +28,10 @@ void main() {
               return true;
             case 'getActiveWidgetIds':
               return <String>['widget1', 'widget2'];
+            case 'getWidgetPushToken':
+              return 'test_push_token_abc123';
+            case 'isWidgetPushSupported':
+              return true;
             default:
               return null;
           }
@@ -193,6 +197,52 @@ void main() {
         expect(result, ['widget1', 'widget2']);
         expect(log.length, 1);
         expect(log[0].method, 'getActiveWidgetIds');
+      });
+    });
+
+    group('getWidgetPushToken', () {
+      test('returns push token', () async {
+        final result = await platform.getWidgetPushToken();
+
+        expect(result, 'test_push_token_abc123');
+        expect(log.length, 1);
+        expect(log[0].method, 'getWidgetPushToken');
+      });
+
+      test('returns null on error', () async {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(methodChannel, (
+              MethodCall methodCall,
+            ) async {
+              throw PlatformException(code: 'ERROR', message: 'Test error');
+            });
+
+        final result = await platform.getWidgetPushToken();
+
+        expect(result, isNull);
+      });
+    });
+
+    group('isWidgetPushSupported', () {
+      test('returns true when supported', () async {
+        final result = await platform.isWidgetPushSupported();
+
+        expect(result, true);
+        expect(log.length, 1);
+        expect(log[0].method, 'isWidgetPushSupported');
+      });
+
+      test('returns false on error', () async {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(methodChannel, (
+              MethodCall methodCall,
+            ) async {
+              throw PlatformException(code: 'ERROR', message: 'Test error');
+            });
+
+        final result = await platform.isWidgetPushSupported();
+
+        expect(result, false);
       });
     });
 
