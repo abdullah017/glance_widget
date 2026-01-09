@@ -18,16 +18,58 @@ migrate_working_dir/
 *.iws
 .idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# VS Code
+.vscode/
 
 # Flutter/Dart/Pub related
-# Libraries should not include pubspec.lock, per https://dart.dev/guides/libraries/private-files#pubspeclock.
-/pubspec.lock
+# Libraries should not include pubspec.lock
+**/pubspec.lock
 **/doc/api/
-.dart_tool/
-.flutter-plugins-dependencies
-/build/
-/coverage/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/build/
+**/coverage/
+
+# Android related
+**/android/**/gradle-wrapper.jar
+**/.gradle
+**/android/**/captures/
+**/android/**/gradlew
+**/android/**/gradlew.bat
+**/android/**/local.properties
+**/android/**/GeneratedPluginRegistrant.java
+**/android/**/*.keystore
+**/android/**/*.jks
+**/android/**/key.properties
+**/.cxx/
+
+# iOS related (for future)
+**/ios/.symlinks/
+**/ios/Pods/
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Generated.xcconfig
+**/ios/ServiceDefinitions.json
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Test related
+**/coverage/
+**/.test_coverage.dart
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+
+# Credentials and secrets
+.env
+.env.*
+**/secrets/
+credentials.json

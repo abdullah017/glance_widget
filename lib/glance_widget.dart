@@ -21,7 +21,7 @@
 /// );
 /// ```
 ///
-/// See the [README](https://github.com/YOUR_GITHUB_USERNAME/glance_widget) for complete documentation.
+/// See the [README](https://github.com/abdullah017/glance_widget) for complete documentation.
 library;
 
 export 'src/glance_widget.dart';
