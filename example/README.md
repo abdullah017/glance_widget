@@ -1,16 +1,52 @@
-# glance_widget_example
+# Glance Widget Example
 
-Demonstrates how to use the glance_widget plugin.
+A complete demo app showing all widget types on Android and iOS.
 
-## Getting Started
+## Running the Example
 
-This project is a starting point for a Flutter application.
+```bash
+cd example
+flutter run
+```
 
-A few resources to get you started if this is your first Flutter project:
+## Features Demonstrated
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- **Simple Widget** - Bitcoin price tracker with dynamic updates
+- **Progress Widget** - Download progress with circular indicator
+- **List Widget** - Todo list with checkboxes
+- **Theme Support** - Dark theme configuration
+- **Widget Actions** - Tap handling from widgets
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Platform Setup
+
+### Android
+
+Android widgets work out of the box. The example app includes:
+- Widget receiver configurations in `AndroidManifest.xml`
+- Widget info XML files in `res/xml/`
+- Preview layouts in `res/layout/`
+
+### iOS
+
+For iOS, you need to add a Widget Extension to your Xcode project:
+
+1. Open `ios/Runner.xcworkspace` in Xcode
+2. File → New → Target → Widget Extension
+3. Name it `GlanceWidgets`
+4. Configure App Groups for both targets
+5. Copy widget files from `glance_widget_ios/example/ios/GlanceWidgets/`
+
+See [iOS Widget Setup Guide](../glance_widget_ios/example/ios/WIDGET_SETUP.md) for detailed instructions.
+
+## Adding Widgets to Home Screen
+
+### Android
+1. Long press on home screen
+2. Select "Widgets"
+3. Find your app and drag a widget type to home
+
+### iOS
+1. Long press on home screen
+2. Tap "+" in top left corner
+3. Search for your app name
+4. Select widget size and tap "Add Widget"

@@ -30,13 +30,13 @@ class SimpleWidgetData {
   });
 
   Map<String, dynamic> toMap() => {
-        'title': title,
-        'value': value,
-        'subtitle': subtitle,
-        'subtitleColor': subtitleColor?.toARGB32(),
-        'iconName': iconName,
-        'iconBase64': iconBase64,
-      };
+    'title': title,
+    'value': value,
+    'subtitle': subtitle,
+    'subtitleColor': subtitleColor?.toARGB32(),
+    'iconName': iconName,
+    'iconBase64': iconBase64,
+  };
 }
 
 /// Progress type enum for Progress Widget.
@@ -78,13 +78,13 @@ class ProgressWidgetData {
   }) : assert(progress >= 0.0 && progress <= 1.0);
 
   Map<String, dynamic> toMap() => {
-        'title': title,
-        'progress': progress,
-        'subtitle': subtitle,
-        'progressType': progressType.name,
-        'progressColor': progressColor?.toARGB32(),
-        'trackColor': trackColor?.toARGB32(),
-      };
+    'title': title,
+    'progress': progress,
+    'subtitle': subtitle,
+    'progressType': progressType.name,
+    'progressColor': progressColor?.toARGB32(),
+    'trackColor': trackColor?.toARGB32(),
+  };
 }
 
 /// Data model for a single list item.
@@ -109,11 +109,11 @@ class GlanceListItem {
   });
 
   Map<String, dynamic> toMap() => {
-        'text': text,
-        'checked': checked,
-        'secondaryText': secondaryText,
-        'iconName': iconName,
-      };
+    'text': text,
+    'checked': checked,
+    'secondaryText': secondaryText,
+    'iconName': iconName,
+  };
 }
 
 /// Data model for List Widget template.
@@ -138,9 +138,9 @@ class ListWidgetData {
   });
 
   Map<String, dynamic> toMap() => {
-        'title': title,
-        'items': items.map((e) => e.toMap()).toList(),
-        'showCheckboxes': showCheckboxes,
-        'maxItems': maxItems,
-      };
+    'title': title,
+    'items': items.map((e) => e.toMap()).toList(),
+    'showCheckboxes': showCheckboxes,
+    'maxItems': maxItems,
+  };
 }

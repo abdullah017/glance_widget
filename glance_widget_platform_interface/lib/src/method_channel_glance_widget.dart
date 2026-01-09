@@ -26,12 +26,14 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
   static bool throwOnError = false;
 
   /// The method channel used to interact with the native platform.
-  static const MethodChannel _methodChannel =
-      MethodChannel('com.example.glance_widget/methods');
+  static const MethodChannel _methodChannel = MethodChannel(
+    'com.example.glance_widget/methods',
+  );
 
   /// The event channel for receiving widget action events.
-  static const EventChannel _eventChannel =
-      EventChannel('com.example.glance_widget/events');
+  static const EventChannel _eventChannel = EventChannel(
+    'com.example.glance_widget/events',
+  );
 
   /// Stream controller for widget actions.
   StreamController<GlanceWidgetAction>? _actionController;
@@ -46,11 +48,7 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
     try {
       final result = await _methodChannel.invokeMethod<bool>(
         'updateSimpleWidget',
-        {
-          'widgetId': widgetId,
-          'data': data.toMap(),
-          'theme': theme?.toMap(),
-        },
+        {'widgetId': widgetId, 'data': data.toMap(), 'theme': theme?.toMap()},
       );
       return result ?? false;
     } on PlatformException catch (e) {
@@ -74,11 +72,7 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
     try {
       final result = await _methodChannel.invokeMethod<bool>(
         'updateProgressWidget',
-        {
-          'widgetId': widgetId,
-          'data': data.toMap(),
-          'theme': theme?.toMap(),
-        },
+        {'widgetId': widgetId, 'data': data.toMap(), 'theme': theme?.toMap()},
       );
       return result ?? false;
     } on PlatformException catch (e) {
@@ -102,11 +96,7 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
     try {
       final result = await _methodChannel.invokeMethod<bool>(
         'updateListWidget',
-        {
-          'widgetId': widgetId,
-          'data': data.toMap(),
-          'theme': theme?.toMap(),
-        },
+        {'widgetId': widgetId, 'data': data.toMap(), 'theme': theme?.toMap()},
       );
       return result ?? false;
     } on PlatformException catch (e) {
@@ -161,8 +151,9 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
   @override
   Future<List<String>> getActiveWidgetIds() async {
     try {
-      final result =
-          await _methodChannel.invokeMethod<List<dynamic>>('getActiveWidgetIds');
+      final result = await _methodChannel.invokeMethod<List<dynamic>>(
+        'getActiveWidgetIds',
+      );
       return result?.cast<String>() ?? [];
     } on PlatformException catch (e) {
       _log.warning('Failed to get active widget IDs: ${e.message}', e);
@@ -205,5 +196,47 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
   void _stopListening() {
     _eventSubscription?.cancel();
     _eventSubscription = null;
+  }
+
+  /// Gets the Widget Push Token for server-triggered updates (iOS 26+).
+  ///
+  /// This token can be sent to your server to trigger widget updates via APNs.
+  /// Returns `null` on unsupported platforms or if the token is not available.
+  @override
+  Future<String?> getWidgetPushToken() async {
+    try {
+      final result = await _methodChannel.invokeMethod<String?>(
+        'getWidgetPushToken',
+      );
+      return result;
+    } on PlatformException catch (e) {
+      _log.warning('Failed to get widget push token: ${e.message}', e);
+      if (throwOnError) {
+        throw GlanceWidgetException.fromPlatformException(
+          e,
+          context: 'Failed to get widget push token',
+        );
+      }
+      return null;
+    }
+  }
+
+  @override
+  Future<bool> isWidgetPushSupported() async {
+    try {
+      final result = await _methodChannel.invokeMethod<bool>(
+        'isWidgetPushSupported',
+      );
+      return result ?? false;
+    } on PlatformException catch (e) {
+      _log.warning('Failed to check widget push support: ${e.message}', e);
+      if (throwOnError) {
+        throw GlanceWidgetException.fromPlatformException(
+          e,
+          context: 'Failed to check widget push support',
+        );
+      }
+      return false;
+    }
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:math';
+import 'dart:io';
 
 import 'package:glance_widget/glance_widget.dart';
 
@@ -53,11 +55,16 @@ class _HomePageState extends State<HomePage> {
 
   StreamSubscription<GlanceWidgetAction>? _actionSubscription;
 
+  // Platform info
+  bool _isPushSupported = false;
+  String? _pushToken;
+
   @override
   void initState() {
     super.initState();
     _setupWidgetActions();
     _setDarkTheme();
+    _checkPlatformFeatures();
   }
 
   @override
@@ -69,6 +76,7 @@ class _HomePageState extends State<HomePage> {
 
   void _setupWidgetActions() {
     _actionSubscription = GlanceWidget.onAction.listen((action) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Widget ${action.widgetId}: ${action.type.name}'),
@@ -80,6 +88,24 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _setDarkTheme() async {
     await GlanceWidget.setTheme(GlanceTheme.dark());
+  }
+
+  Future<void> _checkPlatformFeatures() async {
+    // Check if Widget Push Updates are supported (iOS 26+)
+    final isSupported = await GlanceWidget.isWidgetPushSupported();
+    setState(() {
+      _isPushSupported = isSupported;
+    });
+
+    if (isSupported) {
+      final token = await GlanceWidget.getWidgetPushToken();
+      setState(() {
+        _pushToken = token;
+      });
+      if (kDebugMode && token != null) {
+        print('Widget Push Token: $token');
+      }
+    }
   }
 
   Future<void> _updateSimpleWidget() async {
@@ -95,7 +121,8 @@ class _HomePageState extends State<HomePage> {
       id: 'crypto_btc',
       title: 'Bitcoin',
       value: '\$${_cryptoPrice.toStringAsFixed(2)}',
-      subtitle: '${_priceChange >= 0 ? '+' : ''}${_priceChange.toStringAsFixed(2)}%',
+      subtitle:
+          '${_priceChange >= 0 ? '+' : ''}${_priceChange.toStringAsFixed(2)}%',
       subtitleColor: _priceChange >= 0 ? Colors.green : Colors.red,
     );
   }
@@ -106,7 +133,9 @@ class _HomePageState extends State<HomePage> {
     });
 
     _downloadTimer?.cancel();
-    _downloadTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) async {
+    _downloadTimer = Timer.periodic(const Duration(milliseconds: 100), (
+      timer,
+    ) async {
       setState(() {
         _downloadProgress += 0.02;
       });
@@ -115,7 +144,8 @@ class _HomePageState extends State<HomePage> {
         id: 'download_demo',
         title: 'Downloading...',
         progress: _downloadProgress.clamp(0.0, 1.0),
-        subtitle: '${(_downloadProgress * 100).toInt().clamp(0, 100)}% complete',
+        subtitle:
+            '${(_downloadProgress * 100).toInt().clamp(0, 100)}% complete',
         progressType: ProgressType.circular,
         progressColor: Colors.blue,
       );
@@ -229,10 +259,7 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[400],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[400]),
           ),
           const SizedBox(height: 16),
           child,
@@ -255,10 +282,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text(
                 'Bitcoin',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[400],
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey[400]),
               ),
               const SizedBox(height: 8),
               Text(
@@ -318,7 +342,9 @@ class _HomePageState extends State<HomePage> {
                       value: _downloadProgress.clamp(0.0, 1.0),
                       strokeWidth: 6,
                       backgroundColor: const Color(0xFF3A3A4E),
-                      color: _downloadProgress >= 1.0 ? Colors.green : Colors.blue,
+                      color: _downloadProgress >= 1.0
+                          ? Colors.green
+                          : Colors.blue,
                     ),
                   ),
                   Text(
@@ -334,17 +360,16 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 12),
               Text(
                 _downloadProgress >= 1.0 ? 'Complete!' : 'Downloading...',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[400],
-                ),
+                style: TextStyle(fontSize: 14, color: Colors.grey[400]),
               ),
             ],
           ),
         ),
         const SizedBox(height: 16),
         ElevatedButton.icon(
-          onPressed: _downloadProgress > 0 && _downloadProgress < 1.0 ? null : _startDownload,
+          onPressed: _downloadProgress > 0 && _downloadProgress < 1.0
+              ? null
+              : _startDownload,
           icon: const Icon(Icons.download),
           label: const Text('Start Download'),
           style: ElevatedButton.styleFrom(
@@ -383,10 +408,7 @@ class _HomePageState extends State<HomePage> {
                   const Spacer(),
                   Text(
                     '${_todoItems.where((i) => i.checked).length}/${_todoItems.length}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[400],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[400]),
                   ),
                 ],
               ),
@@ -441,6 +463,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildInfoSection() {
+    final isIOS = Platform.isIOS;
+    final isAndroid = Platform.isAndroid;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -466,12 +491,93 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           const SizedBox(height: 12),
-          _buildInfoItem('1. Long press on home screen'),
-          _buildInfoItem('2. Select "Widgets"'),
-          _buildInfoItem('3. Find "Glance Widget" and drag to home'),
-          _buildInfoItem('4. Use this app to update widgets'),
+          if (isAndroid) ...[
+            _buildInfoItem('1. Long press on home screen'),
+            _buildInfoItem('2. Select "Widgets"'),
+            _buildInfoItem('3. Find "Glance Widget" and drag to home'),
+            _buildInfoItem('4. Use this app to update widgets'),
+          ] else if (isIOS) ...[
+            _buildInfoItem('1. Long press on home screen'),
+            _buildInfoItem('2. Tap "+" in top left corner'),
+            _buildInfoItem('3. Search for this app'),
+            _buildInfoItem('4. Select widget size and tap "Add"'),
+          ] else ...[
+            _buildInfoItem('Widgets require Android or iOS'),
+          ],
+          const SizedBox(height: 16),
+          const Divider(color: Color(0xFF3A3A4E)),
+          const SizedBox(height: 8),
+          _buildPlatformInfo(isIOS, isAndroid),
         ],
       ),
+    );
+  }
+
+  Widget _buildPlatformInfo(bool isIOS, bool isAndroid) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              isIOS ? Icons.apple : Icons.android,
+              color: Colors.grey[400],
+              size: 16,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Platform: ${isIOS ? 'iOS' : isAndroid ? 'Android' : 'Unknown'}',
+              style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+            ),
+          ],
+        ),
+        if (isIOS) ...[
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(
+                _isPushSupported ? Icons.check_circle : Icons.cancel,
+                color: _isPushSupported ? Colors.green : Colors.grey,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Widget Push: ${_isPushSupported ? 'Supported (iOS 26+)' : 'Not available'}',
+                style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+              ),
+            ],
+          ),
+          if (_isPushSupported && _pushToken != null) ...[
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(Icons.vpn_key, color: Colors.grey[400], size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Push Token: ${_pushToken!.substring(0, 16)}...',
+                    style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+        if (isAndroid) ...[
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(Icons.flash_on, color: Colors.green, size: 16),
+              const SizedBox(width: 8),
+              Text(
+                'Instant updates (Jetpack Glance)',
+                style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+              ),
+            ],
+          ),
+        ],
+      ],
     );
   }
 
@@ -480,10 +586,7 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Text(
         text,
-        style: TextStyle(
-          fontSize: 14,
-          color: Colors.grey[300],
-        ),
+        style: TextStyle(fontSize: 14, color: Colors.grey[300]),
       ),
     );
   }

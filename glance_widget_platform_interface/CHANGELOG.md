@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0
+
+* Added `getWidgetPushToken()` method for iOS 26+ Widget Push Updates
+* Added `isWidgetPushSupported()` method for runtime platform check
+* Prepared platform interface for iOS implementation
+
 ## 0.1.0
 
 * Initial release

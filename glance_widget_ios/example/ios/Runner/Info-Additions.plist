@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+    INFO-ADDITIONS.plist
+
+    Add these entries to your existing ios/Runner/Info.plist file
+    to enable widget tap action handling.
+-->
+<plist version="1.0">
+<dict>
+    <!-- URL Scheme for Widget Actions -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>glancewidget</string>
+            </array>
+            <key>CFBundleURLName</key>
+            <string>com.example.glancewidget.action</string>
+        </dict>
+    </array>
+
+    <!-- LSApplicationQueriesSchemes (optional, for deep linking) -->
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>glancewidget</string>
+    </array>
+</dict>
+</plist>

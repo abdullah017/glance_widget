@@ -201,4 +201,43 @@ class GlanceWidget {
   /// });
   /// ```
   static Stream<GlanceWidgetAction> get onAction => _platform.onWidgetAction;
+
+  /// Gets the Widget Push Token for server-triggered updates (iOS 26+).
+  ///
+  /// This token can be sent to your server to trigger widget updates via APNs.
+  /// When your server sends a push notification with `apns-push-type: widgets`,
+  /// iOS will wake the widget and refresh it.
+  ///
+  /// Returns `null` on unsupported platforms (Android, iOS < 26) or if the
+  /// token is not yet available.
+  ///
+  /// Example:
+  /// ```dart
+  /// final token = await GlanceWidget.getWidgetPushToken();
+  /// if (token != null) {
+  ///   await sendTokenToServer(token);
+  /// }
+  /// ```
+  static Future<String?> getWidgetPushToken() {
+    return _platform.getWidgetPushToken();
+  }
+
+  /// Checks if Widget Push Updates are supported on the current platform.
+  ///
+  /// Returns `true` on iOS 26+ where Widget Push Updates are available.
+  /// Returns `false` on Android and older iOS versions.
+  ///
+  /// Use this to conditionally show UI or enable features that depend on
+  /// server-triggered widget updates.
+  ///
+  /// Example:
+  /// ```dart
+  /// if (await GlanceWidget.isWidgetPushSupported()) {
+  ///   final token = await GlanceWidget.getWidgetPushToken();
+  ///   // Send token to server
+  /// }
+  /// ```
+  static Future<bool> isWidgetPushSupported() {
+    return _platform.isWidgetPushSupported();
+  }
 }

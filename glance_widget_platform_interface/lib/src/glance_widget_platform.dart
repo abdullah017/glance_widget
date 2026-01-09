@@ -38,7 +38,9 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
     required ProgressWidgetData data,
     GlanceTheme? theme,
   }) {
-    throw UnimplementedError('updateProgressWidget() has not been implemented.');
+    throw UnimplementedError(
+      'updateProgressWidget() has not been implemented.',
+    );
   }
 
   /// Updates a List Widget with the given data.
@@ -68,5 +70,49 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   /// Stream of widget action events (taps, etc.)
   Stream<GlanceWidgetAction> get onWidgetAction {
     throw UnimplementedError('onWidgetAction has not been implemented.');
+  }
+
+  /// Gets the Widget Push Token for server-triggered updates (iOS 26+).
+  ///
+  /// This token can be sent to your server to trigger widget updates via APNs.
+  /// When your server sends a push notification with `apns-push-type: widgets`,
+  /// iOS will wake the widget and call `getTimeline()`.
+  ///
+  /// Returns `null` on unsupported platforms (Android, iOS < 26) or if the
+  /// token is not yet available.
+  ///
+  /// ## Server-side APNs Request Example
+  ///
+  /// ```http
+  /// POST https://api.push.apple.com/3/device/{widget_push_token}
+  /// Headers:
+  ///   apns-push-type: widgets
+  ///   apns-topic: com.example.app.push-type.widgets
+  /// Body:
+  ///   {"aps": {"content-changed": true}}
+  /// ```
+  Future<String?> getWidgetPushToken() {
+    throw UnimplementedError('getWidgetPushToken() has not been implemented.');
+  }
+
+  /// Checks if Widget Push Updates are supported on the current platform.
+  ///
+  /// Returns `true` on iOS 26+ where Widget Push Updates are available.
+  /// Returns `false` on Android and older iOS versions.
+  ///
+  /// Use this to conditionally show UI or enable features that depend on
+  /// server-triggered widget updates.
+  ///
+  /// ```dart
+  /// final isSupported = await GlanceWidget.isWidgetPushSupported();
+  /// if (isSupported) {
+  ///   final token = await GlanceWidget.getWidgetPushToken();
+  ///   // Send token to server
+  /// }
+  /// ```
+  Future<bool> isWidgetPushSupported() {
+    throw UnimplementedError(
+      'isWidgetPushSupported() has not been implemented.',
+    );
   }
 }
