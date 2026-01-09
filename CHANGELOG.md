@@ -1,3 +1,13 @@
+## 0.2.0
+
+* **iOS Support** - Added WidgetKit implementation for iOS 16+
+* Instant updates when app is in foreground (no budget limit!)
+* Widget Push Updates support for iOS 26+ (server-triggered updates via APNs)
+* Added `getWidgetPushToken()` for server-side widget updates
+* Added `isWidgetPushSupported()` for runtime platform check
+* Privacy manifest included for App Store compliance
+* Updated description to reflect cross-platform support
+
 ## 0.1.0
 
 * Initial release

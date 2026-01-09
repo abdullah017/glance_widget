@@ -49,11 +49,11 @@ class GlanceWidgetAction {
   }
 
   Map<String, dynamic> toMap() => {
-        'widgetId': widgetId,
-        'type': type.name,
-        'payload': payload,
-        'timestamp': timestamp.millisecondsSinceEpoch,
-      };
+    'widgetId': widgetId,
+    'type': type.name,
+    'payload': payload,
+    'timestamp': timestamp.millisecondsSinceEpoch,
+  };
 
   @override
   String toString() =>

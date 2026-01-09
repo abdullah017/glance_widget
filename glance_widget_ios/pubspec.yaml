@@ -1,8 +1,8 @@
-name: glance_widget_android
-description: Android implementation of the glance_widget plugin using Jetpack Glance.
+name: glance_widget_ios
+description: iOS implementation of the glance_widget plugin using WidgetKit.
 version: 0.1.0
 homepage: https://github.com/abdullah017/glance_widget
-repository: https://github.com/abdullah017/glance_widget/tree/master/glance_widget_android
+repository: https://github.com/abdullah017/glance_widget/tree/master/glance_widget_ios
 issue_tracker: https://github.com/abdullah017/glance_widget/issues
 
 environment:
@@ -13,9 +13,8 @@ flutter:
   plugin:
     implements: glance_widget
     platforms:
-      android:
-        package: com.example.glance_widget_android
-        pluginClass: GlanceWidgetPlugin
+      ios:
+        pluginClass: GlanceWidgetIosPlugin
 
 dependencies:
   flutter:

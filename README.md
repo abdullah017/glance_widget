@@ -3,15 +3,25 @@
 [![pub package](https://img.shields.io/pub/v/glance_widget.svg)](https://pub.dev/packages/glance_widget)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Create instant-updating Android home screen widgets using Jetpack Glance. Unlike traditional XML-based widgets with 30-minute minimum update intervals, Glance widgets update in **< 1 second**.
+Create instant-updating home screen widgets for **Android** and **iOS**. Built with Jetpack Glance (Android) and WidgetKit (iOS).
 
 ## Features
 
-- **Instant Updates** - Widget updates in less than 1 second (no 30-minute limit)
+- **Instant Updates** - Widgets update in < 1 second on both platforms
+- **Cross-Platform** - Same API for Android and iOS
 - **3 Widget Templates** - Simple, Progress, and List widgets ready to use
 - **Theme Support** - Light/Dark themes with full customization
 - **Tap Actions** - Handle widget taps and interactions
-- **Type-Safe API** - Clean Dart API with strong typing
+- **iOS 26+ Push Updates** - Server-triggered widget updates via APNs
+
+## Platform Comparison
+
+| Feature | Android (Jetpack Glance) | iOS (WidgetKit) |
+|---------|--------------------------|-----------------|
+| Update Speed | < 1 second | < 1 second (app foreground) |
+| Background Updates | Instant | Timeline-based |
+| Server Push | N/A | iOS 26+ (APNs) |
+| Min Version | Android 8.0 (API 26) | iOS 16.0 |
 
 ## Widget Templates
 
@@ -19,7 +29,7 @@ Create instant-updating Android home screen widgets using Jetpack Glance. Unlike
 |----------|-------------|-----------|
 | **SimpleWidget** | Title + Value + Subtitle | Crypto prices, weather, stats |
 | **ProgressWidget** | Circular/Linear progress | Downloads, goals, battery |
-| **ListWidget** | Scrollable item list | To-do, news, activities |
+| **ListWidget** | Scrollable item list | To-do, shopping, activities |
 
 ## Installation
 
@@ -27,17 +37,19 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  glance_widget: ^0.1.0
+  glance_widget: ^0.2.0
 ```
 
-### Android Setup
+---
 
-1. Add widget receivers to your `AndroidManifest.xml`:
+## Android Setup
+
+### 1. Configure Manifest
+
+Add widget receivers to `android/app/src/main/AndroidManifest.xml`:
 
 ```xml
 <application>
-    <!-- ... your existing configuration ... -->
-
     <!-- Simple Widget -->
     <receiver
         android:name="com.example.glance_widget_android.templates.SimpleWidgetReceiver"
@@ -76,9 +88,10 @@ dependencies:
 </application>
 ```
 
-2. Create widget info XML files in `android/app/src/main/res/xml/`:
+### 2. Create Widget Info XML
 
-**simple_widget_info.xml:**
+Create `android/app/src/main/res/xml/simple_widget_info.xml`:
+
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
@@ -91,7 +104,9 @@ dependencies:
     android:updatePeriodMillis="0" />
 ```
 
-3. Ensure your `android/app/build.gradle.kts` has:
+### 3. Set SDK Versions
+
+In `android/app/build.gradle.kts`:
 
 ```kotlin
 android {
@@ -102,16 +117,64 @@ android {
 }
 ```
 
+---
+
+## iOS Setup
+
+### 1. Create Widget Extension
+
+In Xcode:
+1. Open `ios/Runner.xcworkspace`
+2. File → New → Target → Widget Extension
+3. Name: `GlanceWidgets`
+4. Click Finish
+
+### 2. Configure App Groups
+
+Both targets need the same App Group:
+
+1. Select `Runner` target → Signing & Capabilities → + App Groups
+2. Add: `group.com.yourcompany.yourapp`
+3. Select `GlanceWidgets` target → repeat with same App Group ID
+
+### 3. Add Widget Files
+
+Copy files from `glance_widget_ios/example/ios/GlanceWidgets/` to your extension:
+- `GlanceWidgets.swift`
+- `SharedModels.swift` (update `appGroupId`!)
+- `SimpleWidget.swift`
+- `ProgressWidget.swift`
+- `ListWidget.swift`
+
+### 4. Configure URL Scheme
+
+Add to `ios/Runner/Info.plist`:
+
+```xml
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>glancewidget</string>
+        </array>
+    </dict>
+</array>
+```
+
+See [iOS Widget Setup Guide](glance_widget_ios/example/ios/WIDGET_SETUP.md) for detailed instructions.
+
+---
+
 ## Usage
 
 ### Simple Widget
 
-Perfect for displaying single values like crypto prices:
+Display single values like crypto prices:
 
 ```dart
 import 'package:glance_widget/glance_widget.dart';
 
-// Update widget instantly
 await GlanceWidget.simple(
   id: 'crypto_btc',
   title: 'Bitcoin',
@@ -123,16 +186,16 @@ await GlanceWidget.simple(
 
 ### Progress Widget
 
-Great for downloads, goals, or any progress tracking:
+Show downloads, goals, or completion status:
 
 ```dart
 await GlanceWidget.progress(
-  id: 'download_1',
-  title: 'Downloading...',
+  id: 'daily_goal',
+  title: 'Steps Today',
   progress: 0.75,  // 0.0 to 1.0
-  subtitle: '75% complete',
-  progressType: ProgressType.circular,  // or ProgressType.linear
-  progressColor: Colors.blue,
+  subtitle: '7,500 / 10,000',
+  progressType: ProgressType.circular,
+  progressColor: Colors.green,
 );
 ```
 
@@ -155,8 +218,6 @@ await GlanceWidget.list(
 
 ### Theme Configuration
 
-Set a global theme for all widgets:
-
 ```dart
 // Dark theme
 await GlanceWidget.setTheme(GlanceTheme.dark());
@@ -177,28 +238,59 @@ await GlanceWidget.setTheme(GlanceTheme(
 
 ### Handle Widget Taps
 
-Listen to widget interaction events:
-
 ```dart
 GlanceWidget.onAction.listen((action) {
   switch (action.type) {
     case GlanceActionType.tap:
-      print('Widget ${action.widgetId} was tapped');
-      Navigator.pushNamed(context, '/details');
+      print('Widget ${action.widgetId} tapped');
       break;
     case GlanceActionType.itemTap:
       final index = action.payload?['index'];
       print('Item $index tapped');
       break;
-    default:
-      break;
   }
 });
 ```
 
-### Controller API (Advanced)
+### Force Refresh All Widgets
 
-For more control, use the controller API:
+```dart
+// Instant update on both platforms
+// On iOS: No budget limit when app is in foreground!
+await GlanceWidget.forceRefreshAll();
+```
+
+### iOS 26+ Server Push Updates
+
+For server-triggered widget updates on iOS 26+:
+
+```dart
+// Check if supported
+if (await GlanceWidget.isWidgetPushSupported()) {
+  // Get push token
+  final token = await GlanceWidget.getWidgetPushToken();
+  if (token != null) {
+    // Send to your server
+    await api.registerWidgetPushToken(token);
+  }
+}
+```
+
+Server-side APNs request:
+```http
+POST https://api.push.apple.com/3/device/{token}
+Headers:
+  apns-push-type: widgets
+  apns-topic: com.yourcompany.yourapp.push-type.widgets
+Body:
+  {"aps": {"content-changed": true}}
+```
+
+---
+
+## Controller API (Advanced)
+
+For more control over individual widgets:
 
 ```dart
 final controller = GlanceWidgetController(
@@ -214,35 +306,50 @@ await controller.updateSimple(SimpleWidgetData(
   subtitle: '+2.34%',
 ));
 
-// Listen to actions
+// Listen to actions for this widget
 controller.onAction.listen((action) {
-  // Handle action for this specific widget
+  // Handle action
 });
 
-// Don't forget to dispose
+// Dispose when done
 controller.dispose();
 ```
 
+---
+
 ## Requirements
 
-- Flutter 3.10+
-- Android SDK 26+ (Android 8.0)
-- Kotlin 2.0+
+| Platform | Minimum Version |
+|----------|-----------------|
+| Flutter | 3.10+ |
+| Android | API 26 (Android 8.0) |
+| iOS | 16.0 |
 
-## Why Jetpack Glance?
-
-Traditional Android widgets use XML-based RemoteViews with a minimum update interval of 30 minutes. Jetpack Glance provides:
-
-| Feature | XML Widgets | Jetpack Glance |
-|---------|-------------|----------------|
-| Update Speed | 30 min minimum | < 1 second |
-| UI Framework | XML layouts | Compose |
-| State Management | Manual | DataStore |
-| Theming | Limited | Full support |
+---
 
 ## Example
 
-Check the [example](example/) directory for a complete demo app showing all widget types.
+Check the [example](example/) directory for a complete demo app showing all widget types on both platforms.
+
+```bash
+cd example
+flutter run
+```
+
+---
+
+## Architecture
+
+This package uses a federated plugin architecture:
+
+| Package | Description |
+|---------|-------------|
+| `glance_widget` | Main package with cross-platform API |
+| `glance_widget_platform_interface` | Platform-independent interface |
+| `glance_widget_android` | Android implementation (Jetpack Glance) |
+| `glance_widget_ios` | iOS implementation (WidgetKit) |
+
+---
 
 ## Contributing
 

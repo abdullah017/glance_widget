@@ -80,10 +80,7 @@ void main() {
 
   group('SimpleWidgetData', () {
     test('creates data with required fields', () {
-      const data = SimpleWidgetData(
-        title: 'Bitcoin',
-        value: '\$94,532',
-      );
+      const data = SimpleWidgetData(title: 'Bitcoin', value: '\$94,532');
       expect(data.title, 'Bitcoin');
       expect(data.value, '\$94,532');
       expect(data.subtitle, null);
@@ -115,10 +112,7 @@ void main() {
     });
 
     test('toMap includes null optional fields', () {
-      const data = SimpleWidgetData(
-        title: 'Test',
-        value: '100',
-      );
+      const data = SimpleWidgetData(title: 'Test', value: '100');
       final map = data.toMap();
       // Note: toMap includes keys even when null
       expect(map.containsKey('subtitle'), true);
@@ -140,18 +134,12 @@ void main() {
 
   group('ProgressWidgetData', () {
     test('validates progress range', () {
-      const data = ProgressWidgetData(
-        title: 'Loading',
-        progress: 0.5,
-      );
+      const data = ProgressWidgetData(title: 'Loading', progress: 0.5);
       expect(data.progress, 0.5);
     });
 
     test('default progress type is circular', () {
-      const data = ProgressWidgetData(
-        title: 'Loading',
-        progress: 0.5,
-      );
+      const data = ProgressWidgetData(title: 'Loading', progress: 0.5);
       expect(data.progressType, ProgressType.circular);
     });
 
@@ -218,10 +206,7 @@ void main() {
     });
 
     test('creates empty list', () {
-      const data = ListWidgetData(
-        title: 'Empty List',
-        items: [],
-      );
+      const data = ListWidgetData(title: 'Empty List', items: []);
       expect(data.items.isEmpty, true);
     });
 
@@ -244,7 +229,11 @@ void main() {
         title: 'Tasks',
         items: [
           GlanceListItem(text: 'Task 1', checked: false),
-          GlanceListItem(text: 'Task 2', checked: true, secondaryText: 'Due today'),
+          GlanceListItem(
+            text: 'Task 2',
+            checked: true,
+            secondaryText: 'Due today',
+          ),
         ],
         showCheckboxes: true,
       );
@@ -397,10 +386,7 @@ void main() {
     });
 
     test('toString includes code when present', () {
-      const exception = GlanceWidgetException(
-        'Error',
-        code: 'ERROR_CODE',
-      );
+      const exception = GlanceWidgetException('Error', code: 'ERROR_CODE');
       expect(exception.toString(), contains('ERROR_CODE'));
     });
   });

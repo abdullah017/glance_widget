@@ -70,5 +70,6 @@ class GlanceWidgetAndroid extends GlanceWidgetPlatform {
   }
 
   @override
-  Stream<GlanceWidgetAction> get onWidgetAction => _methodChannel.onWidgetAction;
+  Stream<GlanceWidgetAction> get onWidgetAction =>
+      _methodChannel.onWidgetAction;
 }

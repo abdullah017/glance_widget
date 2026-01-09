@@ -58,10 +58,8 @@ class GlanceWidgetException implements Exception {
 /// Exception thrown when a widget operation times out.
 class GlanceWidgetTimeoutException extends GlanceWidgetException {
   /// Creates a new [GlanceWidgetTimeoutException].
-  const GlanceWidgetTimeoutException(
-    super.message, {
-    this.timeoutDuration,
-  }) : super(code: 'TIMEOUT');
+  const GlanceWidgetTimeoutException(super.message, {this.timeoutDuration})
+    : super(code: 'TIMEOUT');
 
   /// The duration that was exceeded.
   final Duration? timeoutDuration;

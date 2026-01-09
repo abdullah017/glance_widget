@@ -5,8 +5,9 @@ import 'package:glance_widget_platform_interface/glance_widget_platform_interfac
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  const MethodChannel methodChannel =
-      MethodChannel('com.example.glance_widget/methods');
+  const MethodChannel methodChannel = MethodChannel(
+    'com.example.glance_widget/methods',
+  );
 
   late List<MethodCall> log;
   late MethodChannelGlanceWidget platform;
@@ -17,20 +18,20 @@ void main() {
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(methodChannel, (MethodCall methodCall) async {
-      log.add(methodCall);
-      switch (methodCall.method) {
-        case 'updateSimpleWidget':
-        case 'updateProgressWidget':
-        case 'updateListWidget':
-        case 'setGlobalTheme':
-        case 'forceRefreshAll':
-          return true;
-        case 'getActiveWidgetIds':
-          return <String>['widget1', 'widget2'];
-        default:
-          return null;
-      }
-    });
+          log.add(methodCall);
+          switch (methodCall.method) {
+            case 'updateSimpleWidget':
+            case 'updateProgressWidget':
+            case 'updateListWidget':
+            case 'setGlobalTheme':
+            case 'forceRefreshAll':
+              return true;
+            case 'getActiveWidgetIds':
+              return <String>['widget1', 'widget2'];
+            default:
+              return null;
+          }
+        });
   });
 
   tearDown(() {
@@ -43,10 +44,7 @@ void main() {
       test('sends correct method call', () async {
         final result = await platform.updateSimpleWidget(
           widgetId: 'test_widget',
-          data: const SimpleWidgetData(
-            title: 'Test',
-            value: '100',
-          ),
+          data: const SimpleWidgetData(title: 'Test', value: '100'),
         );
 
         expect(result, true);
@@ -88,10 +86,7 @@ void main() {
       test('sends correct method call', () async {
         final result = await platform.updateProgressWidget(
           widgetId: 'progress_widget',
-          data: const ProgressWidgetData(
-            title: 'Loading',
-            progress: 0.5,
-          ),
+          data: const ProgressWidgetData(title: 'Loading', progress: 0.5),
         );
 
         expect(result, true);
@@ -204,10 +199,11 @@ void main() {
     group('error handling', () {
       test('returns false on PlatformException by default', () async {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(
-                methodChannel, (MethodCall methodCall) async {
-          throw PlatformException(code: 'ERROR', message: 'Test error');
-        });
+            .setMockMethodCallHandler(methodChannel, (
+              MethodCall methodCall,
+            ) async {
+              throw PlatformException(code: 'ERROR', message: 'Test error');
+            });
 
         final result = await platform.updateSimpleWidget(
           widgetId: 'test',
@@ -221,10 +217,11 @@ void main() {
         MethodChannelGlanceWidget.throwOnError = true;
 
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(
-                methodChannel, (MethodCall methodCall) async {
-          throw PlatformException(code: 'ERROR', message: 'Test error');
-        });
+            .setMockMethodCallHandler(methodChannel, (
+              MethodCall methodCall,
+            ) async {
+              throw PlatformException(code: 'ERROR', message: 'Test error');
+            });
 
         await expectLater(
           platform.updateSimpleWidget(
@@ -240,10 +237,11 @@ void main() {
 
       test('returns empty list on getActiveWidgetIds error', () async {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(
-                methodChannel, (MethodCall methodCall) async {
-          throw PlatformException(code: 'ERROR', message: 'Test error');
-        });
+            .setMockMethodCallHandler(methodChannel, (
+              MethodCall methodCall,
+            ) async {
+              throw PlatformException(code: 'ERROR', message: 'Test error');
+            });
 
         final result = await platform.getActiveWidgetIds();
 
