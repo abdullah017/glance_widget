@@ -1,6 +1,6 @@
 name: glance_widget_android
 description: Android implementation of the glance_widget plugin using Jetpack Glance.
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/abdullah017/glance_widget
 repository: https://github.com/abdullah017/glance_widget/tree/master/glance_widget_android
 issue_tracker: https://github.com/abdullah017/glance_widget/issues

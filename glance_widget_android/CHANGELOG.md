@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+* Updated dependency on glance_widget_platform_interface to ^0.2.0
+* Compatible with iOS implementation release
+
 ## 0.1.0
 
 * Initial release

@@ -12,7 +12,6 @@ topics:
   - ios
   - glance
   - widgetkit
-  - home-screen
 
 environment:
   sdk: ^3.10.0
@@ -22,7 +21,7 @@ dependencies:
   flutter:
     sdk: flutter
   glance_widget_platform_interface: ^0.2.0
-  glance_widget_android: ^0.1.0
+  glance_widget_android: ^0.1.1
   glance_widget_ios: ^0.1.0
   logging: ^1.2.0
 
