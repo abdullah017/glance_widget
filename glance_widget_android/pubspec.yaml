@@ -20,10 +20,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  # FOR PUBLISHING: Change path to version constraint
-  # glance_widget_platform_interface: ^0.1.0
-  glance_widget_platform_interface:
-    path: ../glance_widget_platform_interface
+  glance_widget_platform_interface: ^0.1.0
 
 dev_dependencies:
   flutter_test:
