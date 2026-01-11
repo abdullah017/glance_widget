@@ -26,6 +26,7 @@ library;
 
 export 'src/glance_widget.dart';
 export 'src/glance_widget_controller.dart';
+export 'src/debounced_widget_controller.dart';
 
 // Re-export types from platform interface
 export 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart'

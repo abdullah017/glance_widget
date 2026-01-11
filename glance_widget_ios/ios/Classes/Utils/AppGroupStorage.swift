@@ -19,6 +19,12 @@ import Foundation
 public class AppGroupStorage {
     private let userDefaults: UserDefaults?
 
+    /// Indicates whether the App Group storage is available
+    /// Returns false if UserDefaults initialization failed (usually due to missing entitlements)
+    public var isAvailable: Bool {
+        return userDefaults != nil
+    }
+
     /// Initializes storage with the specified App Group ID
     ///
     /// - Parameter appGroupId: The App Group identifier (e.g., "group.com.example.app")
@@ -33,13 +39,22 @@ public class AppGroupStorage {
     // MARK: - Save Methods
 
     /// Saves a dictionary to storage
-    public func save(_ dictionary: [String: Any], forKey key: String) {
+    /// - Returns: true if save was successful, false otherwise
+    @discardableResult
+    public func save(_ dictionary: [String: Any], forKey key: String) -> Bool {
+        guard userDefaults != nil else {
+            print("GlanceWidget: Cannot save - App Group storage not available")
+            return false
+        }
+
         do {
             let data = try JSONSerialization.data(withJSONObject: dictionary)
             userDefaults?.set(data, forKey: key)
             userDefaults?.synchronize() // Force immediate write for widget access
+            return true
         } catch {
             print("GlanceWidget: Failed to save dictionary for key '\(key)': \(error)")
+            return false
         }
     }
 

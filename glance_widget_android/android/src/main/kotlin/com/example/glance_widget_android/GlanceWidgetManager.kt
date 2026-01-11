@@ -16,6 +16,26 @@ import io.flutter.plugin.common.EventChannel
 import kotlinx.coroutines.*
 
 /**
+ * Result type for widget update operations.
+ * Provides structured error information for proper error handling.
+ */
+sealed class UpdateResult {
+    object Success : UpdateResult()
+    data class Error(val code: String, val message: String) : UpdateResult()
+
+    val isSuccess: Boolean get() = this is Success
+    val isError: Boolean get() = this is Error
+
+    companion object {
+        // Error codes
+        const val ERROR_NO_WIDGET_INSTANCE = "NO_WIDGET_INSTANCE"
+        const val ERROR_UPDATE_FAILED = "UPDATE_FAILED"
+        const val ERROR_INVALID_DATA = "INVALID_DATA"
+        const val ERROR_SERIALIZATION_FAILED = "SERIALIZATION_FAILED"
+    }
+}
+
+/**
  * Manages Glance widget updates and state.
  */
 object GlanceWidgetManager {
@@ -97,41 +117,62 @@ object GlanceWidgetManager {
         theme: Map<String, Any?>?
     ) {
         scope.launch {
-            try {
-                Log.d(TAG, "Updating simple widget: $widgetId")
-                val manager = GlanceAppWidgetManager(context)
-                val glanceIds = manager.getGlanceIds(SimpleGlanceWidget::class.java)
-                val widget = SimpleGlanceWidget()
+            updateSimpleWidgetWithResult(context, widgetId, data, theme)
+        }
+    }
 
-                if (glanceIds.isEmpty()) {
-                    Log.w(TAG, "No SimpleGlanceWidget instances found")
-                    return@launch
-                }
+    /**
+     * Updates a Simple Widget with the given data and returns a result.
+     * Use this method when you need to handle errors.
+     */
+    suspend fun updateSimpleWidgetWithResult(
+        context: Context,
+        widgetId: String,
+        data: Map<String, Any?>,
+        theme: Map<String, Any?>?
+    ): UpdateResult {
+        return try {
+            Log.d(TAG, "Updating simple widget: $widgetId")
+            val manager = GlanceAppWidgetManager(context)
+            val glanceIds = manager.getGlanceIds(SimpleGlanceWidget::class.java)
+            val widget = SimpleGlanceWidget()
 
-                glanceIds.forEach { glanceId ->
-                    updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
-                        prefs.toMutablePreferences().apply {
-                            this[widgetIdKey] = widgetId
-                            this[titleKey] = data["title"] as? String ?: ""
-                            this[valueKey] = data["value"] as? String ?: ""
-                            data["subtitle"]?.let { this[subtitleKey] = it as String }
-                            (data["subtitleColor"] as? Number)?.let { this[subtitleColorKey] = it.toInt() }
-                            data["iconName"]?.let { this[iconNameKey] = it as String }
-                            this[timestampKey] = System.currentTimeMillis()
-
-                            // Apply theme if provided
-                            theme?.let { applyTheme(this, it) }
-                        }
-                    }
-                    widget.update(context, glanceId)
-                }
-
-                // Track this widget as active
-                trackWidgetId(context, widgetId)
-                Log.d(TAG, "Simple widget updated successfully: $widgetId")
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to update simple widget: $widgetId", e)
+            if (glanceIds.isEmpty()) {
+                Log.w(TAG, "No SimpleGlanceWidget instances found")
+                return UpdateResult.Error(
+                    UpdateResult.ERROR_NO_WIDGET_INSTANCE,
+                    "No SimpleGlanceWidget instances found on home screen"
+                )
             }
+
+            glanceIds.forEach { glanceId ->
+                updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
+                    prefs.toMutablePreferences().apply {
+                        this[widgetIdKey] = widgetId
+                        this[titleKey] = data["title"] as? String ?: ""
+                        this[valueKey] = data["value"] as? String ?: ""
+                        data["subtitle"]?.let { this[subtitleKey] = it as String }
+                        (data["subtitleColor"] as? Number)?.let { this[subtitleColorKey] = it.toInt() }
+                        data["iconName"]?.let { this[iconNameKey] = it as String }
+                        this[timestampKey] = System.currentTimeMillis()
+
+                        // Apply theme if provided
+                        theme?.let { applyTheme(this, it) }
+                    }
+                }
+                widget.update(context, glanceId)
+            }
+
+            // Track this widget as active
+            trackWidgetId(context, widgetId)
+            Log.d(TAG, "Simple widget updated successfully: $widgetId")
+            UpdateResult.Success
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to update simple widget: $widgetId", e)
+            UpdateResult.Error(
+                UpdateResult.ERROR_UPDATE_FAILED,
+                "Failed to update simple widget: ${e.message}"
+            )
         }
     }
 
@@ -145,42 +186,63 @@ object GlanceWidgetManager {
         theme: Map<String, Any?>?
     ) {
         scope.launch {
-            try {
-                Log.d(TAG, "Updating progress widget: $widgetId")
-                val manager = GlanceAppWidgetManager(context)
-                val glanceIds = manager.getGlanceIds(ProgressGlanceWidget::class.java)
-                val widget = ProgressGlanceWidget()
+            updateProgressWidgetWithResult(context, widgetId, data, theme)
+        }
+    }
 
-                if (glanceIds.isEmpty()) {
-                    Log.w(TAG, "No ProgressGlanceWidget instances found")
-                    return@launch
-                }
+    /**
+     * Updates a Progress Widget with the given data and returns a result.
+     * Use this method when you need to handle errors.
+     */
+    suspend fun updateProgressWidgetWithResult(
+        context: Context,
+        widgetId: String,
+        data: Map<String, Any?>,
+        theme: Map<String, Any?>?
+    ): UpdateResult {
+        return try {
+            Log.d(TAG, "Updating progress widget: $widgetId")
+            val manager = GlanceAppWidgetManager(context)
+            val glanceIds = manager.getGlanceIds(ProgressGlanceWidget::class.java)
+            val widget = ProgressGlanceWidget()
 
-                glanceIds.forEach { glanceId ->
-                    updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
-                        prefs.toMutablePreferences().apply {
-                            this[widgetIdKey] = widgetId
-                            this[titleKey] = data["title"] as? String ?: ""
-                            this[progressKey] = (data["progress"] as? Number)?.toFloat()?.coerceIn(0f, 1f) ?: 0f
-                            data["subtitle"]?.let { this[subtitleKey] = it as String }
-                            this[progressTypeKey] = data["progressType"] as? String ?: "circular"
-                            (data["progressColor"] as? Number)?.let { this[progressColorKey] = it.toInt() }
-                            (data["trackColor"] as? Number)?.let { this[trackColorKey] = it.toInt() }
-                            this[timestampKey] = System.currentTimeMillis()
-
-                            // Apply theme if provided
-                            theme?.let { applyTheme(this, it) }
-                        }
-                    }
-                    widget.update(context, glanceId)
-                }
-
-                // Track this widget as active
-                trackWidgetId(context, widgetId)
-                Log.d(TAG, "Progress widget updated successfully: $widgetId")
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to update progress widget: $widgetId", e)
+            if (glanceIds.isEmpty()) {
+                Log.w(TAG, "No ProgressGlanceWidget instances found")
+                return UpdateResult.Error(
+                    UpdateResult.ERROR_NO_WIDGET_INSTANCE,
+                    "No ProgressGlanceWidget instances found on home screen"
+                )
             }
+
+            glanceIds.forEach { glanceId ->
+                updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
+                    prefs.toMutablePreferences().apply {
+                        this[widgetIdKey] = widgetId
+                        this[titleKey] = data["title"] as? String ?: ""
+                        this[progressKey] = (data["progress"] as? Number)?.toFloat()?.coerceIn(0f, 1f) ?: 0f
+                        data["subtitle"]?.let { this[subtitleKey] = it as String }
+                        this[progressTypeKey] = data["progressType"] as? String ?: "circular"
+                        (data["progressColor"] as? Number)?.let { this[progressColorKey] = it.toInt() }
+                        (data["trackColor"] as? Number)?.let { this[trackColorKey] = it.toInt() }
+                        this[timestampKey] = System.currentTimeMillis()
+
+                        // Apply theme if provided
+                        theme?.let { applyTheme(this, it) }
+                    }
+                }
+                widget.update(context, glanceId)
+            }
+
+            // Track this widget as active
+            trackWidgetId(context, widgetId)
+            Log.d(TAG, "Progress widget updated successfully: $widgetId")
+            UpdateResult.Success
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to update progress widget: $widgetId", e)
+            UpdateResult.Error(
+                UpdateResult.ERROR_UPDATE_FAILED,
+                "Failed to update progress widget: ${e.message}"
+            )
         }
     }
 
@@ -194,42 +256,63 @@ object GlanceWidgetManager {
         theme: Map<String, Any?>?
     ) {
         scope.launch {
-            try {
-                Log.d(TAG, "Updating list widget: $widgetId")
-                val manager = GlanceAppWidgetManager(context)
-                val glanceIds = manager.getGlanceIds(ListGlanceWidget::class.java)
-                val widget = ListGlanceWidget()
+            updateListWidgetWithResult(context, widgetId, data, theme)
+        }
+    }
 
-                if (glanceIds.isEmpty()) {
-                    Log.w(TAG, "No ListGlanceWidget instances found")
-                    return@launch
-                }
+    /**
+     * Updates a List Widget with the given data and returns a result.
+     * Use this method when you need to handle errors.
+     */
+    suspend fun updateListWidgetWithResult(
+        context: Context,
+        widgetId: String,
+        data: Map<String, Any?>,
+        theme: Map<String, Any?>?
+    ): UpdateResult {
+        return try {
+            Log.d(TAG, "Updating list widget: $widgetId")
+            val manager = GlanceAppWidgetManager(context)
+            val glanceIds = manager.getGlanceIds(ListGlanceWidget::class.java)
+            val widget = ListGlanceWidget()
 
-                glanceIds.forEach { glanceId ->
-                    updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
-                        prefs.toMutablePreferences().apply {
-                            this[widgetIdKey] = widgetId
-                            this[titleKey] = data["title"] as? String ?: ""
-                            // Serialize items as JSON string
-                            @Suppress("UNCHECKED_CAST")
-                            val items = data["items"] as? List<Map<String, Any?>> ?: emptyList()
-                            this[itemsKey] = serializeItems(items)
-                            this[showCheckboxesKey] = data["showCheckboxes"] as? Boolean ?: false
-                            this[timestampKey] = System.currentTimeMillis()
-
-                            // Apply theme if provided
-                            theme?.let { applyTheme(this, it) }
-                        }
-                    }
-                    widget.update(context, glanceId)
-                }
-
-                // Track this widget as active
-                trackWidgetId(context, widgetId)
-                Log.d(TAG, "List widget updated successfully: $widgetId")
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to update list widget: $widgetId", e)
+            if (glanceIds.isEmpty()) {
+                Log.w(TAG, "No ListGlanceWidget instances found")
+                return UpdateResult.Error(
+                    UpdateResult.ERROR_NO_WIDGET_INSTANCE,
+                    "No ListGlanceWidget instances found on home screen"
+                )
             }
+
+            glanceIds.forEach { glanceId ->
+                updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
+                    prefs.toMutablePreferences().apply {
+                        this[widgetIdKey] = widgetId
+                        this[titleKey] = data["title"] as? String ?: ""
+                        // Serialize items as JSON string
+                        @Suppress("UNCHECKED_CAST")
+                        val items = data["items"] as? List<Map<String, Any?>> ?: emptyList()
+                        this[itemsKey] = serializeItems(items)
+                        this[showCheckboxesKey] = data["showCheckboxes"] as? Boolean ?: false
+                        this[timestampKey] = System.currentTimeMillis()
+
+                        // Apply theme if provided
+                        theme?.let { applyTheme(this, it) }
+                    }
+                }
+                widget.update(context, glanceId)
+            }
+
+            // Track this widget as active
+            trackWidgetId(context, widgetId)
+            Log.d(TAG, "List widget updated successfully: $widgetId")
+            UpdateResult.Success
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to update list widget: $widgetId", e)
+            UpdateResult.Error(
+                UpdateResult.ERROR_UPDATE_FAILED,
+                "Failed to update list widget: ${e.message}"
+            )
         }
     }
 

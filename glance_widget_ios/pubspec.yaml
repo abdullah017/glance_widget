@@ -1,6 +1,6 @@
 name: glance_widget_ios
 description: iOS implementation of the glance_widget plugin using WidgetKit.
-version: 0.1.0
+version: 0.2.0
 homepage: https://github.com/abdullah017/glance_widget
 repository: https://github.com/abdullah017/glance_widget/tree/master/glance_widget_ios
 issue_tracker: https://github.com/abdullah017/glance_widget/issues
@@ -19,7 +19,7 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  glance_widget_platform_interface: ^0.2.0
+  glance_widget_platform_interface: ^0.3.0
 
 dev_dependencies:
   flutter_test:

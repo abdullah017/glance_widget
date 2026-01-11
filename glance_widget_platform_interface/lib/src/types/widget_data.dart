@@ -20,6 +20,11 @@ class SimpleWidgetData {
   /// Optional custom icon as base64 encoded image.
   final String? iconBase64;
 
+  /// Creates a SimpleWidgetData with required title and value.
+  ///
+  /// Throws [AssertionError] if:
+  /// - [title] is empty
+  /// - [value] is empty
   const SimpleWidgetData({
     required this.title,
     required this.value,
@@ -27,7 +32,8 @@ class SimpleWidgetData {
     this.subtitleColor,
     this.iconName,
     this.iconBase64,
-  });
+  })  : assert(title.length > 0, 'title cannot be empty'),
+        assert(value.length > 0, 'value cannot be empty');
 
   Map<String, dynamic> toMap() => {
     'title': title,
@@ -68,6 +74,11 @@ class ProgressWidgetData {
   /// Optional background color for the progress track.
   final Color? trackColor;
 
+  /// Creates a ProgressWidgetData with required title and progress.
+  ///
+  /// Throws [AssertionError] if:
+  /// - [title] is empty
+  /// - [progress] is not between 0.0 and 1.0
   const ProgressWidgetData({
     required this.title,
     required this.progress,
@@ -75,7 +86,9 @@ class ProgressWidgetData {
     this.progressType = ProgressType.circular,
     this.progressColor,
     this.trackColor,
-  }) : assert(progress >= 0.0 && progress <= 1.0);
+  })  : assert(title.length > 0, 'title cannot be empty'),
+        assert(progress >= 0.0 && progress <= 1.0,
+            'progress must be between 0.0 and 1.0');
 
   Map<String, dynamic> toMap() => {
     'title': title,
@@ -130,12 +143,19 @@ class ListWidgetData {
   /// Maximum number of items to display (default: 5).
   final int maxItems;
 
+  /// Creates a ListWidgetData with required title and items.
+  ///
+  /// Throws [AssertionError] if:
+  /// - [title] is empty
+  /// - [maxItems] is not between 1 and 20
   const ListWidgetData({
     required this.title,
     required this.items,
     this.showCheckboxes = false,
     this.maxItems = 5,
-  });
+  })  : assert(title.length > 0, 'title cannot be empty'),
+        assert(maxItems >= 1 && maxItems <= 20,
+            'maxItems must be between 1 and 20');
 
   Map<String, dynamic> toMap() => {
     'title': title,

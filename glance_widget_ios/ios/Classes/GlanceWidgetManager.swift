@@ -1,6 +1,36 @@
 import Foundation
 import WidgetKit
 
+/// Result type for widget update operations.
+/// Provides structured error information for proper error handling.
+public enum GlanceResult {
+    case success
+    case failure(code: String, message: String)
+
+    public var isSuccess: Bool {
+        if case .success = self { return true }
+        return false
+    }
+
+    public var isFailure: Bool {
+        if case .failure = self { return true }
+        return false
+    }
+
+    /// Extracts error information if this is a failure result
+    public var error: (code: String, message: String)? {
+        if case .failure(let code, let message) = self {
+            return (code, message)
+        }
+        return nil
+    }
+
+    // Error codes
+    public static let errorAppGroupAccess = "APP_GROUP_ACCESS_ERROR"
+    public static let errorSaveFailed = "SAVE_FAILED"
+    public static let errorInvalidData = "INVALID_DATA"
+}
+
 /// Manages widget data storage and updates for iOS WidgetKit widgets.
 ///
 /// This class handles:
@@ -51,6 +81,19 @@ public class GlanceWidgetManager {
 
     /// Updates a Simple Widget with the given data
     public func updateSimpleWidget(widgetId: String, data: [String: Any], theme: [String: Any]?) {
+        _ = updateSimpleWidgetWithResult(widgetId: widgetId, data: data, theme: theme)
+    }
+
+    /// Updates a Simple Widget with the given data and returns a result.
+    /// Use this method when you need to handle errors.
+    @discardableResult
+    public func updateSimpleWidgetWithResult(widgetId: String, data: [String: Any], theme: [String: Any]?) -> GlanceResult {
+        guard storage.isAvailable else {
+            print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
+            return .failure(code: GlanceResult.errorAppGroupAccess,
+                          message: "App Group storage not available. Check entitlements configuration.")
+        }
+
         var widgetData = data
         widgetData["widgetId"] = widgetId
         widgetData["timestamp"] = Date().timeIntervalSince1970
@@ -59,16 +102,35 @@ public class GlanceWidgetManager {
             widgetData["theme"] = theme
         }
 
-        storage.save(widgetData, forKey: "\(simpleWidgetKeyPrefix)\(widgetId)")
+        let saved = storage.save(widgetData, forKey: "\(simpleWidgetKeyPrefix)\(widgetId)")
+        if !saved {
+            return .failure(code: GlanceResult.errorSaveFailed,
+                          message: "Failed to save widget data to App Group storage")
+        }
+
         trackWidgetId(widgetId)
 
         // Trigger widget refresh
         // When app is in foreground, this is INSTANT and has NO budget limit!
         WidgetCenter.shared.reloadTimelines(ofKind: "SimpleWidget")
+        return .success
     }
 
     /// Updates a Progress Widget with the given data
     public func updateProgressWidget(widgetId: String, data: [String: Any], theme: [String: Any]?) {
+        _ = updateProgressWidgetWithResult(widgetId: widgetId, data: data, theme: theme)
+    }
+
+    /// Updates a Progress Widget with the given data and returns a result.
+    /// Use this method when you need to handle errors.
+    @discardableResult
+    public func updateProgressWidgetWithResult(widgetId: String, data: [String: Any], theme: [String: Any]?) -> GlanceResult {
+        guard storage.isAvailable else {
+            print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
+            return .failure(code: GlanceResult.errorAppGroupAccess,
+                          message: "App Group storage not available. Check entitlements configuration.")
+        }
+
         var widgetData = data
         widgetData["widgetId"] = widgetId
         widgetData["timestamp"] = Date().timeIntervalSince1970
@@ -77,14 +139,32 @@ public class GlanceWidgetManager {
             widgetData["theme"] = theme
         }
 
-        storage.save(widgetData, forKey: "\(progressWidgetKeyPrefix)\(widgetId)")
-        trackWidgetId(widgetId)
+        let saved = storage.save(widgetData, forKey: "\(progressWidgetKeyPrefix)\(widgetId)")
+        if !saved {
+            return .failure(code: GlanceResult.errorSaveFailed,
+                          message: "Failed to save widget data to App Group storage")
+        }
 
+        trackWidgetId(widgetId)
         WidgetCenter.shared.reloadTimelines(ofKind: "ProgressWidget")
+        return .success
     }
 
     /// Updates a List Widget with the given data
     public func updateListWidget(widgetId: String, data: [String: Any], theme: [String: Any]?) {
+        _ = updateListWidgetWithResult(widgetId: widgetId, data: data, theme: theme)
+    }
+
+    /// Updates a List Widget with the given data and returns a result.
+    /// Use this method when you need to handle errors.
+    @discardableResult
+    public func updateListWidgetWithResult(widgetId: String, data: [String: Any], theme: [String: Any]?) -> GlanceResult {
+        guard storage.isAvailable else {
+            print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
+            return .failure(code: GlanceResult.errorAppGroupAccess,
+                          message: "App Group storage not available. Check entitlements configuration.")
+        }
+
         var widgetData = data
         widgetData["widgetId"] = widgetId
         widgetData["timestamp"] = Date().timeIntervalSince1970
@@ -93,10 +173,15 @@ public class GlanceWidgetManager {
             widgetData["theme"] = theme
         }
 
-        storage.save(widgetData, forKey: "\(listWidgetKeyPrefix)\(widgetId)")
-        trackWidgetId(widgetId)
+        let saved = storage.save(widgetData, forKey: "\(listWidgetKeyPrefix)\(widgetId)")
+        if !saved {
+            return .failure(code: GlanceResult.errorSaveFailed,
+                          message: "Failed to save widget data to App Group storage")
+        }
 
+        trackWidgetId(widgetId)
         WidgetCenter.shared.reloadTimelines(ofKind: "ListWidget")
+        return .success
     }
 
     /// Sets the global theme for all widgets

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+* Added input validation for widget data (empty titles, progress bounds, maxItems range)
+* Improved documentation for all data types
+
 ## 0.2.0
 
 * Added `getWidgetPushToken()` method for iOS 26+ Widget Push Updates

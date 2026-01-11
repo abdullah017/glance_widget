@@ -13,6 +13,8 @@ Create instant-updating home screen widgets for **Android** and **iOS**. Built w
 - **Theme Support** - Light/Dark themes with full customization
 - **Tap Actions** - Handle widget taps and interactions
 - **iOS 26+ Push Updates** - Server-triggered widget updates via APNs
+- **Real-time Data** - Debounced controller for high-frequency updates (crypto, stocks)
+- **Robust Error Handling** - Structured error types for debugging
 
 ## Platform Comparison
 
@@ -37,7 +39,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  glance_widget: ^0.2.0
+  glance_widget: ^0.3.0
 ```
 
 ---
@@ -314,6 +316,49 @@ controller.onAction.listen((action) {
 // Dispose when done
 controller.dispose();
 ```
+
+---
+
+## DebouncedWidgetController (Real-time Data)
+
+For high-frequency updates like crypto prices, stock quotes, or live scores:
+
+```dart
+final controller = DebouncedWidgetController(
+  widgetId: 'crypto_btc',
+  template: GlanceTemplate.simple,
+  theme: GlanceTheme.dark(),
+  debounceInterval: Duration(milliseconds: 100),  // Wait before sending
+  maxWaitTime: Duration(milliseconds: 500),       // Max wait for freshness
+);
+
+// Subscribe to rapid price updates (could be 100s per second)
+priceStream.listen((price) {
+  // Updates are automatically coalesced - only latest value is sent
+  controller.scheduleUpdate(SimpleWidgetData(
+    title: 'Bitcoin',
+    value: '\$${price.toStringAsFixed(2)}',
+    subtitle: price > previousPrice ? '↑' : '↓',
+    subtitleColor: price > previousPrice ? Colors.green : Colors.red,
+  ));
+});
+
+// Check update statistics
+print('Updates sent: ${controller.updateCount}');
+print('Updates skipped: ${controller.skippedCount}');
+print('Is stale: ${controller.isStale}');
+
+// Force immediate update (e.g., before app goes to background)
+await controller.flush();
+
+// Dispose when done
+controller.dispose();
+```
+
+**How it works:**
+- Updates within `debounceInterval` are coalesced (only latest is sent)
+- Updates are guaranteed within `maxWaitTime` for data freshness
+- Perfect for WebSocket streams or frequent API polling
 
 ---
 

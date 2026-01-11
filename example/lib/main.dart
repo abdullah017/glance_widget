@@ -41,6 +41,11 @@ class _HomePageState extends State<HomePage> {
   double _cryptoPrice = 94532.00;
   double _priceChange = 2.34;
 
+  // Debounced controller for real-time crypto updates
+  DebouncedWidgetController? _cryptoController;
+  Timer? _realtimeTimer;
+  bool _isRealtimeActive = false;
+
   // Progress widget state
   double _downloadProgress = 0.0;
   Timer? _downloadTimer;
@@ -65,13 +70,61 @@ class _HomePageState extends State<HomePage> {
     _setupWidgetActions();
     _setDarkTheme();
     _checkPlatformFeatures();
+    _initCryptoController();
   }
 
   @override
   void dispose() {
     _downloadTimer?.cancel();
+    _realtimeTimer?.cancel();
+    _cryptoController?.dispose();
     _actionSubscription?.cancel();
     super.dispose();
+  }
+
+  void _initCryptoController() {
+    _cryptoController = DebouncedWidgetController(
+      widgetId: 'crypto_btc',
+      template: GlanceTemplate.simple,
+      theme: GlanceTheme.dark(),
+      debounceInterval: const Duration(milliseconds: 100),
+      maxWaitTime: const Duration(milliseconds: 500),
+    );
+  }
+
+  void _toggleRealtimeUpdates() {
+    setState(() {
+      _isRealtimeActive = !_isRealtimeActive;
+    });
+
+    if (_isRealtimeActive) {
+      // Simulate rapid price updates (like a WebSocket stream)
+      _realtimeTimer = Timer.periodic(
+        const Duration(milliseconds: 50),
+        (timer) {
+          final random = Random();
+          final change = (random.nextDouble() - 0.5) * 100;
+          setState(() {
+            _cryptoPrice += change;
+            _priceChange = (change / _cryptoPrice) * 100;
+          });
+
+          // Schedule update using debounced controller
+          _cryptoController?.scheduleUpdate(SimpleWidgetData(
+            title: 'Bitcoin',
+            value: '\$${_cryptoPrice.toStringAsFixed(2)}',
+            subtitle:
+                '${_priceChange >= 0 ? '+' : ''}${_priceChange.toStringAsFixed(2)}%',
+            subtitleColor: _priceChange >= 0 ? Colors.green : Colors.red,
+          ));
+        },
+      );
+    } else {
+      _realtimeTimer?.cancel();
+      _realtimeTimer = null;
+      // Flush any pending update
+      _cryptoController?.flush();
+    }
   }
 
   void _setupWidgetActions() {
@@ -306,16 +359,80 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         const SizedBox(height: 16),
-        ElevatedButton.icon(
-          onPressed: _updateSimpleWidget,
-          icon: const Icon(Icons.refresh),
-          label: const Text('Update Widget'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFFA726),
-            foregroundColor: Colors.black,
-            minimumSize: const Size(double.infinity, 48),
+        // Debounce stats
+        if (_cryptoController != null)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0A0A1A),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFF2A2A3E)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStat('Updates', '${_cryptoController!.updateCount}'),
+                _buildStat('Skipped', '${_cryptoController!.skippedCount}'),
+                _buildStat(
+                  'Stale',
+                  _cryptoController!.isStale ? 'Yes' : 'No',
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _updateSimpleWidget,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Single Update'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFFA726),
+                  foregroundColor: Colors.black,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _toggleRealtimeUpdates,
+                icon: Icon(_isRealtimeActive ? Icons.stop : Icons.play_arrow),
+                label: Text(_isRealtimeActive ? 'Stop' : 'Realtime'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      _isRealtimeActive ? Colors.red : Colors.purple,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (_isRealtimeActive)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              'Simulating 20 updates/sec with debouncing',
+              style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildStat(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
       ],
     );
   }

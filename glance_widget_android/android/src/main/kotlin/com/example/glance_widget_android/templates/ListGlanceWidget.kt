@@ -1,6 +1,7 @@
 package com.example.glance_widget_android.templates
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,6 +22,8 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import com.example.glance_widget_android.GlanceWidgetManager
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 /**
  * List Widget - displays a list of items with optional checkboxes.
@@ -226,10 +229,42 @@ private fun ListItemRow(
 
 /**
  * Parses the serialized items string back to ListItem objects.
+ * Uses JSON parsing for robust handling of special characters.
+ * Falls back to legacy delimiter parsing for backward compatibility.
  */
 private fun parseItems(itemsString: String): List<ListItem> {
     if (itemsString.isEmpty()) return emptyList()
 
+    // Try JSON parsing first (new format)
+    if (itemsString.startsWith("[")) {
+        return try {
+            val gson = Gson()
+            val type = object : TypeToken<List<Map<String, Any?>>>() {}.type
+            val items: List<Map<String, Any?>> = gson.fromJson(itemsString, type)
+
+            items.map { itemMap ->
+                ListItem(
+                    text = itemMap["text"] as? String ?: "",
+                    checked = itemMap["checked"] as? Boolean ?: false,
+                    secondaryText = (itemMap["secondaryText"] as? String)?.takeIf { it.isNotEmpty() }
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("ListGlanceWidget", "Failed to parse items as JSON, falling back to legacy format", e)
+            parseLegacyItems(itemsString)
+        }
+    }
+
+    // Legacy delimiter-based parsing for backward compatibility
+    return parseLegacyItems(itemsString)
+}
+
+/**
+ * Legacy parsing using delimiter-based format.
+ * Kept for backward compatibility with older widget data.
+ * @deprecated Use JSON format for new implementations.
+ */
+private fun parseLegacyItems(itemsString: String): List<ListItem> {
     return itemsString.split("|||").mapNotNull { itemStr ->
         val parts = itemStr.split("::")
         if (parts.isNotEmpty()) {

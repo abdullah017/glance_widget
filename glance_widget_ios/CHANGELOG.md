@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0
+
+* **Error Handling** - Added `GlanceResult` enum for structured error reporting
+* **App Group Validation** - Added `isAvailable` check and improved error messages
+* **Save Feedback** - `save()` methods now return Bool indicating success/failure
+* Updated dependency on glance_widget_platform_interface to ^0.3.0
+
 ## 0.1.0
 
 * Initial release
