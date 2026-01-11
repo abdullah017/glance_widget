@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.example.glance_widget_example"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -27,7 +27,7 @@ android {
     defaultConfig {
         applicationId = "com.example.glance_widget_example"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -41,4 +41,10 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Compose Runtime required for Kotlin Compose plugin
+    implementation(platform("androidx.compose:compose-bom:2024.12.01"))
+    implementation("androidx.compose.runtime:runtime")
 }

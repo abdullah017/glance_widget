@@ -1,10 +1,16 @@
-## 0.3.0
+## 0.3.1
 
 ### Stability & Quality
 * **JSON Serialization** - Fixed list widget item parsing using proper JSON instead of delimiter-based parsing (`|||`, `::`)
 * **Error Handling** - Added structured error types for both Android (`UpdateResult`) and iOS (`GlanceResult`)
 * **Input Validation** - Added assert-based validation for widget data (empty titles, progress bounds, maxItems range)
 * **Backward Compatibility** - Legacy delimiter parsing preserved for existing widget data
+
+### Android Compatibility (Glance 1.1.1)
+* **Compose BOM** - Added Compose BOM 2024.12.01 for runtime compatibility
+* **ColorProvider API** - Fixed for Compose Color type
+* **CircularProgressIndicator** - Changed to percentage display (Glance only supports indeterminate mode)
+* **compileSdk** - Updated to API 36
 
 ### Real-time Data Optimization
 * **DebouncedWidgetController** - New controller for high-frequency updates (crypto, stocks, live scores)

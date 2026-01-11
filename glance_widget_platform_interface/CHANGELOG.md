@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+* Dependency update for release
+
 ## 0.3.0
 
 * Added input validation for widget data (empty titles, progress bounds, maxItems range)

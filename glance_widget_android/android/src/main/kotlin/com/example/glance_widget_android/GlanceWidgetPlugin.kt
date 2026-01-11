@@ -104,6 +104,11 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
                 result.success(ids)
             }
 
+            "isWidgetPushSupported" -> {
+                // Widget Push Updates is an iOS 26+ only feature
+                result.success(false)
+            }
+
             else -> result.notImplemented()
         }
     }

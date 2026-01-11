@@ -9,7 +9,7 @@ version = "1.0"
 
 android {
     namespace = "com.example.glance_widget_android"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26
@@ -31,6 +31,10 @@ android {
 }
 
 dependencies {
+    // Compose BOM and Runtime
+    implementation(platform("androidx.compose:compose-bom:2024.12.01"))
+    implementation("androidx.compose.runtime:runtime")
+
     // Glance for App Widgets
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation("androidx.glance:glance-material3:1.1.1")

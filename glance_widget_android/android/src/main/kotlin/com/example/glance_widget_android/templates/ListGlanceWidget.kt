@@ -21,6 +21,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import androidx.compose.ui.graphics.Color
 import com.example.glance_widget_android.GlanceWidgetManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -63,20 +64,20 @@ private fun ListWidgetContent(prefs: Preferences) {
 
     // Theme colors
     val backgroundColor = prefs[GlanceWidgetManager.backgroundColorKey]
-        ?.let { ColorProvider(android.graphics.Color.valueOf(it)) }
-        ?: ColorProvider(if (isDark) android.graphics.Color.parseColor("#1A1A2E") else android.graphics.Color.WHITE)
+        ?.let { ColorProvider(Color(it.toInt())) }
+        ?: ColorProvider(Color(if (isDark) 0xFF1A1A2E.toInt() else 0xFFFFFFFF.toInt()))
 
     val textColor = prefs[GlanceWidgetManager.textColorKey]
-        ?.let { ColorProvider(android.graphics.Color.valueOf(it)) }
-        ?: ColorProvider(if (isDark) android.graphics.Color.WHITE else android.graphics.Color.parseColor("#212121"))
+        ?.let { ColorProvider(Color(it.toInt())) }
+        ?: ColorProvider(Color(if (isDark) 0xFFFFFFFF.toInt() else 0xFF212121.toInt()))
 
     val secondaryTextColor = prefs[GlanceWidgetManager.secondaryTextColorKey]
-        ?.let { ColorProvider(android.graphics.Color.valueOf(it)) }
-        ?: ColorProvider(if (isDark) android.graphics.Color.parseColor("#B0B0B0") else android.graphics.Color.parseColor("#757575"))
+        ?.let { ColorProvider(Color(it.toInt())) }
+        ?: ColorProvider(Color(if (isDark) 0xFFB0B0B0.toInt() else 0xFF757575.toInt()))
 
     val accentColor = prefs[GlanceWidgetManager.accentColorKey]
-        ?.let { ColorProvider(android.graphics.Color.valueOf(it)) }
-        ?: ColorProvider(android.graphics.Color.parseColor("#2196F3"))
+        ?.let { ColorProvider(Color(it.toInt())) }
+        ?: ColorProvider(Color(0xFF2196F3.toInt()))
 
     val borderRadius = prefs[GlanceWidgetManager.borderRadiusKey]?.toInt() ?: 16
 
@@ -84,7 +85,6 @@ private fun ListWidgetContent(prefs: Preferences) {
         modifier = GlanceModifier
             .fillMaxSize()
             .background(backgroundColor)
-            .cornerRadius(borderRadius.dp)
             .padding(16.dp)
     ) {
         // Header
@@ -122,8 +122,7 @@ private fun ListWidgetContent(prefs: Preferences) {
                 .fillMaxWidth()
                 .height(1.dp)
                 .background(ColorProvider(
-                    if (isDark) android.graphics.Color.parseColor("#3A3A4E")
-                    else android.graphics.Color.parseColor("#E0E0E0")
+                    Color(if (isDark) 0xFF3A3A4E.toInt() else 0xFFE0E0E0.toInt())
                 ))
         ) {}
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+* Updated dependency on glance_widget_platform_interface to ^0.3.1
+
 ## 0.2.0
 
 * **Error Handling** - Added `GlanceResult` enum for structured error reporting

@@ -7,7 +7,6 @@ import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
 import androidx.glance.action.clickable
-import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.LinearProgressIndicator
@@ -19,6 +18,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import androidx.compose.ui.graphics.Color
 import com.example.glance_widget_android.GlanceWidgetManager
 
 /**
@@ -50,24 +50,24 @@ private fun ProgressWidgetContent(prefs: Preferences) {
 
     // Theme colors
     val backgroundColor = prefs[GlanceWidgetManager.backgroundColorKey]
-        ?.let { ColorProvider(android.graphics.Color.valueOf(it)) }
-        ?: ColorProvider(if (isDark) android.graphics.Color.parseColor("#1A1A2E") else android.graphics.Color.WHITE)
+        ?.let { ColorProvider(Color(it.toInt())) }
+        ?: ColorProvider(Color(if (isDark) 0xFF1A1A2E.toInt() else 0xFFFFFFFF.toInt()))
 
     val textColor = prefs[GlanceWidgetManager.textColorKey]
-        ?.let { ColorProvider(android.graphics.Color.valueOf(it)) }
-        ?: ColorProvider(if (isDark) android.graphics.Color.WHITE else android.graphics.Color.parseColor("#212121"))
+        ?.let { ColorProvider(Color(it.toInt())) }
+        ?: ColorProvider(Color(if (isDark) 0xFFFFFFFF.toInt() else 0xFF212121.toInt()))
 
     val secondaryTextColor = prefs[GlanceWidgetManager.secondaryTextColorKey]
-        ?.let { ColorProvider(android.graphics.Color.valueOf(it)) }
-        ?: ColorProvider(if (isDark) android.graphics.Color.parseColor("#B0B0B0") else android.graphics.Color.parseColor("#757575"))
+        ?.let { ColorProvider(Color(it.toInt())) }
+        ?: ColorProvider(Color(if (isDark) 0xFFB0B0B0.toInt() else 0xFF757575.toInt()))
 
     val accentColor = prefs[GlanceWidgetManager.accentColorKey]
-        ?.let { ColorProvider(android.graphics.Color.valueOf(it)) }
-        ?: ColorProvider(android.graphics.Color.parseColor("#2196F3"))
+        ?.let { ColorProvider(Color(it.toInt())) }
+        ?: ColorProvider(Color(0xFF2196F3.toInt()))
 
-    val progressColor = progressColorInt?.let { ColorProvider(android.graphics.Color.valueOf(it)) } ?: accentColor
-    val trackColor = trackColorInt?.let { ColorProvider(android.graphics.Color.valueOf(it)) }
-        ?: ColorProvider(if (isDark) android.graphics.Color.parseColor("#3A3A4E") else android.graphics.Color.parseColor("#E0E0E0"))
+    val progressColor = progressColorInt?.let { ColorProvider(Color(it.toInt())) } ?: accentColor
+    val trackColor = trackColorInt?.let { ColorProvider(Color(it.toInt())) }
+        ?: ColorProvider(Color(if (isDark) 0xFF3A3A4E.toInt() else 0xFFE0E0E0.toInt()))
 
     val borderRadius = prefs[GlanceWidgetManager.borderRadiusKey]?.toInt() ?: 16
 
@@ -75,7 +75,6 @@ private fun ProgressWidgetContent(prefs: Preferences) {
         modifier = GlanceModifier
             .fillMaxSize()
             .background(backgroundColor)
-            .cornerRadius(borderRadius.dp)
             .clickable {
                 GlanceWidgetManager.sendActionEvent(widgetId, "tap")
             }
@@ -143,22 +142,21 @@ private fun ProgressWidgetContent(prefs: Preferences) {
                 Spacer(modifier = GlanceModifier.height(12.dp))
 
                 // Circular Progress with percentage in center
+                // Note: Glance CircularProgressIndicator only supports indeterminate mode
+                // So we show a styled percentage display instead
                 Box(
+                    modifier = GlanceModifier
+                        .size(80.dp)
+                        .background(trackColor),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(
-                        progress = progress,
-                        modifier = GlanceModifier.size(80.dp),
-                        color = progressColor
-                    )
-
                     // Percentage text
                     val percentage = (progress * 100).toInt()
                     Text(
                         text = "$percentage%",
                         style = TextStyle(
                             color = textColor,
-                            fontSize = 18.sp,
+                            fontSize = 24.sp,
                             fontWeight = FontWeight.Bold
                         )
                     )

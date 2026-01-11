@@ -17,6 +17,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import androidx.compose.ui.graphics.Color
 import com.example.glance_widget_android.GlanceWidgetManager
 
 /**
@@ -46,16 +47,16 @@ private fun SimpleWidgetContent(prefs: Preferences) {
 
     // Theme colors
     val backgroundColor = prefs[GlanceWidgetManager.backgroundColorKey]
-        ?.let { ColorProvider(android.graphics.Color.valueOf(it)) }
-        ?: ColorProvider(if (isDark) android.graphics.Color.parseColor("#1A1A2E") else android.graphics.Color.WHITE)
+        ?.let { ColorProvider(Color(it.toInt())) }
+        ?: ColorProvider(Color(if (isDark) 0xFF1A1A2E.toInt() else 0xFFFFFFFF.toInt()))
 
     val textColor = prefs[GlanceWidgetManager.textColorKey]
-        ?.let { ColorProvider(android.graphics.Color.valueOf(it)) }
-        ?: ColorProvider(if (isDark) android.graphics.Color.WHITE else android.graphics.Color.parseColor("#212121"))
+        ?.let { ColorProvider(Color(it.toInt())) }
+        ?: ColorProvider(Color(if (isDark) 0xFFFFFFFF.toInt() else 0xFF212121.toInt()))
 
     val secondaryTextColor = prefs[GlanceWidgetManager.secondaryTextColorKey]
-        ?.let { ColorProvider(android.graphics.Color.valueOf(it)) }
-        ?: ColorProvider(if (isDark) android.graphics.Color.parseColor("#B0B0B0") else android.graphics.Color.parseColor("#757575"))
+        ?.let { ColorProvider(Color(it.toInt())) }
+        ?: ColorProvider(Color(if (isDark) 0xFFB0B0B0.toInt() else 0xFF757575.toInt()))
 
     val borderRadius = prefs[GlanceWidgetManager.borderRadiusKey]?.toInt() ?: 16
 
@@ -63,7 +64,6 @@ private fun SimpleWidgetContent(prefs: Preferences) {
         modifier = GlanceModifier
             .fillMaxSize()
             .background(backgroundColor)
-            .cornerRadius(borderRadius.dp)
             .clickable {
                 GlanceWidgetManager.sendActionEvent(widgetId, "tap")
             }
@@ -104,7 +104,7 @@ private fun SimpleWidgetContent(prefs: Preferences) {
                     text = it,
                     style = TextStyle(
                         color = subtitleColor?.let { c ->
-                            ColorProvider(android.graphics.Color.valueOf(c))
+                            ColorProvider(Color(c.toInt()))
                         } ?: secondaryTextColor,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium

@@ -23,7 +23,10 @@ Create instant-updating home screen widgets for **Android** and **iOS**. Built w
 | Update Speed | < 1 second | < 1 second (app foreground) |
 | Background Updates | Instant | Timeline-based |
 | Server Push | N/A | iOS 26+ (APNs) |
+| Circular Progress | Percentage display only* | Native circular indicator |
 | Min Version | Android 8.0 (API 26) | iOS 16.0 |
+
+*Glance 1.1.1 only supports indeterminate CircularProgressIndicator
 
 ## Widget Templates
 
@@ -39,7 +42,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  glance_widget: ^0.3.0
+  glance_widget: ^0.3.1
 ```
 
 ---
@@ -112,7 +115,7 @@ In `android/app/build.gradle.kts`:
 
 ```kotlin
 android {
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         minSdk = 26
     }

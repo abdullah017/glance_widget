@@ -1,6 +1,6 @@
 name: glance_widget_platform_interface
 description: A common platform interface for the glance_widget plugin.
-version: 0.3.0
+version: 0.3.1
 homepage: https://github.com/abdullah017/glance_widget
 repository: https://github.com/abdullah017/glance_widget/tree/master/glance_widget_platform_interface
 issue_tracker: https://github.com/abdullah017/glance_widget/issues
