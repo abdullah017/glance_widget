@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
-import androidx.glance.action.actionStartActivity
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -145,7 +145,7 @@ private fun RadialGaugeContent(
             Box(
                 modifier = GlanceModifier
                     .fillMaxWidth()
-                    .defaultWeight(),
+                    .fillMaxHeight(),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -153,7 +153,7 @@ private fun RadialGaugeContent(
                     contentDescription = "$title gauge",
                     modifier = GlanceModifier
                         .fillMaxWidth()
-                        .defaultWeight(),
+                        .fillMaxHeight(),
                     contentScale = ContentScale.Fit
                 )
             }
@@ -225,7 +225,7 @@ private fun DashboardContent(
 
                 // If odd number, fill remaining space
                 if (rowMetrics.size == 1) {
-                    Spacer(modifier = GlanceModifier.defaultWeight())
+                    Spacer(modifier = GlanceModifier.fillMaxWidth())
                 }
             }
         }
@@ -249,7 +249,7 @@ private fun MetricCard(
 
     Box(
         modifier = GlanceModifier
-            .defaultWeight()
+            .fillMaxWidth()
             .padding(8.dp)
             .background(cardBackground)
             .clickable {
@@ -324,7 +324,7 @@ private fun GaugePlaceholder(
     Box(
         modifier = GlanceModifier
             .fillMaxWidth()
-            .defaultWeight()
+            .fillMaxHeight()
             .background(ColorProvider(
                 Color(if (isDark) 0xFF3A3A4E.toInt() else 0xFFE0E0E0.toInt())
             )),

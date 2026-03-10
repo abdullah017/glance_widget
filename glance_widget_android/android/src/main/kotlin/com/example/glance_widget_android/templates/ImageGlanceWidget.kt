@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
-import androidx.glance.action.actionStartActivity
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -108,7 +108,7 @@ private fun ImageWidgetContent(prefs: Preferences) {
                     contentDescription = title.ifEmpty { "Widget image" },
                     modifier = GlanceModifier
                         .fillMaxWidth()
-                        .defaultWeight(),
+                        .fillMaxHeight(),
                     contentScale = contentScale
                 )
             } else {
@@ -116,7 +116,7 @@ private fun ImageWidgetContent(prefs: Preferences) {
                 Box(
                     modifier = GlanceModifier
                         .fillMaxWidth()
-                        .defaultWeight()
+                        .fillMaxHeight()
                         .background(ColorProvider(
                             Color(if (isDark) 0xFF3A3A4E.toInt() else 0xFFE0E0E0.toInt())
                         )),
@@ -136,7 +136,7 @@ private fun ImageWidgetContent(prefs: Preferences) {
             Box(
                 modifier = GlanceModifier
                     .fillMaxWidth()
-                    .defaultWeight()
+                    .fillMaxHeight()
                     .background(ColorProvider(
                         Color(if (isDark) 0xFF3A3A4E.toInt() else 0xFFE0E0E0.toInt())
                     )),

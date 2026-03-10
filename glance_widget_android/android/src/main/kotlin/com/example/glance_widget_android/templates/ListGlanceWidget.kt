@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
-import androidx.glance.action.actionStartActivity
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.CheckBox
 import androidx.glance.appwidget.GlanceAppWidget
@@ -108,7 +108,7 @@ private fun ListWidgetContent(prefs: Preferences) {
                 )
             )
 
-            Spacer(modifier = GlanceModifier.defaultWeight())
+            Spacer(modifier = GlanceModifier.fillMaxWidth())
 
             // Item count badge
             Text(
@@ -217,7 +217,7 @@ private fun ListItemRow(
         }
 
         Column(
-            modifier = GlanceModifier.defaultWeight()
+            modifier = GlanceModifier.fillMaxWidth()
         ) {
             Text(
                 text = item.text,
