@@ -1,3 +1,59 @@
+## 0.7.0
+
+### New Widget Templates
+* **Image Widget** - Display photos with title and subtitle (base64 + URL support)
+* **Chart Widget** - Line, bar, and sparkline chart visualization
+* **Calendar Widget** - Date header with event list and colored indicators
+* **Gauge Widget** - Radial and dashboard metric displays
+
+### Platform Features
+* **Deep Link Support** - All 7 widget templates support custom deep link URIs
+* **Android Lock Screen Widgets** - All widgets now support `keyguard` category for lock screen placement
+* **iOS Timeline Refresh** - Configurable `.after(date)` timeline policy for periodic widget refresh
+  * `configureTimelineRefresh()` / `cancelTimelineRefresh()` API
+* **Interactive Widget Actions** - Checkbox toggle and item tap actions for List Widget
+  * New action types: `toggle`, `checkboxToggle`, `itemTap`, `configure`
+  * New action fields: `itemId`, `value`, `itemIndex`
+* **Widget Configuration** - `completeWidgetConfiguration()` for handling widget setup flow
+
+### SDK Updates
+* Flutter 3.27+ / Dart 3.6+ minimum SDK requirement
+* Compose BOM 2025.01.01, kotlinx-coroutines 1.9.0, WorkManager 2.10.0
+* Updated `GlanceTemplate` enum with 4 new values: `image`, `chart`, `calendar`, `gauge`
+
+### Testing
+* 167 unit tests (from 131) covering all new templates and features
+* 40 platform interface tests
+
+## 0.4.0
+
+### Background Updates (Android)
+* **WorkManager Integration** - Widget updates even when app is closed
+  * Periodic background updates with configurable interval (minimum 15 minutes)
+  * API fetching with custom headers support
+  * JSONPath-like expressions for value extraction
+  * Network-aware scheduling (only updates when connected)
+* New API methods:
+  * `configureBackgroundUpdate()` - Set up automatic updates from an API
+  * `cancelBackgroundUpdate()` - Stop background updates for a widget
+  * `getBackgroundUpdateStatus()` - Check update configuration and state
+
+### New Types
+* **GlanceTemplate** enum - Widget template types (simple, progress, list)
+
+### Usage Example
+```dart
+await GlanceWidget.configureBackgroundUpdate(
+  widgetId: 'crypto_btc',
+  template: GlanceTemplate.simple,
+  apiUrl: 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
+  interval: Duration(minutes: 15),
+  title: 'Bitcoin',
+  valuePath: r'$.bitcoin.usd',
+  valuePrefix: r'$',
+);
+```
+
 ## 0.3.1
 
 ### Stability & Quality

@@ -7,6 +7,10 @@ import SwiftUI
 /// - **SimpleWidget**: Display a value with title and subtitle
 /// - **ProgressWidget**: Show circular or linear progress
 /// - **ListWidget**: Display a list of items with optional checkboxes
+/// - **CalendarWidget**: Display upcoming events with date header
+/// - **ImageWidget**: Display an image with title and subtitle
+/// - **ChartWidget**: Display data as line, bar, or sparkline charts
+/// - **GaugeWidget**: Display metrics as radial gauges or dashboard grid
 ///
 /// ## Setup Instructions
 ///
@@ -27,6 +31,10 @@ struct GlanceWidgetsBundle: WidgetBundle {
         SimpleWidget()
         ProgressWidget()
         ListWidget()
+        CalendarWidget()
+        ImageWidget()
+        ChartWidget()
+        GaugeWidget()
     }
 }
 

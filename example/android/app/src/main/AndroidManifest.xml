@@ -58,6 +58,54 @@
                 android:resource="@xml/list_widget_info" />
         </receiver>
 
+        <!-- Calendar Widget Receiver -->
+        <receiver
+            android:name="com.example.glance_widget_android.templates.CalendarWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/calendar_widget_info" />
+        </receiver>
+
+        <!-- Image Widget Receiver -->
+        <receiver
+            android:name="com.example.glance_widget_android.templates.ImageWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/image_widget_info" />
+        </receiver>
+
+        <!-- Chart Widget Receiver -->
+        <receiver
+            android:name="com.example.glance_widget_android.templates.ChartWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/chart_widget_info" />
+        </receiver>
+
+        <!-- Gauge Widget Receiver -->
+        <receiver
+            android:name="com.example.glance_widget_android.templates.GaugeWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/gauge_widget_info" />
+        </receiver>
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

@@ -19,6 +19,7 @@ struct SimpleWidgetData: Codable {
     let subtitleColor: Int?
     let iconName: String?
     let iconBase64: String?
+    let deepLinkUri: String?
     let timestamp: Double
     let theme: WidgetThemeData?
 
@@ -31,6 +32,7 @@ struct SimpleWidgetData: Codable {
             subtitleColor: nil,
             iconName: nil,
             iconBase64: nil,
+            deepLinkUri: nil,
             timestamp: Date().timeIntervalSince1970,
             theme: nil
         )
@@ -47,6 +49,7 @@ struct ProgressWidgetData: Codable {
     let progressType: String  // "circular" or "linear"
     let progressColor: Int?
     let trackColor: Int?
+    let deepLinkUri: String?
     let timestamp: Double
     let theme: WidgetThemeData?
 
@@ -59,6 +62,7 @@ struct ProgressWidgetData: Codable {
             progressType: "circular",
             progressColor: nil,
             trackColor: nil,
+            deepLinkUri: nil,
             timestamp: Date().timeIntervalSince1970,
             theme: nil
         )
@@ -73,6 +77,7 @@ struct ListWidgetData: Codable {
     let items: [ListItemData]
     let showCheckboxes: Bool
     let maxItems: Int
+    let deepLinkUri: String?
     let timestamp: Double
     let theme: WidgetThemeData?
 
@@ -86,6 +91,7 @@ struct ListWidgetData: Codable {
             ],
             showCheckboxes: true,
             maxItems: 5,
+            deepLinkUri: nil,
             timestamp: Date().timeIntervalSince1970,
             theme: nil
         )
@@ -97,6 +103,133 @@ struct ListItemData: Codable {
     let checked: Bool
     let secondaryText: String?
     let iconName: String?
+}
+
+// MARK: - Calendar Widget Data
+
+struct CalendarWidgetData: Codable {
+    let widgetId: String
+    let title: String
+    let date: String  // ISO 8601 format
+    let events: [CalendarEventData]
+    let maxEvents: Int
+    let deepLinkUri: String?
+    let timestamp: Double
+    let theme: WidgetThemeData?
+
+    static var placeholder: CalendarWidgetData {
+        CalendarWidgetData(
+            widgetId: "calendar",
+            title: "Today",
+            date: ISO8601DateFormatter().string(from: Date()),
+            events: [
+                CalendarEventData(time: "09:00", title: "Meeting", color: 0xFF2196F3, isAllDay: false),
+                CalendarEventData(time: "12:00", title: "Lunch", color: 0xFF4CAF50, isAllDay: false),
+            ],
+            maxEvents: 5,
+            deepLinkUri: nil,
+            timestamp: Date().timeIntervalSince1970,
+            theme: nil
+        )
+    }
+}
+
+struct CalendarEventData: Codable {
+    let time: String
+    let title: String
+    let color: Int?
+    let isAllDay: Bool
+}
+
+// MARK: - Image Widget Data
+
+struct ImageWidgetData: Codable {
+    let widgetId: String
+    let title: String
+    let imageUrl: String?
+    let imageBase64: String?
+    let subtitle: String?
+    let fit: String  // "cover", "contain", "fill"
+    let deepLinkUri: String?
+    let timestamp: Double
+    let theme: WidgetThemeData?
+
+    static var placeholder: ImageWidgetData {
+        ImageWidgetData(
+            widgetId: "image",
+            title: "Photo",
+            imageUrl: nil,
+            imageBase64: nil,
+            subtitle: nil,
+            fit: "cover",
+            deepLinkUri: nil,
+            timestamp: Date().timeIntervalSince1970,
+            theme: nil
+        )
+    }
+}
+
+// MARK: - Chart Widget Data
+
+struct ChartWidgetData: Codable {
+    let widgetId: String
+    let title: String
+    let dataPoints: [Double]
+    let chartType: String  // "line", "bar", "sparkline"
+    let color: Int?
+    let subtitle: String?
+    let deepLinkUri: String?
+    let timestamp: Double
+    let theme: WidgetThemeData?
+
+    static var placeholder: ChartWidgetData {
+        ChartWidgetData(
+            widgetId: "chart",
+            title: "Chart",
+            dataPoints: [10, 25, 15, 30, 20, 35, 28],
+            chartType: "line",
+            color: nil,
+            subtitle: nil,
+            deepLinkUri: nil,
+            timestamp: Date().timeIntervalSince1970,
+            theme: nil
+        )
+    }
+}
+
+// MARK: - Gauge Widget Data
+
+struct GaugeWidgetData: Codable {
+    let widgetId: String
+    let title: String
+    let metrics: [GaugeMetricData]
+    let gaugeType: String  // "radial", "dashboard"
+    let deepLinkUri: String?
+    let timestamp: Double
+    let theme: WidgetThemeData?
+
+    static var placeholder: GaugeWidgetData {
+        GaugeWidgetData(
+            widgetId: "gauge",
+            title: "Metrics",
+            metrics: [
+                GaugeMetricData(label: "CPU", value: 65, maxValue: 100, color: 0xFF2196F3, unit: "%"),
+                GaugeMetricData(label: "RAM", value: 4.2, maxValue: 8.0, color: 0xFF4CAF50, unit: "GB"),
+            ],
+            gaugeType: "radial",
+            deepLinkUri: nil,
+            timestamp: Date().timeIntervalSince1970,
+            theme: nil
+        )
+    }
+}
+
+struct GaugeMetricData: Codable {
+    let label: String
+    let value: Double
+    let maxValue: Double
+    let color: Int?
+    let unit: String?
 }
 
 // MARK: - Theme Data
@@ -191,10 +324,57 @@ class WidgetStorage {
         return loadMostRecent(prefix: "listWidgetData_")
     }
 
+    // MARK: - Calendar Widget
+
+    func loadCalendarWidget(widgetId: String? = nil) -> CalendarWidgetData? {
+        if let widgetId = widgetId {
+            return loadData(forKey: "calendarWidgetData_\(widgetId)")
+        }
+        return loadMostRecent(prefix: "calendarWidgetData_")
+    }
+
+    // MARK: - Image Widget
+
+    func loadImageWidget(widgetId: String? = nil) -> ImageWidgetData? {
+        if let widgetId = widgetId {
+            return loadData(forKey: "imageWidgetData_\(widgetId)")
+        }
+        return loadMostRecent(prefix: "imageWidgetData_")
+    }
+
+    // MARK: - Chart Widget
+
+    func loadChartWidget(widgetId: String? = nil) -> ChartWidgetData? {
+        if let widgetId = widgetId {
+            return loadData(forKey: "chartWidgetData_\(widgetId)")
+        }
+        return loadMostRecent(prefix: "chartWidgetData_")
+    }
+
+    // MARK: - Gauge Widget
+
+    func loadGaugeWidget(widgetId: String? = nil) -> GaugeWidgetData? {
+        if let widgetId = widgetId {
+            return loadData(forKey: "gaugeWidgetData_\(widgetId)")
+        }
+        return loadMostRecent(prefix: "gaugeWidgetData_")
+    }
+
     // MARK: - Global Theme
 
     func loadGlobalTheme() -> WidgetThemeData? {
         return loadData(forKey: "globalTheme")
+    }
+
+    // MARK: - Timeline Refresh
+
+    /// Returns the configured timeline refresh interval in minutes, if any.
+    ///
+    /// When a refresh interval is configured, widget timeline providers should use
+    /// `.after(date)` policy instead of `.never` to enable periodic background updates.
+    func getTimelineRefreshInterval() -> Int? {
+        let interval = userDefaults?.integer(forKey: "timeline_refresh_interval") ?? 0
+        return interval > 0 ? interval : nil
     }
 
     // MARK: - Private Helpers
@@ -238,3 +418,7 @@ protocol Timestamped {
 extension SimpleWidgetData: Timestamped {}
 extension ProgressWidgetData: Timestamped {}
 extension ListWidgetData: Timestamped {}
+extension CalendarWidgetData: Timestamped {}
+extension ImageWidgetData: Timestamped {}
+extension ChartWidgetData: Timestamped {}
+extension GaugeWidgetData: Timestamped {}

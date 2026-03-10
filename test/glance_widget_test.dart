@@ -309,6 +309,16 @@ void main() {
       expect(action.payload?['index'], 2);
     });
 
+    test('fromMap handles configure type', () {
+      final action = GlanceWidgetAction.fromMap({
+        'widgetId': 'new_widget',
+        'type': 'configure',
+        'timestamp': 1234567890,
+      });
+      expect(action.type, GlanceActionType.configure);
+      expect(action.widgetId, 'new_widget');
+    });
+
     test('fromMap handles unknown type as tap', () {
       final action = GlanceWidgetAction.fromMap({
         'widgetId': 'test',
@@ -338,6 +348,124 @@ void main() {
       expect(action.payload?['key1'], 'value1');
       expect(action.payload?['key2'], 123);
     });
+
+    test('fromMap handles checkboxToggle type with value and itemIndex', () {
+      final action = GlanceWidgetAction.fromMap({
+        'widgetId': 'todo_list',
+        'type': 'checkboxToggle',
+        'timestamp': 1234567890,
+        'payload': {'itemIndex': 2, 'value': true},
+      });
+      expect(action.type, GlanceActionType.checkboxToggle);
+      expect(action.itemIndex, 2);
+      expect(action.value, true);
+      expect(action.widgetId, 'todo_list');
+    });
+
+    test('fromMap handles toggle type', () {
+      final action = GlanceWidgetAction.fromMap({
+        'widgetId': 'settings_widget',
+        'type': 'toggle',
+        'timestamp': 1234567890,
+        'itemId': 'dark_mode',
+        'value': false,
+      });
+      expect(action.type, GlanceActionType.toggle);
+      expect(action.itemId, 'dark_mode');
+      expect(action.value, false);
+    });
+
+    test('fromMap reads itemId from top-level map', () {
+      final action = GlanceWidgetAction.fromMap({
+        'widgetId': 'test',
+        'type': 'toggle',
+        'timestamp': 0,
+        'itemId': 'my_item',
+      });
+      expect(action.itemId, 'my_item');
+    });
+
+    test('fromMap reads itemId from payload when not top-level', () {
+      final action = GlanceWidgetAction.fromMap({
+        'widgetId': 'test',
+        'type': 'toggle',
+        'timestamp': 0,
+        'payload': {'itemId': 'payload_item'},
+      });
+      expect(action.itemId, 'payload_item');
+    });
+
+    test('fromMap reads itemIndex from top-level map', () {
+      final action = GlanceWidgetAction.fromMap({
+        'widgetId': 'test',
+        'type': 'checkboxToggle',
+        'timestamp': 0,
+        'itemIndex': 5,
+      });
+      expect(action.itemIndex, 5);
+    });
+
+    test('fromMap reads itemIndex from payload index field', () {
+      final action = GlanceWidgetAction.fromMap({
+        'widgetId': 'test',
+        'type': 'itemTap',
+        'timestamp': 0,
+        'payload': {'index': 3},
+      });
+      expect(action.itemIndex, 3);
+    });
+
+    test('fromMap parses string itemIndex', () {
+      final action = GlanceWidgetAction.fromMap({
+        'widgetId': 'test',
+        'type': 'checkboxToggle',
+        'timestamp': 0,
+        'itemIndex': '7',
+      });
+      expect(action.itemIndex, 7);
+    });
+
+    test('toMap includes new fields when present', () {
+      final action = GlanceWidgetAction(
+        widgetId: 'test',
+        type: GlanceActionType.checkboxToggle,
+        timestamp: DateTime.fromMillisecondsSinceEpoch(0),
+        itemId: 'task_1',
+        value: true,
+        itemIndex: 0,
+      );
+      final map = action.toMap();
+      expect(map['itemId'], 'task_1');
+      expect(map['value'], true);
+      expect(map['itemIndex'], 0);
+    });
+
+    test('toMap excludes new fields when null', () {
+      final action = GlanceWidgetAction(
+        widgetId: 'test',
+        type: GlanceActionType.tap,
+        timestamp: DateTime.fromMillisecondsSinceEpoch(0),
+      );
+      final map = action.toMap();
+      expect(map.containsKey('itemId'), false);
+      expect(map.containsKey('value'), false);
+      expect(map.containsKey('itemIndex'), false);
+    });
+
+    test('toString includes new fields when present', () {
+      final action = GlanceWidgetAction(
+        widgetId: 'test',
+        type: GlanceActionType.checkboxToggle,
+        timestamp: DateTime.fromMillisecondsSinceEpoch(0),
+        itemId: 'task_1',
+        value: true,
+        itemIndex: 2,
+      );
+      final str = action.toString();
+      expect(str, contains('itemId: task_1'));
+      expect(str, contains('value: true'));
+      expect(str, contains('itemIndex: 2'));
+    });
   });
 
   group('GlanceActionType', () {
@@ -347,6 +475,26 @@ void main() {
 
     test('has itemTap value', () {
       expect(GlanceActionType.itemTap.name, 'itemTap');
+    });
+
+    test('has checkboxToggle value', () {
+      expect(GlanceActionType.checkboxToggle.name, 'checkboxToggle');
+    });
+
+    test('has toggle value', () {
+      expect(GlanceActionType.toggle.name, 'toggle');
+    });
+
+    test('has refresh value', () {
+      expect(GlanceActionType.refresh.name, 'refresh');
+    });
+
+    test('has configure value', () {
+      expect(GlanceActionType.configure.name, 'configure');
+    });
+
+    test('contains all 6 values', () {
+      expect(GlanceActionType.values.length, 6);
     });
   });
 
@@ -361,6 +509,655 @@ void main() {
 
     test('has list value', () {
       expect(GlanceTemplate.list.name, 'list');
+    });
+
+    test('has image value', () {
+      expect(GlanceTemplate.image.name, 'image');
+    });
+
+    test('has chart value', () {
+      expect(GlanceTemplate.chart.name, 'chart');
+    });
+
+    test('has calendar value', () {
+      expect(GlanceTemplate.calendar.name, 'calendar');
+    });
+
+    test('has gauge value', () {
+      expect(GlanceTemplate.gauge.name, 'gauge');
+    });
+
+    test('contains all 7 values', () {
+      expect(GlanceTemplate.values.length, 7);
+    });
+  });
+
+  group('ImageWidgetData', () {
+    test('creates data with required fields', () {
+      const data = ImageWidgetData(title: 'Photo');
+      expect(data.title, 'Photo');
+      expect(data.imageUrl, null);
+      expect(data.imageBase64, null);
+      expect(data.subtitle, null);
+    });
+
+    test('creates data with all optional fields', () {
+      const data = ImageWidgetData(
+        title: 'Photo',
+        imageUrl: 'https://example.com/photo.jpg',
+        imageBase64: 'base64data',
+        subtitle: 'A nice photo',
+        fit: ImageFit.contain,
+      );
+      expect(data.imageUrl, 'https://example.com/photo.jpg');
+      expect(data.imageBase64, 'base64data');
+      expect(data.subtitle, 'A nice photo');
+      expect(data.fit, ImageFit.contain);
+    });
+
+    test('default fit is cover', () {
+      const data = ImageWidgetData(title: 'Photo');
+      expect(data.fit, ImageFit.cover);
+    });
+
+    test('toMap includes all fields', () {
+      const data = ImageWidgetData(
+        title: 'Photo',
+        imageUrl: 'https://example.com/photo.jpg',
+        subtitle: 'Caption',
+        fit: ImageFit.fill,
+      );
+      final map = data.toMap();
+      expect(map['title'], 'Photo');
+      expect(map['imageUrl'], 'https://example.com/photo.jpg');
+      expect(map['subtitle'], 'Caption');
+      expect(map['fit'], 'fill');
+    });
+
+    test('toMap includes null optional fields', () {
+      const data = ImageWidgetData(title: 'Photo');
+      final map = data.toMap();
+      expect(map.containsKey('imageUrl'), true);
+      expect(map['imageUrl'], isNull);
+      expect(map.containsKey('imageBase64'), true);
+      expect(map['imageBase64'], isNull);
+      expect(map.containsKey('subtitle'), true);
+      expect(map['subtitle'], isNull);
+    });
+
+    test('toMap serializes fit correctly for all values', () {
+      const coverData = ImageWidgetData(title: 'T', fit: ImageFit.cover);
+      expect(coverData.toMap()['fit'], 'cover');
+
+      const containData = ImageWidgetData(title: 'T', fit: ImageFit.contain);
+      expect(containData.toMap()['fit'], 'contain');
+
+      const fillData = ImageWidgetData(title: 'T', fit: ImageFit.fill);
+      expect(fillData.toMap()['fit'], 'fill');
+    });
+
+    test('creates data with imageUrl only', () {
+      const data = ImageWidgetData(
+        title: 'Photo',
+        imageUrl: 'https://example.com/img.png',
+      );
+      expect(data.imageUrl, 'https://example.com/img.png');
+      expect(data.imageBase64, isNull);
+    });
+
+    test('creates data with imageBase64 only', () {
+      const data = ImageWidgetData(
+        title: 'Photo',
+        imageBase64: 'iVBORw0KGgoAAAANSUhEUg==',
+      );
+      expect(data.imageUrl, isNull);
+      expect(data.imageBase64, 'iVBORw0KGgoAAAANSUhEUg==');
+    });
+
+    test('toMap with imageBase64', () {
+      const data = ImageWidgetData(
+        title: 'Photo',
+        imageBase64: 'base64content',
+      );
+      final map = data.toMap();
+      expect(map['imageBase64'], 'base64content');
+      expect(map['imageUrl'], isNull);
+    });
+  });
+
+  group('ImageFit', () {
+    test('has cover value', () {
+      expect(ImageFit.cover.name, 'cover');
+    });
+
+    test('has contain value', () {
+      expect(ImageFit.contain.name, 'contain');
+    });
+
+    test('has fill value', () {
+      expect(ImageFit.fill.name, 'fill');
+    });
+
+    test('contains all 3 values', () {
+      expect(ImageFit.values.length, 3);
+    });
+  });
+
+  group('ChartWidgetData', () {
+    test('creates data with required fields', () {
+      final data = ChartWidgetData(
+        title: 'Sales',
+        dataPoints: [10.0, 20.0, 30.0],
+      );
+      expect(data.title, 'Sales');
+      expect(data.dataPoints, [10.0, 20.0, 30.0]);
+      expect(data.color, null);
+      expect(data.subtitle, null);
+    });
+
+    test('creates data with all optional fields', () {
+      final data = ChartWidgetData(
+        title: 'Sales',
+        dataPoints: [1.0, 2.0],
+        chartType: ChartType.bar,
+        color: Color(0xFF0000FF),
+        subtitle: 'Monthly',
+      );
+      expect(data.chartType, ChartType.bar);
+      expect(data.color, const Color(0xFF0000FF));
+      expect(data.subtitle, 'Monthly');
+    });
+
+    test('default chartType is line', () {
+      final data = ChartWidgetData(title: 'Test', dataPoints: [1.0]);
+      expect(data.chartType, ChartType.line);
+    });
+
+    test('toMap includes all fields', () {
+      final data = ChartWidgetData(
+        title: 'Revenue',
+        dataPoints: [100.0, 200.0, 150.0],
+        chartType: ChartType.sparkline,
+        color: Color(0xFFFF0000),
+        subtitle: 'Q1 2026',
+      );
+      final map = data.toMap();
+      expect(map['title'], 'Revenue');
+      expect(map['dataPoints'], [100.0, 200.0, 150.0]);
+      expect(map['chartType'], 'sparkline');
+      expect(map['color'], 0xFFFF0000);
+      expect(map['subtitle'], 'Q1 2026');
+    });
+
+    test('toMap includes null optional fields', () {
+      final data = ChartWidgetData(title: 'Test', dataPoints: [1.0]);
+      final map = data.toMap();
+      expect(map.containsKey('color'), true);
+      expect(map['color'], isNull);
+      expect(map.containsKey('subtitle'), true);
+      expect(map['subtitle'], isNull);
+    });
+
+    test('toMap serializes chartType correctly for all values', () {
+      final lineData = ChartWidgetData(
+        title: 'T',
+        dataPoints: [1.0],
+        chartType: ChartType.line,
+      );
+      expect(lineData.toMap()['chartType'], 'line');
+
+      final barData = ChartWidgetData(
+        title: 'T',
+        dataPoints: [1.0],
+        chartType: ChartType.bar,
+      );
+      expect(barData.toMap()['chartType'], 'bar');
+
+      final sparklineData = ChartWidgetData(
+        title: 'T',
+        dataPoints: [1.0],
+        chartType: ChartType.sparkline,
+      );
+      expect(sparklineData.toMap()['chartType'], 'sparkline');
+    });
+
+    test('toMap converts color to integer', () {
+      final data = ChartWidgetData(
+        title: 'Test',
+        dataPoints: [1.0],
+        color: Color(0xFF00FF00),
+      );
+      final map = data.toMap();
+      expect(map['color'], 0xFF00FF00);
+    });
+
+    test('handles single data point', () {
+      final data = ChartWidgetData(title: 'Test', dataPoints: [42.0]);
+      expect(data.dataPoints.length, 1);
+      expect(data.dataPoints[0], 42.0);
+    });
+
+    test('handles many data points', () {
+      final points = List<double>.generate(100, (i) => i.toDouble());
+      final data = ChartWidgetData(title: 'Test', dataPoints: points);
+      expect(data.dataPoints.length, 100);
+    });
+
+    test('handles negative data points', () {
+      final data = ChartWidgetData(
+        title: 'Test',
+        dataPoints: [-10.0, 0.0, 10.0],
+      );
+      final map = data.toMap();
+      expect(map['dataPoints'], [-10.0, 0.0, 10.0]);
+    });
+  });
+
+  group('ChartType', () {
+    test('has line value', () {
+      expect(ChartType.line.name, 'line');
+    });
+
+    test('has bar value', () {
+      expect(ChartType.bar.name, 'bar');
+    });
+
+    test('has sparkline value', () {
+      expect(ChartType.sparkline.name, 'sparkline');
+    });
+
+    test('contains all 3 values', () {
+      expect(ChartType.values.length, 3);
+    });
+  });
+
+  group('CalendarWidgetData', () {
+    test('creates data with required fields', () {
+      final date = DateTime(2026, 3, 10);
+      final data = CalendarWidgetData(
+        title: 'Today',
+        date: date,
+        events: const [],
+      );
+      expect(data.title, 'Today');
+      expect(data.date, date);
+      expect(data.events, isEmpty);
+    });
+
+    test('creates data with events', () {
+      final data = CalendarWidgetData(
+        title: 'Today',
+        date: DateTime(2026, 3, 10),
+        events: const [
+          CalendarEvent(time: '09:00', title: 'Standup'),
+          CalendarEvent(time: '14:00', title: 'Review'),
+        ],
+      );
+      expect(data.events.length, 2);
+      expect(data.events[0].title, 'Standup');
+      expect(data.events[1].title, 'Review');
+    });
+
+    test('default maxEvents is 5', () {
+      final data = CalendarWidgetData(
+        title: 'Today',
+        date: DateTime(2026, 3, 10),
+        events: const [],
+      );
+      expect(data.maxEvents, 5);
+    });
+
+    test('custom maxEvents value', () {
+      final data = CalendarWidgetData(
+        title: 'Today',
+        date: DateTime(2026, 3, 10),
+        events: const [],
+        maxEvents: 3,
+      );
+      expect(data.maxEvents, 3);
+    });
+
+    test('maxEvents boundary values', () {
+      final dataMin = CalendarWidgetData(
+        title: 'Today',
+        date: DateTime(2026, 3, 10),
+        events: const [],
+        maxEvents: 1,
+      );
+      expect(dataMin.maxEvents, 1);
+
+      final dataMax = CalendarWidgetData(
+        title: 'Today',
+        date: DateTime(2026, 3, 10),
+        events: const [],
+        maxEvents: 10,
+      );
+      expect(dataMax.maxEvents, 10);
+    });
+
+    test('toMap includes all fields', () {
+      final date = DateTime(2026, 3, 10);
+      final data = CalendarWidgetData(
+        title: 'Schedule',
+        date: date,
+        events: const [
+          CalendarEvent(time: '09:00', title: 'Meeting'),
+        ],
+        maxEvents: 8,
+      );
+      final map = data.toMap();
+      expect(map['title'], 'Schedule');
+      expect(map['date'], date.toIso8601String());
+      expect(map['maxEvents'], 8);
+      expect(map['events'], isA<List>());
+      expect((map['events'] as List).length, 1);
+    });
+
+    test('toMap serializes date as ISO8601', () {
+      final date = DateTime(2026, 12, 25, 10, 30, 0);
+      final data = CalendarWidgetData(
+        title: 'Christmas',
+        date: date,
+        events: const [],
+      );
+      final map = data.toMap();
+      expect(map['date'], date.toIso8601String());
+    });
+
+    test('toMap serializes events correctly', () {
+      final data = CalendarWidgetData(
+        title: 'Today',
+        date: DateTime(2026, 3, 10),
+        events: const [
+          CalendarEvent(time: '09:00', title: 'Standup'),
+          CalendarEvent(
+            time: 'All Day',
+            title: 'Birthday',
+            isAllDay: true,
+            color: Color(0xFFFF0000),
+          ),
+        ],
+      );
+      final map = data.toMap();
+      final events = map['events'] as List;
+      expect(events[0]['time'], '09:00');
+      expect(events[0]['title'], 'Standup');
+      expect(events[1]['isAllDay'], true);
+      expect(events[1]['color'], 0xFFFF0000);
+    });
+
+    test('toMap with empty events list', () {
+      final data = CalendarWidgetData(
+        title: 'Today',
+        date: DateTime(2026, 3, 10),
+        events: const [],
+      );
+      final map = data.toMap();
+      expect((map['events'] as List), isEmpty);
+    });
+  });
+
+  group('CalendarEvent', () {
+    test('creates event with required fields', () {
+      const event = CalendarEvent(time: '09:00', title: 'Meeting');
+      expect(event.time, '09:00');
+      expect(event.title, 'Meeting');
+      expect(event.color, null);
+      expect(event.isAllDay, false);
+    });
+
+    test('creates event with all optional fields', () {
+      const event = CalendarEvent(
+        time: 'All Day',
+        title: 'Holiday',
+        color: Color(0xFF00FF00),
+        isAllDay: true,
+      );
+      expect(event.time, 'All Day');
+      expect(event.title, 'Holiday');
+      expect(event.color, const Color(0xFF00FF00));
+      expect(event.isAllDay, true);
+    });
+
+    test('default isAllDay is false', () {
+      const event = CalendarEvent(time: '10:00', title: 'Call');
+      expect(event.isAllDay, false);
+    });
+
+    test('toMap includes all fields', () {
+      const event = CalendarEvent(
+        time: '14:30',
+        title: 'Review',
+        color: Color(0xFF0000FF),
+        isAllDay: false,
+      );
+      final map = event.toMap();
+      expect(map['time'], '14:30');
+      expect(map['title'], 'Review');
+      expect(map['color'], 0xFF0000FF);
+      expect(map['isAllDay'], false);
+    });
+
+    test('toMap includes null color when not provided', () {
+      const event = CalendarEvent(time: '10:00', title: 'Call');
+      final map = event.toMap();
+      expect(map.containsKey('color'), true);
+      expect(map['color'], isNull);
+    });
+
+    test('toMap converts color to integer', () {
+      const event = CalendarEvent(
+        time: '10:00',
+        title: 'Call',
+        color: Color(0xFFABCDEF),
+      );
+      final map = event.toMap();
+      expect(map['color'], 0xFFABCDEF);
+    });
+
+    test('toMap serializes isAllDay correctly', () {
+      const allDayEvent = CalendarEvent(
+        time: 'All Day',
+        title: 'Holiday',
+        isAllDay: true,
+      );
+      expect(allDayEvent.toMap()['isAllDay'], true);
+
+      const timedEvent = CalendarEvent(time: '09:00', title: 'Meeting');
+      expect(timedEvent.toMap()['isAllDay'], false);
+    });
+  });
+
+  group('GaugeWidgetData', () {
+    test('creates data with required fields', () {
+      final data = GaugeWidgetData(
+        title: 'Performance',
+        metrics: [
+          GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
+        ],
+      );
+      expect(data.title, 'Performance');
+      expect(data.metrics.length, 1);
+    });
+
+    test('creates data with multiple metrics', () {
+      final data = GaugeWidgetData(
+        title: 'System',
+        metrics: [
+          GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
+          GaugeMetric(label: 'RAM', value: 8.0, maxValue: 16.0),
+          GaugeMetric(label: 'Disk', value: 250.0, maxValue: 500.0),
+        ],
+      );
+      expect(data.metrics.length, 3);
+      expect(data.metrics[1].label, 'RAM');
+    });
+
+    test('default gaugeType is radial', () {
+      final data = GaugeWidgetData(
+        title: 'Test',
+        metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+      );
+      expect(data.gaugeType, GaugeType.radial);
+    });
+
+    test('dashboard gauge type', () {
+      final data = GaugeWidgetData(
+        title: 'Test',
+        metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+        gaugeType: GaugeType.dashboard,
+      );
+      expect(data.gaugeType, GaugeType.dashboard);
+    });
+
+    test('toMap includes all fields', () {
+      final data = GaugeWidgetData(
+        title: 'Performance',
+        metrics: [
+          GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
+        ],
+        gaugeType: GaugeType.dashboard,
+      );
+      final map = data.toMap();
+      expect(map['title'], 'Performance');
+      expect(map['gaugeType'], 'dashboard');
+      expect(map['metrics'], isA<List>());
+      expect((map['metrics'] as List).length, 1);
+    });
+
+    test('toMap serializes gaugeType correctly for all values', () {
+      final radialData = GaugeWidgetData(
+        title: 'T',
+        metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+        gaugeType: GaugeType.radial,
+      );
+      expect(radialData.toMap()['gaugeType'], 'radial');
+
+      final dashboardData = GaugeWidgetData(
+        title: 'T',
+        metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+        gaugeType: GaugeType.dashboard,
+      );
+      expect(dashboardData.toMap()['gaugeType'], 'dashboard');
+    });
+
+    test('toMap serializes metrics correctly', () {
+      final data = GaugeWidgetData(
+        title: 'System',
+        metrics: [
+          GaugeMetric(
+            label: 'CPU',
+            value: 75.0,
+            maxValue: 100.0,
+            color: Color(0xFFFF0000),
+            unit: '%',
+          ),
+        ],
+      );
+      final map = data.toMap();
+      final metrics = map['metrics'] as List;
+      expect(metrics[0]['label'], 'CPU');
+      expect(metrics[0]['value'], 75.0);
+      expect(metrics[0]['maxValue'], 100.0);
+      expect(metrics[0]['color'], 0xFFFF0000);
+      expect(metrics[0]['unit'], '%');
+    });
+  });
+
+  group('GaugeMetric', () {
+    test('creates metric with required fields', () {
+      const metric = GaugeMetric(label: 'Speed', value: 80.0, maxValue: 200.0);
+      expect(metric.label, 'Speed');
+      expect(metric.value, 80.0);
+      expect(metric.maxValue, 200.0);
+      expect(metric.color, null);
+      expect(metric.unit, null);
+    });
+
+    test('creates metric with all optional fields', () {
+      const metric = GaugeMetric(
+        label: 'Temperature',
+        value: 72.5,
+        maxValue: 120.0,
+        color: Color(0xFFFF6600),
+        unit: '\u00B0F',
+      );
+      expect(metric.color, const Color(0xFFFF6600));
+      expect(metric.unit, '\u00B0F');
+    });
+
+    test('toMap includes all fields', () {
+      const metric = GaugeMetric(
+        label: 'CPU',
+        value: 65.0,
+        maxValue: 100.0,
+        color: Color(0xFF0000FF),
+        unit: '%',
+      );
+      final map = metric.toMap();
+      expect(map['label'], 'CPU');
+      expect(map['value'], 65.0);
+      expect(map['maxValue'], 100.0);
+      expect(map['color'], 0xFF0000FF);
+      expect(map['unit'], '%');
+    });
+
+    test('toMap includes null optional fields', () {
+      const metric = GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0);
+      final map = metric.toMap();
+      expect(map.containsKey('color'), true);
+      expect(map['color'], isNull);
+      expect(map.containsKey('unit'), true);
+      expect(map['unit'], isNull);
+    });
+
+    test('toMap converts color to integer', () {
+      const metric = GaugeMetric(
+        label: 'X',
+        value: 1.0,
+        maxValue: 10.0,
+        color: Color(0xFFABCDEF),
+      );
+      final map = metric.toMap();
+      expect(map['color'], 0xFFABCDEF);
+    });
+
+    test('handles zero value', () {
+      const metric = GaugeMetric(label: 'Empty', value: 0.0, maxValue: 100.0);
+      expect(metric.value, 0.0);
+      final map = metric.toMap();
+      expect(map['value'], 0.0);
+    });
+
+    test('handles value equal to maxValue', () {
+      const metric = GaugeMetric(label: 'Full', value: 100.0, maxValue: 100.0);
+      expect(metric.value, 100.0);
+      expect(metric.maxValue, 100.0);
+    });
+
+    test('handles decimal values', () {
+      const metric = GaugeMetric(
+        label: 'Precise',
+        value: 33.333,
+        maxValue: 99.999,
+      );
+      final map = metric.toMap();
+      expect(map['value'], 33.333);
+      expect(map['maxValue'], 99.999);
+    });
+  });
+
+  group('GaugeType', () {
+    test('has radial value', () {
+      expect(GaugeType.radial.name, 'radial');
+    });
+
+    test('has dashboard value', () {
+      expect(GaugeType.dashboard.name, 'dashboard');
+    });
+
+    test('contains all 2 values', () {
+      expect(GaugeType.values.length, 2);
     });
   });
 

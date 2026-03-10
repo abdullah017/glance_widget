@@ -52,6 +52,42 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
     throw UnimplementedError('updateListWidget() has not been implemented.');
   }
 
+  /// Updates an Image Widget with the given data.
+  Future<bool> updateImageWidget({
+    required String widgetId,
+    required ImageWidgetData data,
+    GlanceTheme? theme,
+  }) {
+    throw UnimplementedError('updateImageWidget() has not been implemented.');
+  }
+
+  /// Updates a Chart Widget with the given data.
+  Future<bool> updateChartWidget({
+    required String widgetId,
+    required ChartWidgetData data,
+    GlanceTheme? theme,
+  }) {
+    throw UnimplementedError('updateChartWidget() has not been implemented.');
+  }
+
+  /// Updates a Calendar Widget with the given data.
+  Future<bool> updateCalendarWidget({
+    required String widgetId,
+    required CalendarWidgetData data,
+    GlanceTheme? theme,
+  }) {
+    throw UnimplementedError('updateCalendarWidget() has not been implemented.');
+  }
+
+  /// Updates a Gauge Widget with the given data.
+  Future<bool> updateGaugeWidget({
+    required String widgetId,
+    required GaugeWidgetData data,
+    GlanceTheme? theme,
+  }) {
+    throw UnimplementedError('updateGaugeWidget() has not been implemented.');
+  }
+
   /// Sets the global theme for all widgets.
   Future<bool> setGlobalTheme(GlanceTheme theme) {
     throw UnimplementedError('setGlobalTheme() has not been implemented.');
@@ -113,6 +149,169 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   Future<bool> isWidgetPushSupported() {
     throw UnimplementedError(
       'isWidgetPushSupported() has not been implemented.',
+    );
+  }
+
+  /// Configures background updates for a widget.
+  ///
+  /// This allows widgets to update even when the app is closed by periodically
+  /// fetching data from an API and updating the widget.
+  ///
+  /// **Note:** On Android, the minimum update interval is 15 minutes due to
+  /// WorkManager constraints. More frequent updates are not possible while
+  /// respecting Android's battery optimization guidelines.
+  ///
+  /// ## Parameters
+  ///
+  /// * [widgetId] - Unique identifier for the widget
+  /// * [template] - Widget template type: "simple", "progress", or "list"
+  /// * [apiUrl] - API endpoint URL to fetch data from
+  /// * [headers] - Optional HTTP headers for API requests
+  /// * [intervalMinutes] - Update interval in minutes (minimum 15)
+  /// * [title] - Widget title to display
+  /// * [valuePath] - JSONPath expression to extract main value (e.g., "$.data.price")
+  /// * [subtitlePath] - Optional JSONPath for subtitle
+  /// * [valuePrefix] - Optional prefix for value (e.g., "$")
+  /// * [valueSuffix] - Optional suffix for value (e.g., "%")
+  ///
+  /// ## Example
+  ///
+  /// ```dart
+  /// await GlanceWidget.configureBackgroundUpdate(
+  ///   widgetId: 'crypto_btc',
+  ///   template: GlanceTemplate.simple,
+  ///   apiUrl: 'https://api.example.com/price',
+  ///   intervalMinutes: 15,
+  ///   title: 'Bitcoin',
+  ///   valuePath: r'$.bitcoin.usd',
+  ///   valuePrefix: r'$',
+  /// );
+  /// ```
+  Future<bool> configureBackgroundUpdate({
+    required String widgetId,
+    required String template,
+    required String apiUrl,
+    Map<String, String> headers = const {},
+    int intervalMinutes = 15,
+    required String title,
+    required String valuePath,
+    String? subtitlePath,
+    String? valuePrefix,
+    String? valueSuffix,
+  }) {
+    throw UnimplementedError(
+      'configureBackgroundUpdate() has not been implemented.',
+    );
+  }
+
+  /// Cancels background updates for a widget.
+  ///
+  /// Stops the periodic background update task for the specified widget.
+  /// The widget will retain its last data but will no longer update automatically.
+  ///
+  /// ```dart
+  /// await GlanceWidget.cancelBackgroundUpdate('crypto_btc');
+  /// ```
+  Future<bool> cancelBackgroundUpdate(String widgetId) {
+    throw UnimplementedError(
+      'cancelBackgroundUpdate() has not been implemented.',
+    );
+  }
+
+  /// Gets the status of background updates for a widget.
+  ///
+  /// Returns a map containing:
+  /// * `widgetId` - The widget identifier
+  /// * `isConfigured` - Whether background updates are configured
+  /// * `isEnabled` - Whether background updates are enabled
+  /// * `intervalMinutes` - Update interval in minutes
+  /// * `workState` - Current work state (ENQUEUED, RUNNING, etc.)
+  /// * `apiUrl` - The configured API URL
+  ///
+  /// ```dart
+  /// final status = await GlanceWidget.getBackgroundUpdateStatus('crypto_btc');
+  /// print('Configured: ${status['isConfigured']}');
+  /// print('Work state: ${status['workState']}');
+  /// ```
+  Future<Map<String, dynamic>> getBackgroundUpdateStatus(String widgetId) {
+    throw UnimplementedError(
+      'getBackgroundUpdateStatus() has not been implemented.',
+    );
+  }
+
+  /// Configures iOS timeline-based refresh for a widget.
+  ///
+  /// This tells the iOS widget extension to use `.after(date)` timeline policy
+  /// instead of `.never`, allowing the widget to refresh periodically even when
+  /// the app is not in the foreground.
+  ///
+  /// **Note:** WidgetKit manages the actual refresh schedule. The interval is a
+  /// suggestion — iOS may delay refreshes to optimize battery life. Typical
+  /// minimum effective interval is ~15-30 minutes.
+  ///
+  /// On Android, this is a no-op (use [configureBackgroundUpdate] instead).
+  ///
+  /// ## Parameters
+  /// * [widgetId] - The widget identifier
+  /// * [intervalMinutes] - Suggested refresh interval in minutes (minimum 5)
+  ///
+  /// ```dart
+  /// await GlanceWidget.configureTimelineRefresh(
+  ///   widgetId: 'weather',
+  ///   intervalMinutes: 30,
+  /// );
+  /// ```
+  Future<bool> configureTimelineRefresh({
+    required String widgetId,
+    int intervalMinutes = 30,
+  }) {
+    throw UnimplementedError(
+      'configureTimelineRefresh() has not been implemented.',
+    );
+  }
+
+  /// Cancels iOS timeline-based refresh for a widget.
+  ///
+  /// Reverts the widget to `.never` timeline policy, meaning it will only
+  /// update when the app explicitly triggers a reload.
+  ///
+  /// On Android, this is a no-op.
+  Future<bool> cancelTimelineRefresh(String widgetId) {
+    throw UnimplementedError(
+      'cancelTimelineRefresh() has not been implemented.',
+    );
+  }
+
+  /// Marks widget configuration as complete.
+  ///
+  /// Call this after the user has finished configuring a widget
+  /// (e.g., selected which data to display). This tells the platform
+  /// to finalize the widget placement.
+  ///
+  /// On Android, this completes the configuration activity result.
+  /// On iOS, this is a no-op as configuration is handled by the system.
+  Future<bool> completeWidgetConfiguration(String widgetId) {
+    throw UnimplementedError('completeWidgetConfiguration() has not been implemented.');
+  }
+
+  /// Triggers a one-time background update immediately (for testing).
+  ///
+  /// This bypasses the 15-minute minimum interval and runs the worker
+  /// immediately. Useful for testing and debugging.
+  ///
+  /// **Note:** This only works if background updates are already configured
+  /// for the widget using [configureBackgroundUpdate].
+  ///
+  /// ```dart
+  /// // First configure background updates
+  /// await GlanceWidget.configureBackgroundUpdate(...);
+  ///
+  /// // Then test immediately
+  /// await GlanceWidget.testBackgroundUpdate('crypto_btc');
+  /// ```
+  Future<bool> testBackgroundUpdate(String widgetId) {
+    throw UnimplementedError(
+      'testBackgroundUpdate() has not been implemented.',
     );
   }
 }

@@ -9,24 +9,27 @@ Create instant-updating home screen widgets for **Android** and **iOS**. Built w
 
 - **Instant Updates** - Widgets update in < 1 second on both platforms
 - **Cross-Platform** - Same API for Android and iOS
-- **3 Widget Templates** - Simple, Progress, and List widgets ready to use
+- **7 Widget Templates** - Simple, Progress, List, Image, Chart, Calendar, and Gauge
 - **Theme Support** - Light/Dark themes with full customization
-- **Tap Actions** - Handle widget taps and interactions
+- **Deep Links** - All widgets support custom deep link URIs
+- **Interactive Actions** - Tap, checkbox toggle, item tap handling
+- **Background Updates** - Android widgets update even when app is closed (WorkManager)
+- **Timeline Refresh** - iOS widgets refresh periodically via WidgetKit timeline policy
 - **iOS 26+ Push Updates** - Server-triggered widget updates via APNs
+- **Lock Screen Widgets** - Android widgets on home screen and lock screen
 - **Real-time Data** - Debounced controller for high-frequency updates (crypto, stocks)
-- **Robust Error Handling** - Structured error types for debugging
+- **Widget Configuration** - Handle widget setup flow when users add widgets
 
 ## Platform Comparison
 
 | Feature | Android (Jetpack Glance) | iOS (WidgetKit) |
 |---------|--------------------------|-----------------|
 | Update Speed | < 1 second | < 1 second (app foreground) |
-| Background Updates | Instant | Timeline-based |
+| Background Updates | WorkManager (15 min+) | Timeline-based (.after policy) |
 | Server Push | N/A | iOS 26+ (APNs) |
-| Circular Progress | Percentage display only* | Native circular indicator |
+| Lock Screen | Supported (keyguard) | N/A |
+| Interactive Actions | ActionCallback | URL-based actions |
 | Min Version | Android 8.0 (API 26) | iOS 16.0 |
-
-*Glance 1.1.1 only supports indeterminate CircularProgressIndicator
 
 ## Widget Templates
 
@@ -34,7 +37,11 @@ Create instant-updating home screen widgets for **Android** and **iOS**. Built w
 |----------|-------------|-----------|
 | **SimpleWidget** | Title + Value + Subtitle | Crypto prices, weather, stats |
 | **ProgressWidget** | Circular/Linear progress | Downloads, goals, battery |
-| **ListWidget** | Scrollable item list | To-do, shopping, activities |
+| **ListWidget** | Scrollable item list with checkboxes | To-do, shopping, activities |
+| **ImageWidget** | Photo with title and subtitle | Photo of the day, album art |
+| **ChartWidget** | Line, bar, or sparkline chart | Revenue trends, analytics |
+| **CalendarWidget** | Date header with event list | Daily schedule, meetings |
+| **GaugeWidget** | Radial or dashboard metrics | CPU usage, performance scores |
 
 ## Installation
 
@@ -42,8 +49,17 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  glance_widget: ^0.3.1
+  glance_widget: ^0.7.0
 ```
+
+## Requirements
+
+| Platform | Minimum Version |
+|----------|-----------------|
+| Flutter | 3.27+ |
+| Dart | 3.6+ |
+| Android | API 26 (Android 8.0) |
+| iOS | 16.0 |
 
 ---
 
@@ -90,12 +106,60 @@ Add widget receivers to `android/app/src/main/AndroidManifest.xml`:
             android:name="android.appwidget.provider"
             android:resource="@xml/list_widget_info" />
     </receiver>
+
+    <!-- Image Widget -->
+    <receiver
+        android:name="com.example.glance_widget_android.templates.ImageWidgetReceiver"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data
+            android:name="android.appwidget.provider"
+            android:resource="@xml/image_widget_info" />
+    </receiver>
+
+    <!-- Chart Widget -->
+    <receiver
+        android:name="com.example.glance_widget_android.templates.ChartWidgetReceiver"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data
+            android:name="android.appwidget.provider"
+            android:resource="@xml/chart_widget_info" />
+    </receiver>
+
+    <!-- Calendar Widget -->
+    <receiver
+        android:name="com.example.glance_widget_android.templates.CalendarWidgetReceiver"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data
+            android:name="android.appwidget.provider"
+            android:resource="@xml/calendar_widget_info" />
+    </receiver>
+
+    <!-- Gauge Widget -->
+    <receiver
+        android:name="com.example.glance_widget_android.templates.GaugeWidgetReceiver"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data
+            android:name="android.appwidget.provider"
+            android:resource="@xml/gauge_widget_info" />
+    </receiver>
 </application>
 ```
 
 ### 2. Create Widget Info XML
 
-Create `android/app/src/main/res/xml/simple_widget_info.xml`:
+Create `android/app/src/main/res/xml/simple_widget_info.xml` (repeat for each template):
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -105,7 +169,7 @@ Create `android/app/src/main/res/xml/simple_widget_info.xml`:
     android:targetCellWidth="3"
     android:targetCellHeight="2"
     android:resizeMode="horizontal|vertical"
-    android:widgetCategory="home_screen"
+    android:widgetCategory="home_screen|keyguard"
     android:updatePeriodMillis="0" />
 ```
 
@@ -150,6 +214,10 @@ Copy files from `glance_widget_ios/example/ios/GlanceWidgets/` to your extension
 - `SimpleWidget.swift`
 - `ProgressWidget.swift`
 - `ListWidget.swift`
+- `ImageWidget.swift`
+- `ChartWidget.swift`
+- `CalendarWidget.swift`
+- `GaugeWidget.swift`
 
 ### 4. Configure URL Scheme
 
@@ -175,8 +243,6 @@ See [iOS Widget Setup Guide](glance_widget_ios/example/ios/WIDGET_SETUP.md) for 
 
 ### Simple Widget
 
-Display single values like crypto prices:
-
 ```dart
 import 'package:glance_widget/glance_widget.dart';
 
@@ -186,18 +252,17 @@ await GlanceWidget.simple(
   value: '\$94,532.00',
   subtitle: '+2.34%',
   subtitleColor: Colors.green,
+  deepLinkUri: 'myapp://crypto/btc',
 );
 ```
 
 ### Progress Widget
 
-Show downloads, goals, or completion status:
-
 ```dart
 await GlanceWidget.progress(
   id: 'daily_goal',
   title: 'Steps Today',
-  progress: 0.75,  // 0.0 to 1.0
+  progress: 0.75,
   subtitle: '7,500 / 10,000',
   progressType: ProgressType.circular,
   progressColor: Colors.green,
@@ -206,8 +271,6 @@ await GlanceWidget.progress(
 
 ### List Widget
 
-Display lists with optional checkboxes:
-
 ```dart
 await GlanceWidget.list(
   id: 'todo_list',
@@ -215,22 +278,70 @@ await GlanceWidget.list(
   items: [
     GlanceListItem(text: 'Buy groceries', checked: true),
     GlanceListItem(text: 'Call mom', checked: false),
-    GlanceListItem(text: 'Finish report', checked: false),
   ],
   showCheckboxes: true,
+);
+```
+
+### Image Widget
+
+```dart
+await GlanceWidget.image(
+  id: 'photo',
+  title: 'Photo of the Day',
+  imageBase64: base64EncodedImage,
+  subtitle: 'Beautiful sunset',
+  fit: ImageFit.cover,
+);
+```
+
+### Chart Widget
+
+```dart
+await GlanceWidget.chart(
+  id: 'revenue',
+  title: 'Revenue',
+  dataPoints: [12, 19, 15, 25, 22, 30, 28],
+  chartType: ChartType.line,
+  color: Colors.blue,
+  subtitle: 'Last 7 days',
+);
+```
+
+### Calendar Widget
+
+```dart
+await GlanceWidget.calendar(
+  id: 'events',
+  title: 'Today\'s Events',
+  date: DateTime.now(),
+  events: [
+    CalendarEvent(time: '09:00', title: 'Standup', color: Colors.green),
+    CalendarEvent(time: '14:00', title: 'Review', color: Colors.blue),
+  ],
+);
+```
+
+### Gauge Widget
+
+```dart
+await GlanceWidget.gauge(
+  id: 'monitor',
+  title: 'System Monitor',
+  metrics: [
+    GaugeMetric(label: 'CPU', value: 45, maxValue: 100, color: Colors.green, unit: '%'),
+    GaugeMetric(label: 'Memory', value: 72, maxValue: 100, color: Colors.orange, unit: '%'),
+  ],
+  gaugeType: GaugeType.radial,
 );
 ```
 
 ### Theme Configuration
 
 ```dart
-// Dark theme
 await GlanceWidget.setTheme(GlanceTheme.dark());
 
-// Light theme
-await GlanceWidget.setTheme(GlanceTheme.light());
-
-// Custom theme
+// Or custom theme
 await GlanceWidget.setTheme(GlanceTheme(
   backgroundColor: Color(0xFF1A1A2E),
   textColor: Colors.white,
@@ -241,7 +352,7 @@ await GlanceWidget.setTheme(GlanceTheme(
 ));
 ```
 
-### Handle Widget Taps
+### Handle Widget Actions
 
 ```dart
 GlanceWidget.onAction.listen((action) {
@@ -249,146 +360,104 @@ GlanceWidget.onAction.listen((action) {
     case GlanceActionType.tap:
       print('Widget ${action.widgetId} tapped');
       break;
+    case GlanceActionType.checkboxToggle:
+      print('Item ${action.itemIndex} toggled to ${action.value}');
+      break;
     case GlanceActionType.itemTap:
-      final index = action.payload?['index'];
-      print('Item $index tapped');
+      print('Item ${action.itemIndex} tapped');
+      break;
+    case GlanceActionType.configure:
+      // Show configuration UI, then:
+      GlanceWidget.completeWidgetConfiguration(action.widgetId);
+      break;
+    default:
       break;
   }
 });
 ```
 
-### Force Refresh All Widgets
+### Deep Links
+
+All widget types support `deepLinkUri` parameter:
 
 ```dart
-// Instant update on both platforms
-// On iOS: No budget limit when app is in foreground!
-await GlanceWidget.forceRefreshAll();
-```
-
-### iOS 26+ Server Push Updates
-
-For server-triggered widget updates on iOS 26+:
-
-```dart
-// Check if supported
-if (await GlanceWidget.isWidgetPushSupported()) {
-  // Get push token
-  final token = await GlanceWidget.getWidgetPushToken();
-  if (token != null) {
-    // Send to your server
-    await api.registerWidgetPushToken(token);
-  }
-}
-```
-
-Server-side APNs request:
-```http
-POST https://api.push.apple.com/3/device/{token}
-Headers:
-  apns-push-type: widgets
-  apns-topic: com.yourcompany.yourapp.push-type.widgets
-Body:
-  {"aps": {"content-changed": true}}
-```
-
----
-
-## Controller API (Advanced)
-
-For more control over individual widgets:
-
-```dart
-final controller = GlanceWidgetController(
-  widgetId: 'my_widget',
-  template: GlanceTemplate.simple,
-  theme: GlanceTheme.dark(),
-);
-
-// Update
-await controller.updateSimple(SimpleWidgetData(
+await GlanceWidget.simple(
+  id: 'btc',
   title: 'Bitcoin',
   value: '\$94,532',
-  subtitle: '+2.34%',
-));
-
-// Listen to actions for this widget
-controller.onAction.listen((action) {
-  // Handle action
-});
-
-// Dispose when done
-controller.dispose();
+  deepLinkUri: 'myapp://crypto/btc',  // Opens when widget is tapped
+);
 ```
 
 ---
+
+## Background Updates (Android)
+
+```dart
+await GlanceWidget.configureBackgroundUpdate(
+  widgetId: 'crypto_btc',
+  template: GlanceTemplate.simple,
+  apiUrl: 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
+  interval: Duration(minutes: 15),
+  title: 'Bitcoin',
+  valuePath: r'$.bitcoin.usd',
+  valuePrefix: r'$',
+);
+
+// Cancel
+await GlanceWidget.cancelBackgroundUpdate('crypto_btc');
+```
+
+## Timeline Refresh (iOS)
+
+```dart
+// Enable periodic refresh via WidgetKit
+await GlanceWidget.configureTimelineRefresh(
+  widgetId: 'weather',
+  interval: Duration(minutes: 30),
+);
+
+// Disable
+await GlanceWidget.cancelTimelineRefresh('weather');
+```
 
 ## DebouncedWidgetController (Real-time Data)
 
-For high-frequency updates like crypto prices, stock quotes, or live scores:
+For high-frequency updates like crypto prices or live scores:
 
 ```dart
 final controller = DebouncedWidgetController(
   widgetId: 'crypto_btc',
   template: GlanceTemplate.simple,
   theme: GlanceTheme.dark(),
-  debounceInterval: Duration(milliseconds: 100),  // Wait before sending
-  maxWaitTime: Duration(milliseconds: 500),       // Max wait for freshness
+  debounceInterval: Duration(milliseconds: 100),
+  maxWaitTime: Duration(milliseconds: 500),
 );
 
-// Subscribe to rapid price updates (could be 100s per second)
 priceStream.listen((price) {
-  // Updates are automatically coalesced - only latest value is sent
   controller.scheduleUpdate(SimpleWidgetData(
     title: 'Bitcoin',
     value: '\$${price.toStringAsFixed(2)}',
-    subtitle: price > previousPrice ? '↑' : '↓',
-    subtitleColor: price > previousPrice ? Colors.green : Colors.red,
   ));
 });
 
-// Check update statistics
-print('Updates sent: ${controller.updateCount}');
-print('Updates skipped: ${controller.skippedCount}');
-print('Is stale: ${controller.isStale}');
-
-// Force immediate update (e.g., before app goes to background)
-await controller.flush();
-
-// Dispose when done
 controller.dispose();
 ```
 
-**How it works:**
-- Updates within `debounceInterval` are coalesced (only latest is sent)
-- Updates are guaranteed within `maxWaitTime` for data freshness
-- Perfect for WebSocket streams or frequent API polling
+## iOS 26+ Server Push Updates
 
----
-
-## Requirements
-
-| Platform | Minimum Version |
-|----------|-----------------|
-| Flutter | 3.10+ |
-| Android | API 26 (Android 8.0) |
-| iOS | 16.0 |
-
----
-
-## Example
-
-Check the [example](example/) directory for a complete demo app showing all widget types on both platforms.
-
-```bash
-cd example
-flutter run
+```dart
+if (await GlanceWidget.isWidgetPushSupported()) {
+  final token = await GlanceWidget.getWidgetPushToken();
+  if (token != null) {
+    await api.registerWidgetPushToken(token);
+  }
+}
 ```
 
 ---
 
 ## Architecture
-
-This package uses a federated plugin architecture:
 
 | Package | Description |
 |---------|-------------|
@@ -397,7 +466,14 @@ This package uses a federated plugin architecture:
 | `glance_widget_android` | Android implementation (Jetpack Glance) |
 | `glance_widget_ios` | iOS implementation (WidgetKit) |
 
----
+## Example
+
+Check the [example](example/) directory for a complete demo app showing all 7 widget types.
+
+```bash
+cd example
+flutter run
+```
 
 ## Contributing
 

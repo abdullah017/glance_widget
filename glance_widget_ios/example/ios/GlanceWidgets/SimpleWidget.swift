@@ -19,10 +19,15 @@ struct SimpleWidgetProvider: TimelineProvider {
         let data = WidgetStorage.shared.loadSimpleWidget() ?? .placeholder
         let entry = SimpleWidgetEntry(date: Date(), data: data)
 
-        // Use .never policy - updates ONLY when reloadTimelines is called
-        // This provides instant updates when Flutter calls forceRefreshAll()
-        // When app is in foreground, updates have NO budget limit!
-        let timeline = Timeline(entries: [entry], policy: .never)
+        // Check for configured timeline refresh interval
+        let refreshInterval = WidgetStorage.shared.getTimelineRefreshInterval()
+        let policy: TimelineReloadPolicy
+        if let interval = refreshInterval {
+            policy = .after(Date().addingTimeInterval(TimeInterval(interval * 60)))
+        } else {
+            policy = .never
+        }
+        let timeline = Timeline(entries: [entry], policy: policy)
         completion(timeline)
     }
 }
@@ -107,7 +112,10 @@ struct SimpleWidgetEntryView: View {
     }
 
     private var widgetURL: URL? {
-        URL(string: "glancewidget://action?widgetId=\(entry.data.widgetId)&type=tap")
+        if let deepLink = entry.data.deepLinkUri, let url = URL(string: deepLink) {
+            return url
+        }
+        return URL(string: "glancewidget://action?widgetId=\(entry.data.widgetId)&type=tap")
     }
 
     // MARK: - Dynamic Sizing
@@ -221,6 +229,7 @@ struct SimpleWidget_Previews: PreviewProvider {
                     subtitleColor: 0xFF4CAF50,
                     iconName: "bitcoinsign.circle.fill",
                     iconBase64: nil,
+                    deepLinkUri: nil,
                     timestamp: Date().timeIntervalSince1970,
                     theme: .defaultDark
                 )

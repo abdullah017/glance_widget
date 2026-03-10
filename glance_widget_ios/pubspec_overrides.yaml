@@ -1,0 +1,4 @@
+# Local development overrides
+dependency_overrides:
+  glance_widget_platform_interface:
+    path: ../glance_widget_platform_interface

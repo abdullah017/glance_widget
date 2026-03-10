@@ -43,6 +43,14 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
             handleUpdateProgressWidget(call, result: result)
         case "updateListWidget":
             handleUpdateListWidget(call, result: result)
+        case "updateCalendarWidget":
+            handleUpdateCalendarWidget(call, result: result)
+        case "updateImageWidget":
+            handleUpdateImageWidget(call, result: result)
+        case "updateChartWidget":
+            handleUpdateChartWidget(call, result: result)
+        case "updateGaugeWidget":
+            handleUpdateGaugeWidget(call, result: result)
         case "setGlobalTheme":
             handleSetGlobalTheme(call, result: result)
         case "forceRefreshAll":
@@ -53,6 +61,13 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
             handleGetWidgetPushToken(result: result)
         case "isWidgetPushSupported":
             handleIsWidgetPushSupported(result: result)
+        case "configureTimelineRefresh":
+            handleConfigureTimelineRefresh(call, result: result)
+        case "cancelTimelineRefresh":
+            handleCancelTimelineRefresh(call, result: result)
+        case "completeWidgetConfiguration":
+            // iOS handles configuration differently through the system.
+            result(true)
         default:
             result(FlutterMethodNotImplemented)
         }
@@ -99,6 +114,58 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
         result(true)
     }
 
+    private func handleUpdateCalendarWidget(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let widgetId = args["widgetId"] as? String,
+              let data = args["data"] as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "Missing widgetId or data", details: nil))
+            return
+        }
+
+        let theme = args["theme"] as? [String: Any]
+        widgetManager.updateCalendarWidget(widgetId: widgetId, data: data, theme: theme)
+        result(true)
+    }
+
+    private func handleUpdateImageWidget(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let widgetId = args["widgetId"] as? String,
+              let data = args["data"] as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "Missing widgetId or data", details: nil))
+            return
+        }
+
+        let theme = args["theme"] as? [String: Any]
+        widgetManager.updateImageWidget(widgetId: widgetId, data: data, theme: theme)
+        result(true)
+    }
+
+    private func handleUpdateChartWidget(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let widgetId = args["widgetId"] as? String,
+              let data = args["data"] as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "Missing widgetId or data", details: nil))
+            return
+        }
+
+        let theme = args["theme"] as? [String: Any]
+        widgetManager.updateChartWidget(widgetId: widgetId, data: data, theme: theme)
+        result(true)
+    }
+
+    private func handleUpdateGaugeWidget(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let widgetId = args["widgetId"] as? String,
+              let data = args["data"] as? [String: Any] else {
+            result(FlutterError(code: "INVALID_ARGS", message: "Missing widgetId or data", details: nil))
+            return
+        }
+
+        let theme = args["theme"] as? [String: Any]
+        widgetManager.updateGaugeWidget(widgetId: widgetId, data: data, theme: theme)
+        result(true)
+    }
+
     private func handleSetGlobalTheme(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let theme = call.arguments as? [String: Any] else {
             result(FlutterError(code: "INVALID_ARGS", message: "Missing theme data", details: nil))
@@ -133,6 +200,29 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
         } else {
             result(false)
         }
+    }
+
+    private func handleConfigureTimelineRefresh(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let widgetId = args["widgetId"] as? String,
+              let intervalMinutes = args["intervalMinutes"] as? Int else {
+            result(FlutterError(code: "INVALID_ARGS", message: "Missing widgetId or intervalMinutes", details: nil))
+            return
+        }
+
+        widgetManager.configureTimelineRefresh(widgetId: widgetId, intervalMinutes: intervalMinutes)
+        result(true)
+    }
+
+    private func handleCancelTimelineRefresh(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let widgetId = args["widgetId"] as? String else {
+            result(FlutterError(code: "INVALID_ARGS", message: "Missing widgetId", details: nil))
+            return
+        }
+
+        widgetManager.cancelTimelineRefresh(widgetId: widgetId)
+        result(true)
     }
 
     // MARK: - FlutterStreamHandler

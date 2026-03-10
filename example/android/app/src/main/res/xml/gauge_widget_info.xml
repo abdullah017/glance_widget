@@ -8,6 +8,6 @@
     android:minResizeHeight="110dp"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen|keyguard"
-    android:description="@string/progress_widget_description"
-    android:previewLayout="@layout/progress_widget_preview"
+    android:description="@string/gauge_widget_description"
+    android:previewLayout="@layout/gauge_widget_preview"
     android:updatePeriodMillis="0" />

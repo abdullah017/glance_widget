@@ -66,6 +66,7 @@ class GlanceWidget {
     String? subtitle,
     Color? subtitleColor,
     String? iconName,
+    String? deepLinkUri,
     GlanceTheme? theme,
   }) {
     return _platform.updateSimpleWidget(
@@ -76,6 +77,7 @@ class GlanceWidget {
         subtitle: subtitle,
         subtitleColor: subtitleColor,
         iconName: iconName,
+        deepLinkUri: deepLinkUri,
       ),
       theme: theme,
     );
@@ -108,6 +110,7 @@ class GlanceWidget {
     ProgressType progressType = ProgressType.circular,
     Color? progressColor,
     Color? trackColor,
+    String? deepLinkUri,
     GlanceTheme? theme,
   }) {
     return _platform.updateProgressWidget(
@@ -119,6 +122,7 @@ class GlanceWidget {
         progressType: progressType,
         progressColor: progressColor,
         trackColor: trackColor,
+        deepLinkUri: deepLinkUri,
       ),
       theme: theme,
     );
@@ -147,6 +151,7 @@ class GlanceWidget {
     required List<GlanceListItem> items,
     bool showCheckboxes = false,
     int maxItems = 5,
+    String? deepLinkUri,
     GlanceTheme? theme,
   }) {
     return _platform.updateListWidget(
@@ -156,6 +161,166 @@ class GlanceWidget {
         items: items,
         showCheckboxes: showCheckboxes,
         maxItems: maxItems,
+        deepLinkUri: deepLinkUri,
+      ),
+      theme: theme,
+    );
+  }
+
+  /// Updates an Image Widget with a title, image, and optional subtitle.
+  ///
+  /// Perfect for displaying images like:
+  /// - Photo of the day
+  /// - Album artwork
+  /// - Weather icons
+  /// - Product images
+  ///
+  /// Parameters:
+  /// - [id]: Unique identifier for this widget instance
+  /// - [title]: The header text
+  /// - [imageUrl]: Optional URL to load the image from
+  /// - [imageBase64]: Optional base64 encoded image
+  /// - [subtitle]: Optional secondary text
+  /// - [fit]: How the image should be fitted (default: cover)
+  /// - [theme]: Optional theme override for this widget
+  ///
+  /// Returns `true` if the widget was updated successfully.
+  static Future<bool> image({
+    required String id,
+    required String title,
+    String? imageUrl,
+    String? imageBase64,
+    String? subtitle,
+    ImageFit fit = ImageFit.cover,
+    String? deepLinkUri,
+    GlanceTheme? theme,
+  }) {
+    return _platform.updateImageWidget(
+      widgetId: id,
+      data: ImageWidgetData(
+        title: title,
+        imageUrl: imageUrl,
+        imageBase64: imageBase64,
+        subtitle: subtitle,
+        fit: fit,
+        deepLinkUri: deepLinkUri,
+      ),
+      theme: theme,
+    );
+  }
+
+  /// Updates a Chart Widget with data point visualization.
+  ///
+  /// Perfect for displaying trends like:
+  /// - Stock price history
+  /// - Step count over time
+  /// - Revenue trends
+  /// - Temperature history
+  ///
+  /// Parameters:
+  /// - [id]: Unique identifier for this widget instance
+  /// - [title]: The header text
+  /// - [dataPoints]: List of numeric values to visualize
+  /// - [chartType]: Type of chart (line, bar, sparkline)
+  /// - [color]: Optional chart color
+  /// - [subtitle]: Optional secondary text
+  /// - [theme]: Optional theme override for this widget
+  ///
+  /// Returns `true` if the widget was updated successfully.
+  static Future<bool> chart({
+    required String id,
+    required String title,
+    required List<double> dataPoints,
+    ChartType chartType = ChartType.line,
+    Color? color,
+    String? subtitle,
+    String? deepLinkUri,
+    GlanceTheme? theme,
+  }) {
+    return _platform.updateChartWidget(
+      widgetId: id,
+      data: ChartWidgetData(
+        title: title,
+        dataPoints: dataPoints,
+        chartType: chartType,
+        color: color,
+        subtitle: subtitle,
+        deepLinkUri: deepLinkUri,
+      ),
+      theme: theme,
+    );
+  }
+
+  /// Updates a Calendar Widget with events for a date.
+  ///
+  /// Perfect for displaying schedules like:
+  /// - Today's meetings
+  /// - Upcoming events
+  /// - Class schedule
+  /// - Reminders
+  ///
+  /// Parameters:
+  /// - [id]: Unique identifier for this widget instance
+  /// - [title]: The header text
+  /// - [date]: The date to display
+  /// - [events]: List of calendar events
+  /// - [maxEvents]: Maximum events to show (default: 5, range: 1-10)
+  /// - [theme]: Optional theme override for this widget
+  ///
+  /// Returns `true` if the widget was updated successfully.
+  static Future<bool> calendar({
+    required String id,
+    required String title,
+    required DateTime date,
+    required List<CalendarEvent> events,
+    int maxEvents = 5,
+    String? deepLinkUri,
+    GlanceTheme? theme,
+  }) {
+    return _platform.updateCalendarWidget(
+      widgetId: id,
+      data: CalendarWidgetData(
+        title: title,
+        date: date,
+        events: events,
+        maxEvents: maxEvents,
+        deepLinkUri: deepLinkUri,
+      ),
+      theme: theme,
+    );
+  }
+
+  /// Updates a Gauge Widget with metric values.
+  ///
+  /// Perfect for displaying metrics like:
+  /// - CPU/memory usage
+  /// - Speed gauge
+  /// - Health metrics
+  /// - Performance scores
+  ///
+  /// Parameters:
+  /// - [id]: Unique identifier for this widget instance
+  /// - [title]: The header text
+  /// - [metrics]: List of gauge metrics to display
+  /// - [gaugeType]: Radial or dashboard display (default: radial)
+  /// - [theme]: Optional theme override for this widget
+  ///
+  /// Returns `true` if the widget was updated successfully.
+  static Future<bool> gauge({
+    required String id,
+    required String title,
+    required List<GaugeMetric> metrics,
+    GaugeType gaugeType = GaugeType.radial,
+    String? deepLinkUri,
+    GlanceTheme? theme,
+  }) {
+    return _platform.updateGaugeWidget(
+      widgetId: id,
+      data: GaugeWidgetData(
+        title: title,
+        metrics: metrics,
+        gaugeType: gaugeType,
+        deepLinkUri: deepLinkUri,
       ),
       theme: theme,
     );
@@ -239,5 +404,198 @@ class GlanceWidget {
   /// ```
   static Future<bool> isWidgetPushSupported() {
     return _platform.isWidgetPushSupported();
+  }
+
+  /// Configures iOS timeline-based refresh for a widget.
+  ///
+  /// This allows iOS widgets to refresh periodically using WidgetKit's
+  /// `.after(date)` timeline policy, even when the app is not in the foreground.
+  ///
+  /// **Note:** WidgetKit manages the actual refresh schedule and may delay
+  /// refreshes to optimize battery life. The interval is a suggestion.
+  ///
+  /// On Android, this is a no-op — use [configureBackgroundUpdate] instead.
+  ///
+  /// Parameters:
+  /// - [widgetId]: Unique identifier for the widget
+  /// - [interval]: Suggested refresh interval (minimum 5 minutes)
+  ///
+  /// Example:
+  /// ```dart
+  /// await GlanceWidget.configureTimelineRefresh(
+  ///   widgetId: 'weather',
+  ///   interval: Duration(minutes: 30),
+  /// );
+  /// ```
+  static Future<bool> configureTimelineRefresh({
+    required String widgetId,
+    Duration interval = const Duration(minutes: 30),
+  }) {
+    final intervalMinutes = interval.inMinutes < 5 ? 5 : interval.inMinutes;
+    return _platform.configureTimelineRefresh(
+      widgetId: widgetId,
+      intervalMinutes: intervalMinutes,
+    );
+  }
+
+  /// Cancels iOS timeline-based refresh for a widget.
+  ///
+  /// Reverts the widget to `.never` timeline policy, meaning it will only
+  /// update when the app explicitly triggers a reload.
+  ///
+  /// On Android, this is a no-op.
+  static Future<bool> cancelTimelineRefresh(String widgetId) {
+    return _platform.cancelTimelineRefresh(widgetId);
+  }
+
+  /// Configures background updates for a widget.
+  ///
+  /// This allows widgets to update even when the app is closed by periodically
+  /// fetching data from an API and updating the widget.
+  ///
+  /// **Note:** On Android, the minimum update interval is 15 minutes due to
+  /// WorkManager constraints. This is a system limitation to preserve battery.
+  /// For more frequent updates, use the app in the foreground with
+  /// [DebouncedWidgetController].
+  ///
+  /// Parameters:
+  /// - [widgetId]: Unique identifier for the widget
+  /// - [template]: Widget template type (simple, progress, or list)
+  /// - [apiUrl]: API endpoint URL to fetch data from
+  /// - [headers]: Optional HTTP headers for API requests
+  /// - [interval]: Update interval (minimum 15 minutes)
+  /// - [title]: Widget title to display
+  /// - [valuePath]: JSONPath expression to extract main value (e.g., "$.data.price")
+  /// - [subtitlePath]: Optional JSONPath for subtitle
+  /// - [valuePrefix]: Optional prefix for value (e.g., "$")
+  /// - [valueSuffix]: Optional suffix for value (e.g., "%")
+  ///
+  /// Example:
+  /// ```dart
+  /// await GlanceWidget.configureBackgroundUpdate(
+  ///   widgetId: 'crypto_btc',
+  ///   template: GlanceTemplate.simple,
+  ///   apiUrl: 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
+  ///   interval: Duration(minutes: 15),
+  ///   title: 'Bitcoin',
+  ///   valuePath: r'$.bitcoin.usd',
+  ///   valuePrefix: r'$',
+  /// );
+  /// ```
+  ///
+  /// Returns `true` if background updates were configured successfully.
+  static Future<bool> configureBackgroundUpdate({
+    required String widgetId,
+    required GlanceTemplate template,
+    required String apiUrl,
+    Map<String, String>? headers,
+    Duration interval = const Duration(minutes: 15),
+    required String title,
+    required String valuePath,
+    String? subtitlePath,
+    String? valuePrefix,
+    String? valueSuffix,
+  }) {
+    // Ensure minimum interval of 15 minutes
+    final intervalMinutes = interval.inMinutes < 15 ? 15 : interval.inMinutes;
+
+    return _platform.configureBackgroundUpdate(
+      widgetId: widgetId,
+      template: template.name,
+      apiUrl: apiUrl,
+      headers: headers ?? {},
+      intervalMinutes: intervalMinutes,
+      title: title,
+      valuePath: valuePath,
+      subtitlePath: subtitlePath,
+      valuePrefix: valuePrefix,
+      valueSuffix: valueSuffix,
+    );
+  }
+
+  /// Cancels background updates for a widget.
+  ///
+  /// Stops the periodic background update task for the specified widget.
+  /// The widget will retain its last data but will no longer update automatically.
+  ///
+  /// Example:
+  /// ```dart
+  /// await GlanceWidget.cancelBackgroundUpdate('crypto_btc');
+  /// ```
+  ///
+  /// Returns `true` if background updates were cancelled successfully.
+  static Future<bool> cancelBackgroundUpdate(String widgetId) {
+    return _platform.cancelBackgroundUpdate(widgetId);
+  }
+
+  /// Gets the status of background updates for a widget.
+  ///
+  /// Returns a map containing:
+  /// - `widgetId`: The widget identifier
+  /// - `isConfigured`: Whether background updates are configured
+  /// - `isEnabled`: Whether background updates are enabled
+  /// - `intervalMinutes`: Update interval in minutes
+  /// - `workState`: Current work state (ENQUEUED, RUNNING, NOT_SCHEDULED)
+  /// - `apiUrl`: The configured API URL
+  ///
+  /// Example:
+  /// ```dart
+  /// final status = await GlanceWidget.getBackgroundUpdateStatus('crypto_btc');
+  /// if (status['isConfigured'] == true) {
+  ///   print('Background updates are active');
+  ///   print('Next update state: ${status['workState']}');
+  /// }
+  /// ```
+  static Future<Map<String, dynamic>> getBackgroundUpdateStatus(
+    String widgetId,
+  ) {
+    return _platform.getBackgroundUpdateStatus(widgetId);
+  }
+
+  /// Marks widget configuration as complete.
+  ///
+  /// Call this after the user has finished configuring a newly added widget.
+  /// The `onAction` stream will emit a `configure` action when a widget
+  /// needs configuration. After presenting a configuration UI to the user,
+  /// call this method to finalize the widget placement.
+  ///
+  /// Example:
+  /// ```dart
+  /// GlanceWidget.onAction.listen((action) {
+  ///   if (action.type == GlanceActionType.configure) {
+  ///     // Show configuration UI
+  ///     showWidgetConfig(action.widgetId).then((_) {
+  ///       GlanceWidget.completeWidgetConfiguration(action.widgetId);
+  ///     });
+  ///   }
+  /// });
+  /// ```
+  static Future<bool> completeWidgetConfiguration(String widgetId) {
+    return _platform.completeWidgetConfiguration(widgetId);
+  }
+
+  /// Triggers a one-time background update immediately (for testing).
+  ///
+  /// This bypasses the 15-minute minimum interval and runs the background
+  /// worker immediately. Useful for testing without waiting.
+  ///
+  /// **Note:** Background updates must be configured first using
+  /// [configureBackgroundUpdate].
+  ///
+  /// Example:
+  /// ```dart
+  /// // First enable background updates
+  /// await GlanceWidget.configureBackgroundUpdate(
+  ///   widgetId: 'crypto_btc',
+  ///   ...
+  /// );
+  ///
+  /// // Then test immediately
+  /// await GlanceWidget.testBackgroundUpdate('crypto_btc');
+  /// ```
+  ///
+  /// Returns `true` if the test was triggered successfully.
+  static Future<bool> testBackgroundUpdate(String widgetId) {
+    return _platform.testBackgroundUpdate(widgetId);
   }
 }

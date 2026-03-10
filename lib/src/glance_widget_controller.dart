@@ -3,17 +3,7 @@ import 'dart:async';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
 import 'package:logging/logging.dart';
 
-/// Template types for Glance widgets.
-enum GlanceTemplate {
-  /// Simple widget with title, value, and subtitle.
-  simple,
-
-  /// Progress widget with circular or linear progress indicator.
-  progress,
-
-  /// List widget with scrollable items.
-  list,
-}
+// GlanceTemplate is now exported from glance_widget_platform_interface
 
 /// Controller for managing a single Glance widget instance.
 ///
@@ -141,6 +131,70 @@ class GlanceWidgetController {
       );
     }
     return GlanceWidgetPlatform.instance.updateListWidget(
+      widgetId: widgetId,
+      data: data,
+      theme: theme,
+    );
+  }
+
+  /// Updates an Image widget with the given data.
+  ///
+  /// Throws [StateError] if this controller is not for an image widget.
+  Future<bool> updateImage(ImageWidgetData data) {
+    if (template != GlanceTemplate.image) {
+      throw StateError(
+        'Cannot update image widget: controller is for ${template.name} template',
+      );
+    }
+    return GlanceWidgetPlatform.instance.updateImageWidget(
+      widgetId: widgetId,
+      data: data,
+      theme: theme,
+    );
+  }
+
+  /// Updates a Chart widget with the given data.
+  ///
+  /// Throws [StateError] if this controller is not for a chart widget.
+  Future<bool> updateChart(ChartWidgetData data) {
+    if (template != GlanceTemplate.chart) {
+      throw StateError(
+        'Cannot update chart widget: controller is for ${template.name} template',
+      );
+    }
+    return GlanceWidgetPlatform.instance.updateChartWidget(
+      widgetId: widgetId,
+      data: data,
+      theme: theme,
+    );
+  }
+
+  /// Updates a Calendar widget with the given data.
+  ///
+  /// Throws [StateError] if this controller is not for a calendar widget.
+  Future<bool> updateCalendar(CalendarWidgetData data) {
+    if (template != GlanceTemplate.calendar) {
+      throw StateError(
+        'Cannot update calendar widget: controller is for ${template.name} template',
+      );
+    }
+    return GlanceWidgetPlatform.instance.updateCalendarWidget(
+      widgetId: widgetId,
+      data: data,
+      theme: theme,
+    );
+  }
+
+  /// Updates a Gauge widget with the given data.
+  ///
+  /// Throws [StateError] if this controller is not for a gauge widget.
+  Future<bool> updateGauge(GaugeWidgetData data) {
+    if (template != GlanceTemplate.gauge) {
+      throw StateError(
+        'Cannot update gauge widget: controller is for ${template.name} template',
+      );
+    }
+    return GlanceWidgetPlatform.instance.updateGaugeWidget(
       widgetId: widgetId,
       data: data,
       theme: theme,

@@ -19,8 +19,15 @@ struct ProgressWidgetProvider: TimelineProvider {
         let data = WidgetStorage.shared.loadProgressWidget() ?? .placeholder
         let entry = ProgressWidgetEntry(date: Date(), data: data)
 
-        // Use .never policy for instant updates when app triggers reload
-        let timeline = Timeline(entries: [entry], policy: .never)
+        // Check for configured timeline refresh interval
+        let refreshInterval = WidgetStorage.shared.getTimelineRefreshInterval()
+        let policy: TimelineReloadPolicy
+        if let interval = refreshInterval {
+            policy = .after(Date().addingTimeInterval(TimeInterval(interval * 60)))
+        } else {
+            policy = .never
+        }
+        let timeline = Timeline(entries: [entry], policy: policy)
         completion(timeline)
     }
 }
@@ -176,7 +183,10 @@ struct ProgressWidgetEntryView: View {
     // MARK: - Computed Properties
 
     private var widgetURL: URL? {
-        URL(string: "glancewidget://action?widgetId=\(entry.data.widgetId)&type=tap")
+        if let deepLink = entry.data.deepLinkUri, let url = URL(string: deepLink) {
+            return url
+        }
+        return URL(string: "glancewidget://action?widgetId=\(entry.data.widgetId)&type=tap")
     }
 
     // MARK: - Dynamic Sizing
@@ -315,6 +325,7 @@ struct ProgressWidget_Previews: PreviewProvider {
                         progressType: "circular",
                         progressColor: 0xFF4CAF50,
                         trackColor: nil,
+                        deepLinkUri: nil,
                         timestamp: Date().timeIntervalSince1970,
                         theme: .defaultDark
                     )
@@ -335,6 +346,7 @@ struct ProgressWidget_Previews: PreviewProvider {
                         progressType: "linear",
                         progressColor: 0xFF2196F3,
                         trackColor: nil,
+                        deepLinkUri: nil,
                         timestamp: Date().timeIntervalSince1970,
                         theme: .defaultDark
                     )

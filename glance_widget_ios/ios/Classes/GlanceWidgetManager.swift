@@ -61,9 +61,14 @@ public class GlanceWidgetManager {
     private let simpleWidgetKeyPrefix = "simpleWidgetData_"
     private let progressWidgetKeyPrefix = "progressWidgetData_"
     private let listWidgetKeyPrefix = "listWidgetData_"
+    private let calendarWidgetKeyPrefix = "calendarWidgetData_"
+    private let imageWidgetKeyPrefix = "imageWidgetData_"
+    private let chartWidgetKeyPrefix = "chartWidgetData_"
+    private let gaugeWidgetKeyPrefix = "gaugeWidgetData_"
     private let globalThemeKey = "globalTheme"
     private let activeWidgetsKey = "activeWidgetIds"
     private let widgetPushTokenKey = "widgetPushToken"
+    private let timelineRefreshIntervalKey = "timeline_refresh_interval"
 
     private init() {
         storage = AppGroupStorage(appGroupId: GlanceWidgetManager.appGroupId)
@@ -184,6 +189,142 @@ public class GlanceWidgetManager {
         return .success
     }
 
+    /// Updates a Calendar Widget with the given data
+    public func updateCalendarWidget(widgetId: String, data: [String: Any], theme: [String: Any]?) {
+        _ = updateCalendarWidgetWithResult(widgetId: widgetId, data: data, theme: theme)
+    }
+
+    /// Updates a Calendar Widget with the given data and returns a result.
+    /// Use this method when you need to handle errors.
+    @discardableResult
+    public func updateCalendarWidgetWithResult(widgetId: String, data: [String: Any], theme: [String: Any]?) -> GlanceResult {
+        guard storage.isAvailable else {
+            print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
+            return .failure(code: GlanceResult.errorAppGroupAccess,
+                          message: "App Group storage not available. Check entitlements configuration.")
+        }
+
+        var widgetData = data
+        widgetData["widgetId"] = widgetId
+        widgetData["timestamp"] = Date().timeIntervalSince1970
+
+        if let theme = theme {
+            widgetData["theme"] = theme
+        }
+
+        let saved = storage.save(widgetData, forKey: "\(calendarWidgetKeyPrefix)\(widgetId)")
+        if !saved {
+            return .failure(code: GlanceResult.errorSaveFailed,
+                          message: "Failed to save widget data to App Group storage")
+        }
+
+        trackWidgetId(widgetId)
+        WidgetCenter.shared.reloadTimelines(ofKind: "CalendarWidget")
+        return .success
+    }
+
+    /// Updates an Image Widget with the given data
+    public func updateImageWidget(widgetId: String, data: [String: Any], theme: [String: Any]?) {
+        _ = updateImageWidgetWithResult(widgetId: widgetId, data: data, theme: theme)
+    }
+
+    /// Updates an Image Widget with the given data and returns a result.
+    /// Use this method when you need to handle errors.
+    @discardableResult
+    public func updateImageWidgetWithResult(widgetId: String, data: [String: Any], theme: [String: Any]?) -> GlanceResult {
+        guard storage.isAvailable else {
+            print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
+            return .failure(code: GlanceResult.errorAppGroupAccess,
+                          message: "App Group storage not available. Check entitlements configuration.")
+        }
+
+        var widgetData = data
+        widgetData["widgetId"] = widgetId
+        widgetData["timestamp"] = Date().timeIntervalSince1970
+
+        if let theme = theme {
+            widgetData["theme"] = theme
+        }
+
+        let saved = storage.save(widgetData, forKey: "\(imageWidgetKeyPrefix)\(widgetId)")
+        if !saved {
+            return .failure(code: GlanceResult.errorSaveFailed,
+                          message: "Failed to save widget data to App Group storage")
+        }
+
+        trackWidgetId(widgetId)
+        WidgetCenter.shared.reloadTimelines(ofKind: "ImageWidget")
+        return .success
+    }
+
+    /// Updates a Chart Widget with the given data
+    public func updateChartWidget(widgetId: String, data: [String: Any], theme: [String: Any]?) {
+        _ = updateChartWidgetWithResult(widgetId: widgetId, data: data, theme: theme)
+    }
+
+    /// Updates a Chart Widget with the given data and returns a result.
+    /// Use this method when you need to handle errors.
+    @discardableResult
+    public func updateChartWidgetWithResult(widgetId: String, data: [String: Any], theme: [String: Any]?) -> GlanceResult {
+        guard storage.isAvailable else {
+            print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
+            return .failure(code: GlanceResult.errorAppGroupAccess,
+                          message: "App Group storage not available. Check entitlements configuration.")
+        }
+
+        var widgetData = data
+        widgetData["widgetId"] = widgetId
+        widgetData["timestamp"] = Date().timeIntervalSince1970
+
+        if let theme = theme {
+            widgetData["theme"] = theme
+        }
+
+        let saved = storage.save(widgetData, forKey: "\(chartWidgetKeyPrefix)\(widgetId)")
+        if !saved {
+            return .failure(code: GlanceResult.errorSaveFailed,
+                          message: "Failed to save widget data to App Group storage")
+        }
+
+        trackWidgetId(widgetId)
+        WidgetCenter.shared.reloadTimelines(ofKind: "ChartWidget")
+        return .success
+    }
+
+    /// Updates a Gauge Widget with the given data
+    public func updateGaugeWidget(widgetId: String, data: [String: Any], theme: [String: Any]?) {
+        _ = updateGaugeWidgetWithResult(widgetId: widgetId, data: data, theme: theme)
+    }
+
+    /// Updates a Gauge Widget with the given data and returns a result.
+    /// Use this method when you need to handle errors.
+    @discardableResult
+    public func updateGaugeWidgetWithResult(widgetId: String, data: [String: Any], theme: [String: Any]?) -> GlanceResult {
+        guard storage.isAvailable else {
+            print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
+            return .failure(code: GlanceResult.errorAppGroupAccess,
+                          message: "App Group storage not available. Check entitlements configuration.")
+        }
+
+        var widgetData = data
+        widgetData["widgetId"] = widgetId
+        widgetData["timestamp"] = Date().timeIntervalSince1970
+
+        if let theme = theme {
+            widgetData["theme"] = theme
+        }
+
+        let saved = storage.save(widgetData, forKey: "\(gaugeWidgetKeyPrefix)\(widgetId)")
+        if !saved {
+            return .failure(code: GlanceResult.errorSaveFailed,
+                          message: "Failed to save widget data to App Group storage")
+        }
+
+        trackWidgetId(widgetId)
+        WidgetCenter.shared.reloadTimelines(ofKind: "GaugeWidget")
+        return .success
+    }
+
     /// Sets the global theme for all widgets
     public func setGlobalTheme(_ theme: [String: Any]) {
         storage.save(theme, forKey: globalThemeKey)
@@ -210,6 +351,45 @@ public class GlanceWidgetManager {
     /// Returns nil on iOS versions below 26 or if token is not available.
     public func getWidgetPushToken() -> String? {
         return storage.loadString(forKey: widgetPushTokenKey)
+    }
+
+    // MARK: - Timeline Refresh Configuration
+
+    /// Configures a periodic timeline refresh interval for widgets.
+    ///
+    /// When configured, widget timeline providers will use `.after(date)` policy
+    /// instead of `.never`, causing WidgetKit to request new timeline entries
+    /// after the specified interval.
+    ///
+    /// - Parameters:
+    ///   - widgetId: The widget identifier requesting the refresh configuration
+    ///   - intervalMinutes: The refresh interval in minutes
+    public func configureTimelineRefresh(widgetId: String, intervalMinutes: Int) {
+        storage.save(intervalMinutes, forKey: timelineRefreshIntervalKey)
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// Cancels the periodic timeline refresh for widgets.
+    ///
+    /// After cancellation, widget timeline providers will revert to `.never` policy,
+    /// only updating when explicitly triggered by the app.
+    ///
+    /// - Parameter widgetId: The widget identifier requesting the cancellation
+    public func cancelTimelineRefresh(widgetId: String) {
+        storage.remove(forKey: timelineRefreshIntervalKey)
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// Returns the configured timeline refresh interval in minutes, if any.
+    ///
+    /// Widget extensions can call this method to determine whether to use
+    /// `.after(date)` or `.never` as the timeline reload policy.
+    ///
+    /// - Returns: The refresh interval in minutes, or nil if no refresh is configured
+    public static func getTimelineRefreshInterval() -> Int? {
+        let defaults = UserDefaults(suiteName: appGroupId)
+        let interval = defaults?.integer(forKey: "timeline_refresh_interval") ?? 0
+        return interval > 0 ? interval : nil
     }
 
     /// Sends a widget action event back to Flutter

@@ -31,11 +31,21 @@ export 'src/debounced_widget_controller.dart';
 // Re-export types from platform interface
 export 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart'
     show
+        GlanceTemplate,
         SimpleWidgetData,
         ProgressWidgetData,
         ProgressType,
         ListWidgetData,
         GlanceListItem,
+        ImageWidgetData,
+        ImageFit,
+        ChartWidgetData,
+        ChartType,
+        CalendarWidgetData,
+        CalendarEvent,
+        GaugeWidgetData,
+        GaugeMetric,
+        GaugeType,
         GlanceTheme,
         GlanceWidgetAction,
         GlanceActionType,

@@ -4,4 +4,8 @@
     <string name="simple_widget_description">Simple widget for displaying title, value, and subtitle</string>
     <string name="progress_widget_description">Progress widget with circular or linear progress indicator</string>
     <string name="list_widget_description">List widget for displaying items with optional checkboxes</string>
+    <string name="calendar_widget_description">Calendar widget for displaying events and schedule</string>
+    <string name="image_widget_description">Image widget for displaying photos with title and subtitle</string>
+    <string name="chart_widget_description">Chart widget for visualizing data as line, bar, or sparkline</string>
+    <string name="gauge_widget_description">Gauge widget for displaying metrics with radial or dashboard view</string>
 </resources>

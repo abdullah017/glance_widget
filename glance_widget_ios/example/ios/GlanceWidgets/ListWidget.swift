@@ -19,8 +19,15 @@ struct ListWidgetProvider: TimelineProvider {
         let data = WidgetStorage.shared.loadListWidget() ?? .placeholder
         let entry = ListWidgetEntry(date: Date(), data: data)
 
-        // Use .never policy for instant updates
-        let timeline = Timeline(entries: [entry], policy: .never)
+        // Check for configured timeline refresh interval
+        let refreshInterval = WidgetStorage.shared.getTimelineRefreshInterval()
+        let policy: TimelineReloadPolicy
+        if let interval = refreshInterval {
+            policy = .after(Date().addingTimeInterval(TimeInterval(interval * 60)))
+        } else {
+            policy = .never
+        }
+        let timeline = Timeline(entries: [entry], policy: policy)
         completion(timeline)
     }
 }
@@ -166,39 +173,44 @@ struct ListWidgetEntryView: View {
         secondaryTextColor: Color,
         accentColor: Color
     ) -> some View {
-        Link(destination: itemURL(index: index)) {
-            HStack(spacing: 8) {
-                // Checkbox (if enabled)
-                if entry.data.showCheckboxes {
+        HStack(spacing: 8) {
+            // Checkbox (if enabled) - tappable with checkboxToggle action
+            if entry.data.showCheckboxes {
+                Link(destination: checkboxToggleURL(index: index, currentValue: item.checked)) {
                     Image(systemName: item.checked ? "checkmark.circle.fill" : "circle")
                         .font(checkboxFont(for: family))
                         .foregroundColor(item.checked ? accentColor : secondaryTextColor)
                 }
+            }
 
-                // Icon (if provided)
-                if let iconName = item.iconName {
-                    Image(systemName: iconName)
-                        .font(iconFont(for: family))
-                        .foregroundColor(accentColor)
-                }
-
-                // Text content
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(item.text)
-                        .font(itemFont(for: family))
-                        .foregroundColor(item.checked && entry.data.showCheckboxes ? secondaryTextColor : textColor)
-                        .strikethrough(item.checked && entry.data.showCheckboxes)
-                        .lineLimit(1)
-
-                    if let secondary = item.secondaryText, !secondary.isEmpty {
-                        Text(secondary)
-                            .font(secondaryFont(for: family))
-                            .foregroundColor(secondaryTextColor)
-                            .lineLimit(1)
+            // Rest of the row is tappable with itemTap action
+            Link(destination: itemURL(index: index)) {
+                HStack(spacing: 8) {
+                    // Icon (if provided)
+                    if let iconName = item.iconName {
+                        Image(systemName: iconName)
+                            .font(iconFont(for: family))
+                            .foregroundColor(accentColor)
                     }
-                }
 
-                Spacer()
+                    // Text content
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(item.text)
+                            .font(itemFont(for: family))
+                            .foregroundColor(item.checked && entry.data.showCheckboxes ? secondaryTextColor : textColor)
+                            .strikethrough(item.checked && entry.data.showCheckboxes)
+                            .lineLimit(1)
+
+                        if let secondary = item.secondaryText, !secondary.isEmpty {
+                            Text(secondary)
+                                .font(secondaryFont(for: family))
+                                .foregroundColor(secondaryTextColor)
+                                .lineLimit(1)
+                        }
+                    }
+
+                    Spacer()
+                }
             }
         }
     }
@@ -206,7 +218,18 @@ struct ListWidgetEntryView: View {
     // MARK: - URLs
 
     private func itemURL(index: Int) -> URL {
-        URL(string: "glancewidget://action?widgetId=\(entry.data.widgetId)&type=itemTap&index=\(index)")!
+        if let deepLink = entry.data.deepLinkUri, let url = URL(string: deepLink) {
+            return url
+        }
+        return URL(string: "glancewidget://action?widgetId=\(entry.data.widgetId)&type=itemTap&itemIndex=\(index)")!
+    }
+
+    private func checkboxToggleURL(index: Int, currentValue: Bool) -> URL {
+        if let deepLink = entry.data.deepLinkUri, let url = URL(string: deepLink) {
+            return url
+        }
+        let newValue = !currentValue
+        return URL(string: "glancewidget://action?widgetId=\(entry.data.widgetId)&type=checkboxToggle&itemIndex=\(index)&value=\(newValue)")!
     }
 
     // MARK: - Dynamic Sizing
@@ -358,6 +381,7 @@ struct ListWidget_Previews: PreviewProvider {
                     ],
                     showCheckboxes: true,
                     maxItems: 5,
+                    deepLinkUri: nil,
                     timestamp: Date().timeIntervalSince1970,
                     theme: .defaultDark
                 )

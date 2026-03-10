@@ -7,6 +7,16 @@ import androidx.datastore.preferences.core.*
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
+import android.util.Base64
+import com.example.glance_widget_android.templates.CalendarGlanceWidget
+import com.example.glance_widget_android.templates.ChartGlanceWidget
+import com.example.glance_widget_android.templates.GaugeGlanceWidget
+import com.example.glance_widget_android.templates.ImageGlanceWidget
 import com.example.glance_widget_android.templates.ListGlanceWidget
 import com.example.glance_widget_android.templates.ProgressGlanceWidget
 import com.example.glance_widget_android.templates.SimpleGlanceWidget
@@ -14,6 +24,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.flutter.plugin.common.EventChannel
 import kotlinx.coroutines.*
+import java.io.ByteArrayOutputStream
 
 /**
  * Result type for widget update operations.
@@ -71,6 +82,29 @@ object GlanceWidgetManager {
     val itemsKey = stringPreferencesKey("items")
     val showCheckboxesKey = booleanPreferencesKey("showCheckboxes")
     val timestampKey = longPreferencesKey("timestamp")
+
+    // Calendar keys
+    val dateKey = stringPreferencesKey("date")
+    val eventsKey = stringPreferencesKey("events")
+    val maxEventsKey = intPreferencesKey("maxEvents")
+
+    // Image keys
+    val imageBase64Key = stringPreferencesKey("imageBase64")
+    val imageFitKey = stringPreferencesKey("imageFit")
+
+    // Chart keys
+    val dataPointsKey = stringPreferencesKey("dataPoints")
+    val chartTypeKey = stringPreferencesKey("chartType")
+    val chartColorKey = intPreferencesKey("chartColor")
+    val chartBitmapKey = stringPreferencesKey("chartBitmap")
+
+    // Gauge keys
+    val metricsKey = stringPreferencesKey("metrics")
+    val gaugeTypeKey = stringPreferencesKey("gaugeType")
+    val gaugeBitmapKey = stringPreferencesKey("gaugeBitmap")
+
+    // Deep link key
+    val deepLinkUriKey = stringPreferencesKey("deepLinkUri")
 
     // Theme keys
     val backgroundColorKey = intPreferencesKey("backgroundColor")
@@ -154,6 +188,7 @@ object GlanceWidgetManager {
                         data["subtitle"]?.let { this[subtitleKey] = it as String }
                         (data["subtitleColor"] as? Number)?.let { this[subtitleColorKey] = it.toInt() }
                         data["iconName"]?.let { this[iconNameKey] = it as String }
+                        data["deepLinkUri"]?.let { this[deepLinkUriKey] = it as String }
                         this[timestampKey] = System.currentTimeMillis()
 
                         // Apply theme if provided
@@ -224,6 +259,7 @@ object GlanceWidgetManager {
                         this[progressTypeKey] = data["progressType"] as? String ?: "circular"
                         (data["progressColor"] as? Number)?.let { this[progressColorKey] = it.toInt() }
                         (data["trackColor"] as? Number)?.let { this[trackColorKey] = it.toInt() }
+                        data["deepLinkUri"]?.let { this[deepLinkUriKey] = it as String }
                         this[timestampKey] = System.currentTimeMillis()
 
                         // Apply theme if provided
@@ -294,6 +330,7 @@ object GlanceWidgetManager {
                         val items = data["items"] as? List<Map<String, Any?>> ?: emptyList()
                         this[itemsKey] = serializeItems(items)
                         this[showCheckboxesKey] = data["showCheckboxes"] as? Boolean ?: false
+                        data["deepLinkUri"]?.let { this[deepLinkUriKey] = it as String }
                         this[timestampKey] = System.currentTimeMillis()
 
                         // Apply theme if provided
@@ -317,6 +354,318 @@ object GlanceWidgetManager {
     }
 
     /**
+     * Updates a Calendar Widget with the given data.
+     */
+    fun updateCalendarWidget(
+        context: Context,
+        widgetId: String,
+        data: Map<String, Any?>,
+        theme: Map<String, Any?>?
+    ) {
+        scope.launch {
+            updateCalendarWidgetWithResult(context, widgetId, data, theme)
+        }
+    }
+
+    /**
+     * Updates a Calendar Widget with the given data and returns a result.
+     */
+    suspend fun updateCalendarWidgetWithResult(
+        context: Context,
+        widgetId: String,
+        data: Map<String, Any?>,
+        theme: Map<String, Any?>?
+    ): UpdateResult {
+        return try {
+            Log.d(TAG, "Updating calendar widget: $widgetId")
+            val manager = GlanceAppWidgetManager(context)
+            val glanceIds = manager.getGlanceIds(CalendarGlanceWidget::class.java)
+            val widget = CalendarGlanceWidget()
+
+            if (glanceIds.isEmpty()) {
+                Log.w(TAG, "No CalendarGlanceWidget instances found")
+                return UpdateResult.Error(
+                    UpdateResult.ERROR_NO_WIDGET_INSTANCE,
+                    "No CalendarGlanceWidget instances found on home screen"
+                )
+            }
+
+            glanceIds.forEach { glanceId ->
+                updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
+                    prefs.toMutablePreferences().apply {
+                        this[widgetIdKey] = widgetId
+                        this[titleKey] = data["title"] as? String ?: "Calendar"
+                        data["date"]?.let { this[dateKey] = it as String }
+                        // Serialize events as JSON string
+                        @Suppress("UNCHECKED_CAST")
+                        val events = data["events"] as? List<Map<String, Any?>> ?: emptyList()
+                        this[eventsKey] = serializeItems(events)
+                        (data["maxEvents"] as? Number)?.let { this[maxEventsKey] = it.toInt() }
+                        data["deepLinkUri"]?.let { this[deepLinkUriKey] = it as String }
+                        this[timestampKey] = System.currentTimeMillis()
+
+                        // Apply theme if provided
+                        theme?.let { applyTheme(this, it) }
+                    }
+                }
+                widget.update(context, glanceId)
+            }
+
+            trackWidgetId(context, widgetId)
+            Log.d(TAG, "Calendar widget updated successfully: $widgetId")
+            UpdateResult.Success
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to update calendar widget: $widgetId", e)
+            UpdateResult.Error(
+                UpdateResult.ERROR_UPDATE_FAILED,
+                "Failed to update calendar widget: ${e.message}"
+            )
+        }
+    }
+
+    /**
+     * Updates an Image Widget with the given data.
+     */
+    fun updateImageWidget(
+        context: Context,
+        widgetId: String,
+        data: Map<String, Any?>,
+        theme: Map<String, Any?>?
+    ) {
+        scope.launch {
+            updateImageWidgetWithResult(context, widgetId, data, theme)
+        }
+    }
+
+    /**
+     * Updates an Image Widget with the given data and returns a result.
+     */
+    suspend fun updateImageWidgetWithResult(
+        context: Context,
+        widgetId: String,
+        data: Map<String, Any?>,
+        theme: Map<String, Any?>?
+    ): UpdateResult {
+        return try {
+            Log.d(TAG, "Updating image widget: $widgetId")
+            val manager = GlanceAppWidgetManager(context)
+            val glanceIds = manager.getGlanceIds(ImageGlanceWidget::class.java)
+            val widget = ImageGlanceWidget()
+
+            if (glanceIds.isEmpty()) {
+                Log.w(TAG, "No ImageGlanceWidget instances found")
+                return UpdateResult.Error(
+                    UpdateResult.ERROR_NO_WIDGET_INSTANCE,
+                    "No ImageGlanceWidget instances found on home screen"
+                )
+            }
+
+            glanceIds.forEach { glanceId ->
+                updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
+                    prefs.toMutablePreferences().apply {
+                        this[widgetIdKey] = widgetId
+                        this[titleKey] = data["title"] as? String ?: ""
+                        data["subtitle"]?.let { this[subtitleKey] = it as String }
+                        data["imageBase64"]?.let { this[imageBase64Key] = it as String }
+                        data["imageFit"]?.let { this[imageFitKey] = it as String }
+                        data["deepLinkUri"]?.let { this[deepLinkUriKey] = it as String }
+                        this[timestampKey] = System.currentTimeMillis()
+
+                        // Apply theme if provided
+                        theme?.let { applyTheme(this, it) }
+                    }
+                }
+                widget.update(context, glanceId)
+            }
+
+            trackWidgetId(context, widgetId)
+            Log.d(TAG, "Image widget updated successfully: $widgetId")
+            UpdateResult.Success
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to update image widget: $widgetId", e)
+            UpdateResult.Error(
+                UpdateResult.ERROR_UPDATE_FAILED,
+                "Failed to update image widget: ${e.message}"
+            )
+        }
+    }
+
+    /**
+     * Updates a Chart Widget with the given data.
+     */
+    fun updateChartWidget(
+        context: Context,
+        widgetId: String,
+        data: Map<String, Any?>,
+        theme: Map<String, Any?>?
+    ) {
+        scope.launch {
+            updateChartWidgetWithResult(context, widgetId, data, theme)
+        }
+    }
+
+    /**
+     * Updates a Chart Widget with the given data and returns a result.
+     * Renders the chart as a bitmap using Android Canvas before storing in preferences.
+     */
+    suspend fun updateChartWidgetWithResult(
+        context: Context,
+        widgetId: String,
+        data: Map<String, Any?>,
+        theme: Map<String, Any?>?
+    ): UpdateResult {
+        return try {
+            Log.d(TAG, "Updating chart widget: $widgetId")
+            val manager = GlanceAppWidgetManager(context)
+            val glanceIds = manager.getGlanceIds(ChartGlanceWidget::class.java)
+            val widget = ChartGlanceWidget()
+
+            if (glanceIds.isEmpty()) {
+                Log.w(TAG, "No ChartGlanceWidget instances found")
+                return UpdateResult.Error(
+                    UpdateResult.ERROR_NO_WIDGET_INSTANCE,
+                    "No ChartGlanceWidget instances found on home screen"
+                )
+            }
+
+            // Extract chart parameters
+            val chartType = data["chartType"] as? String ?: "line"
+            val chartColor = (data["chartColor"] as? Number)?.toInt() ?: 0xFF2196F3.toInt()
+            @Suppress("UNCHECKED_CAST")
+            val dataPoints = data["dataPoints"] as? List<Number> ?: emptyList()
+            val isDark = theme?.get("isDark") as? Boolean ?: true
+
+            // Render chart bitmap
+            val chartBitmapBase64 = if (dataPoints.isNotEmpty()) {
+                renderChartBitmap(dataPoints.map { it.toFloat() }, chartType, chartColor, isDark)
+            } else {
+                ""
+            }
+
+            glanceIds.forEach { glanceId ->
+                updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
+                    prefs.toMutablePreferences().apply {
+                        this[widgetIdKey] = widgetId
+                        this[titleKey] = data["title"] as? String ?: ""
+                        data["subtitle"]?.let { this[subtitleKey] = it as String }
+                        this[chartTypeKey] = chartType
+                        this[chartColorKey] = chartColor
+                        this[dataPointsKey] = serializeItems(dataPoints.map { mapOf("v" to it) })
+                        this[chartBitmapKey] = chartBitmapBase64
+                        data["deepLinkUri"]?.let { this[deepLinkUriKey] = it as String }
+                        this[timestampKey] = System.currentTimeMillis()
+
+                        // Apply theme if provided
+                        theme?.let { applyTheme(this, it) }
+                    }
+                }
+                widget.update(context, glanceId)
+            }
+
+            trackWidgetId(context, widgetId)
+            Log.d(TAG, "Chart widget updated successfully: $widgetId")
+            UpdateResult.Success
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to update chart widget: $widgetId", e)
+            UpdateResult.Error(
+                UpdateResult.ERROR_UPDATE_FAILED,
+                "Failed to update chart widget: ${e.message}"
+            )
+        }
+    }
+
+    /**
+     * Updates a Gauge Widget with the given data.
+     */
+    fun updateGaugeWidget(
+        context: Context,
+        widgetId: String,
+        data: Map<String, Any?>,
+        theme: Map<String, Any?>?
+    ) {
+        scope.launch {
+            updateGaugeWidgetWithResult(context, widgetId, data, theme)
+        }
+    }
+
+    /**
+     * Updates a Gauge Widget with the given data and returns a result.
+     * For radial type, renders the gauge arc as a bitmap using Android Canvas.
+     * For dashboard type, metrics are stored as JSON and rendered by the widget.
+     */
+    suspend fun updateGaugeWidgetWithResult(
+        context: Context,
+        widgetId: String,
+        data: Map<String, Any?>,
+        theme: Map<String, Any?>?
+    ): UpdateResult {
+        return try {
+            Log.d(TAG, "Updating gauge widget: $widgetId")
+            val manager = GlanceAppWidgetManager(context)
+            val glanceIds = manager.getGlanceIds(GaugeGlanceWidget::class.java)
+            val widget = GaugeGlanceWidget()
+
+            if (glanceIds.isEmpty()) {
+                Log.w(TAG, "No GaugeGlanceWidget instances found")
+                return UpdateResult.Error(
+                    UpdateResult.ERROR_NO_WIDGET_INSTANCE,
+                    "No GaugeGlanceWidget instances found on home screen"
+                )
+            }
+
+            val gaugeType = data["gaugeType"] as? String ?: "radial"
+            val isDark = theme?.get("isDark") as? Boolean ?: true
+
+            // For radial gauge, render bitmap
+            val gaugeBitmapBase64 = if (gaugeType == "radial") {
+                val progress = (data["progress"] as? Number)?.toFloat()?.coerceIn(0f, 1f) ?: 0f
+                val gaugeColor = (data["gaugeColor"] as? Number)?.toInt() ?: 0xFF2196F3.toInt()
+                val trackColor = (data["trackColor"] as? Number)?.toInt()
+                    ?: if (isDark) 0xFF3A3A4E.toInt() else 0xFFE0E0E0.toInt()
+                val valueText = data["value"] as? String ?: "${(progress * 100).toInt()}%"
+                val minLabel = data["minLabel"] as? String ?: "0"
+                val maxLabel = data["maxLabel"] as? String ?: "100"
+                renderGaugeBitmap(progress, gaugeColor, trackColor, valueText, minLabel, maxLabel, isDark)
+            } else {
+                ""
+            }
+
+            // Serialize metrics for dashboard type
+            @Suppress("UNCHECKED_CAST")
+            val metrics = data["metrics"] as? List<Map<String, Any?>> ?: emptyList()
+            val metricsJson = if (metrics.isNotEmpty()) serializeItems(metrics) else "[]"
+
+            glanceIds.forEach { glanceId ->
+                updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
+                    prefs.toMutablePreferences().apply {
+                        this[widgetIdKey] = widgetId
+                        this[titleKey] = data["title"] as? String ?: ""
+                        this[gaugeTypeKey] = gaugeType
+                        this[gaugeBitmapKey] = gaugeBitmapBase64
+                        this[metricsKey] = metricsJson
+                        data["deepLinkUri"]?.let { this[deepLinkUriKey] = it as String }
+                        this[timestampKey] = System.currentTimeMillis()
+
+                        // Apply theme if provided
+                        theme?.let { applyTheme(this, it) }
+                    }
+                }
+                widget.update(context, glanceId)
+            }
+
+            trackWidgetId(context, widgetId)
+            Log.d(TAG, "Gauge widget updated successfully: $widgetId")
+            UpdateResult.Success
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to update gauge widget: $widgetId", e)
+            UpdateResult.Error(
+                UpdateResult.ERROR_UPDATE_FAILED,
+                "Failed to update gauge widget: ${e.message}"
+            )
+        }
+    }
+
+    /**
      * Sets the global theme for all widgets.
      */
     fun setGlobalTheme(context: Context, theme: Map<String, Any?>) {
@@ -327,7 +676,11 @@ object GlanceWidgetManager {
                 listOf(
                     SimpleGlanceWidget::class.java to SimpleGlanceWidget(),
                     ProgressGlanceWidget::class.java to ProgressGlanceWidget(),
-                    ListGlanceWidget::class.java to ListGlanceWidget()
+                    ListGlanceWidget::class.java to ListGlanceWidget(),
+                    CalendarGlanceWidget::class.java to CalendarGlanceWidget(),
+                    ImageGlanceWidget::class.java to ImageGlanceWidget(),
+                    ChartGlanceWidget::class.java to ChartGlanceWidget(),
+                    GaugeGlanceWidget::class.java to GaugeGlanceWidget()
                 ).forEach { (clazz, widget) ->
                     val manager = GlanceAppWidgetManager(context)
                     val glanceIds = manager.getGlanceIds(clazz)
@@ -359,7 +712,11 @@ object GlanceWidgetManager {
                 listOf(
                     SimpleGlanceWidget::class.java to SimpleGlanceWidget(),
                     ProgressGlanceWidget::class.java to ProgressGlanceWidget(),
-                    ListGlanceWidget::class.java to ListGlanceWidget()
+                    ListGlanceWidget::class.java to ListGlanceWidget(),
+                    CalendarGlanceWidget::class.java to CalendarGlanceWidget(),
+                    ImageGlanceWidget::class.java to ImageGlanceWidget(),
+                    ChartGlanceWidget::class.java to ChartGlanceWidget(),
+                    GaugeGlanceWidget::class.java to GaugeGlanceWidget()
                 ).forEach { (clazz, widget) ->
                     val manager = GlanceAppWidgetManager(context)
                     val glanceIds = manager.getGlanceIds(clazz)
@@ -498,6 +855,242 @@ object GlanceWidgetManager {
             Log.d(TAG, "Loaded ${ids.size} active widget IDs")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to load active widget IDs", e)
+        }
+    }
+
+    /**
+     * Renders a chart as a bitmap and returns it as a base64-encoded PNG string.
+     * Supports line, bar, and sparkline chart types.
+     */
+    private fun renderChartBitmap(
+        dataPoints: List<Float>,
+        chartType: String,
+        chartColor: Int,
+        isDark: Boolean
+    ): String {
+        if (dataPoints.isEmpty()) return ""
+
+        val width = 600
+        val height = 300
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        // Background is transparent so the widget background shows through
+        canvas.drawColor(android.graphics.Color.TRANSPARENT)
+
+        val paint = Paint().apply {
+            isAntiAlias = true
+            color = chartColor
+            strokeWidth = 4f
+        }
+
+        val minVal = dataPoints.min()
+        val maxVal = dataPoints.max()
+        val range = if (maxVal - minVal == 0f) 1f else maxVal - minVal
+
+        val paddingLeft = 16f
+        val paddingRight = 16f
+        val paddingTop = 16f
+        val paddingBottom = 16f
+        val chartWidth = width - paddingLeft - paddingRight
+        val chartHeight = height - paddingTop - paddingBottom
+
+        // Draw grid lines
+        val gridPaint = Paint().apply {
+            isAntiAlias = true
+            color = if (isDark) 0x33FFFFFF else 0x33000000
+            strokeWidth = 1f
+            style = Paint.Style.STROKE
+        }
+        for (i in 0..4) {
+            val y = paddingTop + chartHeight * i / 4f
+            canvas.drawLine(paddingLeft, y, width - paddingRight, y, gridPaint)
+        }
+
+        when (chartType) {
+            "bar" -> {
+                val barWidth = chartWidth / dataPoints.size * 0.7f
+                val gap = chartWidth / dataPoints.size * 0.3f
+
+                dataPoints.forEachIndexed { index, value ->
+                    val normalizedHeight = ((value - minVal) / range) * chartHeight
+                    val x = paddingLeft + index * (barWidth + gap)
+                    val top = paddingTop + chartHeight - normalizedHeight
+                    val bottom = paddingTop + chartHeight
+
+                    paint.style = Paint.Style.FILL
+                    paint.alpha = 200
+                    canvas.drawRect(x, top, x + barWidth, bottom, paint)
+                    paint.alpha = 255
+                }
+            }
+            "sparkline" -> {
+                // Sparkline: thin line with area fill
+                paint.style = Paint.Style.STROKE
+                paint.strokeWidth = 3f
+
+                val path = Path()
+                val fillPath = Path()
+
+                dataPoints.forEachIndexed { index, value ->
+                    val x = paddingLeft + (index.toFloat() / (dataPoints.size - 1).coerceAtLeast(1)) * chartWidth
+                    val normalizedY = ((value - minVal) / range) * chartHeight
+                    val y = paddingTop + chartHeight - normalizedY
+
+                    if (index == 0) {
+                        path.moveTo(x, y)
+                        fillPath.moveTo(x, paddingTop + chartHeight)
+                        fillPath.lineTo(x, y)
+                    } else {
+                        path.lineTo(x, y)
+                        fillPath.lineTo(x, y)
+                    }
+                }
+
+                // Area fill
+                val lastX = paddingLeft + chartWidth
+                fillPath.lineTo(lastX, paddingTop + chartHeight)
+                fillPath.close()
+
+                val fillPaint = Paint().apply {
+                    isAntiAlias = true
+                    color = chartColor
+                    alpha = 40
+                    style = Paint.Style.FILL
+                }
+                canvas.drawPath(fillPath, fillPaint)
+
+                // Line stroke
+                canvas.drawPath(path, paint)
+            }
+            else -> {
+                // Line chart (default)
+                paint.style = Paint.Style.STROKE
+                paint.strokeWidth = 4f
+                paint.strokeCap = Paint.Cap.ROUND
+                paint.strokeJoin = Paint.Join.ROUND
+
+                val path = Path()
+
+                dataPoints.forEachIndexed { index, value ->
+                    val x = paddingLeft + (index.toFloat() / (dataPoints.size - 1).coerceAtLeast(1)) * chartWidth
+                    val normalizedY = ((value - minVal) / range) * chartHeight
+                    val y = paddingTop + chartHeight - normalizedY
+
+                    if (index == 0) {
+                        path.moveTo(x, y)
+                    } else {
+                        path.lineTo(x, y)
+                    }
+                }
+
+                canvas.drawPath(path, paint)
+
+                // Draw data point dots
+                val dotPaint = Paint().apply {
+                    isAntiAlias = true
+                    color = chartColor
+                    style = Paint.Style.FILL
+                }
+                dataPoints.forEachIndexed { index, value ->
+                    val x = paddingLeft + (index.toFloat() / (dataPoints.size - 1).coerceAtLeast(1)) * chartWidth
+                    val normalizedY = ((value - minVal) / range) * chartHeight
+                    val y = paddingTop + chartHeight - normalizedY
+                    canvas.drawCircle(x, y, 5f, dotPaint)
+                }
+            }
+        }
+
+        return bitmapToBase64(bitmap)
+    }
+
+    /**
+     * Renders a radial gauge as a bitmap and returns it as a base64-encoded PNG string.
+     */
+    private fun renderGaugeBitmap(
+        progress: Float,
+        gaugeColor: Int,
+        trackColor: Int,
+        valueText: String,
+        minLabel: String,
+        maxLabel: String,
+        isDark: Boolean
+    ): String {
+        val size = 400
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        canvas.drawColor(android.graphics.Color.TRANSPARENT)
+
+        val strokeWidth = 28f
+        val padding = strokeWidth / 2 + 20f
+        val rect = RectF(padding, padding, size - padding, size - padding)
+
+        // Arc angles: start from bottom-left (135 degrees), sweep 270 degrees total
+        val startAngle = 135f
+        val sweepAngle = 270f
+
+        // Draw track arc
+        val trackPaint = Paint().apply {
+            isAntiAlias = true
+            color = trackColor
+            style = Paint.Style.STROKE
+            this.strokeWidth = strokeWidth
+            strokeCap = Paint.Cap.ROUND
+        }
+        canvas.drawArc(rect, startAngle, sweepAngle, false, trackPaint)
+
+        // Draw progress arc
+        val progressPaint = Paint().apply {
+            isAntiAlias = true
+            color = gaugeColor
+            style = Paint.Style.STROKE
+            this.strokeWidth = strokeWidth
+            strokeCap = Paint.Cap.ROUND
+        }
+        val progressSweep = sweepAngle * progress.coerceIn(0f, 1f)
+        canvas.drawArc(rect, startAngle, progressSweep, false, progressPaint)
+
+        // Draw value text in center
+        val valuePaint = Paint().apply {
+            isAntiAlias = true
+            color = if (isDark) 0xFFFFFFFF.toInt() else 0xFF212121.toInt()
+            textSize = 56f
+            textAlign = Paint.Align.CENTER
+            isFakeBoldText = true
+        }
+        val textY = size / 2f + 20f
+        canvas.drawText(valueText, size / 2f, textY, valuePaint)
+
+        // Draw min/max labels
+        val labelPaint = Paint().apply {
+            isAntiAlias = true
+            color = if (isDark) 0xFFB0B0B0.toInt() else 0xFF757575.toInt()
+            textSize = 28f
+            textAlign = Paint.Align.CENTER
+        }
+        // Min label at bottom-left of arc
+        val labelY = size - 20f
+        canvas.drawText(minLabel, padding + strokeWidth, labelY, labelPaint)
+        // Max label at bottom-right of arc
+        canvas.drawText(maxLabel, size - padding - strokeWidth, labelY, labelPaint)
+
+        return bitmapToBase64(bitmap)
+    }
+
+    /**
+     * Converts a Bitmap to a base64-encoded PNG string.
+     */
+    private fun bitmapToBase64(bitmap: Bitmap): String {
+        return try {
+            val outputStream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+            val bytes = outputStream.toByteArray()
+            bitmap.recycle()
+            Base64.encodeToString(bytes, Base64.NO_WRAP)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to encode bitmap to base64", e)
+            ""
         }
     }
 }

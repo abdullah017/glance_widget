@@ -7,7 +7,7 @@
     android:minResizeWidth="110dp"
     android:minResizeHeight="40dp"
     android:resizeMode="horizontal|vertical"
-    android:widgetCategory="home_screen"
+    android:widgetCategory="home_screen|keyguard"
     android:description="@string/simple_widget_description"
     android:previewLayout="@layout/simple_widget_preview"
     android:updatePeriodMillis="0" />

@@ -196,6 +196,34 @@ class DebouncedWidgetController {
             _log.warning(
                 'Invalid data type for list widget: ${data.runtimeType}');
           }
+        case GlanceTemplate.image:
+          if (data is ImageWidgetData) {
+            success = await _controller.updateImage(data);
+          } else {
+            _log.warning(
+                'Invalid data type for image widget: ${data.runtimeType}');
+          }
+        case GlanceTemplate.chart:
+          if (data is ChartWidgetData) {
+            success = await _controller.updateChart(data);
+          } else {
+            _log.warning(
+                'Invalid data type for chart widget: ${data.runtimeType}');
+          }
+        case GlanceTemplate.calendar:
+          if (data is CalendarWidgetData) {
+            success = await _controller.updateCalendar(data);
+          } else {
+            _log.warning(
+                'Invalid data type for calendar widget: ${data.runtimeType}');
+          }
+        case GlanceTemplate.gauge:
+          if (data is GaugeWidgetData) {
+            success = await _controller.updateGauge(data);
+          } else {
+            _log.warning(
+                'Invalid data type for gauge widget: ${data.runtimeType}');
+          }
       }
 
       if (success) {

@@ -11,6 +11,12 @@ enum GlanceActionType {
 
   /// Checkbox was toggled.
   checkboxToggle,
+
+  /// A toggle element was switched.
+  toggle,
+
+  /// Widget needs configuration (e.g., when first added to home screen).
+  configure,
 }
 
 /// Represents an action event from a Glance Widget.
@@ -27,25 +33,58 @@ class GlanceWidgetAction {
   /// Timestamp when the action occurred.
   final DateTime timestamp;
 
+  /// Optional identifier for the item that was interacted with.
+  final String? itemId;
+
+  /// Optional boolean value for toggle/checkbox state.
+  final bool? value;
+
+  /// Optional index for list item interactions.
+  final int? itemIndex;
+
   const GlanceWidgetAction({
     required this.widgetId,
     required this.type,
     this.payload,
     required this.timestamp,
+    this.itemId,
+    this.value,
+    this.itemIndex,
   });
 
   factory GlanceWidgetAction.fromMap(Map<String, dynamic> map) {
+    final payload = map['payload'] as Map<String, dynamic>?;
+
     return GlanceWidgetAction(
       widgetId: map['widgetId'] as String,
       type: GlanceActionType.values.firstWhere(
         (e) => e.name == map['type'],
         orElse: () => GlanceActionType.tap,
       ),
-      payload: map['payload'] as Map<String, dynamic>?,
+      payload: payload,
       timestamp: DateTime.fromMillisecondsSinceEpoch(
         map['timestamp'] as int? ?? DateTime.now().millisecondsSinceEpoch,
       ),
+      itemId: map['itemId'] as String? ?? payload?['itemId'] as String?,
+      value: map['value'] as bool? ?? payload?['value'] as bool?,
+      itemIndex: _parseItemIndex(map, payload),
     );
+  }
+
+  /// Parses the itemIndex from either the top-level map or the payload.
+  static int? _parseItemIndex(
+    Map<String, dynamic> map,
+    Map<String, dynamic>? payload,
+  ) {
+    final topLevel = map['itemIndex'];
+    if (topLevel is int) return topLevel;
+    if (topLevel is String) return int.tryParse(topLevel);
+
+    final fromPayload = payload?['itemIndex'] ?? payload?['index'];
+    if (fromPayload is int) return fromPayload;
+    if (fromPayload is String) return int.tryParse(fromPayload);
+
+    return null;
   }
 
   Map<String, dynamic> toMap() => {
@@ -53,9 +92,16 @@ class GlanceWidgetAction {
     'type': type.name,
     'payload': payload,
     'timestamp': timestamp.millisecondsSinceEpoch,
+    if (itemId != null) 'itemId': itemId,
+    if (value != null) 'value': value,
+    if (itemIndex != null) 'itemIndex': itemIndex,
   };
 
   @override
   String toString() =>
-      'GlanceWidgetAction(widgetId: $widgetId, type: $type, payload: $payload)';
+      'GlanceWidgetAction(widgetId: $widgetId, type: $type, payload: $payload'
+      '${itemId != null ? ', itemId: $itemId' : ''}'
+      '${value != null ? ', value: $value' : ''}'
+      '${itemIndex != null ? ', itemIndex: $itemIndex' : ''}'
+      ')';
 }

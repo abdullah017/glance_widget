@@ -1,12 +1,15 @@
 package com.example.glance_widget_android.templates
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
+import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.CheckBox
 import androidx.glance.appwidget.GlanceAppWidget
@@ -57,6 +60,7 @@ private fun ListWidgetContent(prefs: Preferences) {
     val title = prefs[GlanceWidgetManager.titleKey] ?: "List"
     val itemsString = prefs[GlanceWidgetManager.itemsKey] ?: ""
     val showCheckboxes = prefs[GlanceWidgetManager.showCheckboxesKey] ?: false
+    val deepLinkUri = prefs[GlanceWidgetManager.deepLinkUriKey]
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
 
     // Parse items
@@ -150,6 +154,7 @@ private fun ListWidgetContent(prefs: Preferences) {
                         index = index,
                         widgetId = widgetId,
                         showCheckbox = showCheckboxes,
+                        deepLinkUri = deepLinkUri,
                         textColor = textColor,
                         secondaryTextColor = secondaryTextColor,
                         accentColor = accentColor,
@@ -167,6 +172,7 @@ private fun ListItemRow(
     index: Int,
     widgetId: String,
     showCheckbox: Boolean,
+    deepLinkUri: String?,
     textColor: ColorProvider,
     secondaryTextColor: ColorProvider,
     accentColor: ColorProvider,
@@ -177,18 +183,31 @@ private fun ListItemRow(
             .fillMaxWidth()
             .padding(vertical = 8.dp)
             .clickable {
-                GlanceWidgetManager.sendActionEvent(
-                    widgetId,
-                    "itemTap",
-                    mapOf("index" to index)
-                )
+                if (deepLinkUri != null) {
+                    actionStartActivity(Intent(Intent.ACTION_VIEW, Uri.parse(deepLinkUri)))
+                } else {
+                    GlanceWidgetManager.sendActionEvent(
+                        widgetId,
+                        "itemTap",
+                        mapOf("index" to index)
+                    )
+                }
             },
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (showCheckbox) {
             CheckBox(
                 checked = item.checked,
-                onCheckedChange = null, // Handled by clickable
+                onCheckedChange = {
+                    GlanceWidgetManager.sendActionEvent(
+                        widgetId,
+                        "checkboxToggle",
+                        mapOf(
+                            "itemIndex" to index,
+                            "value" to !item.checked
+                        )
+                    )
+                },
                 modifier = GlanceModifier.padding(end = 12.dp),
                 colors = androidx.glance.appwidget.CheckboxDefaults.colors(
                     checkedColor = accentColor,

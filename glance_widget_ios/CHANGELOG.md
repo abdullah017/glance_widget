@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.5.0
+
+* **New Widget Templates** - Calendar, Image, Chart, Gauge
+  * `CalendarWidget` - Date header with event list and colored dot indicators
+  * `ImageWidget` - Base64 image decoding with UIImage, content mode support
+  * `ChartWidget` - SwiftUI Path + GeometryReader for line/bar/sparkline charts
+  * `GaugeWidget` - Path.addArc() for radial, LazyVGrid for dashboard metrics
+* **Deep Link Support** - All widgets support `deepLinkUri` via `.widgetURL()`
+* **Timeline Refresh** - Configurable `.after(date)` policy for periodic widget refresh
+  * `configureTimelineRefresh()` / `cancelTimelineRefresh()` methods
+* **Interactive Actions** - Item tap and checkbox toggle URLs in List Widget
+* **Widget Configuration** - `completeWidgetConfiguration` handler
+* Updated SDK constraints to Dart >=3.6.0, Flutter >=3.27.0
+* Updated dependency on glance_widget_platform_interface to ^0.6.0
+
+## 0.3.0
+
+* Updated dependency on glance_widget_platform_interface to ^0.4.0
+* Background update methods return stub responses (iOS uses Push Updates instead)
+
 ## 0.2.1
 
 * Updated dependency on glance_widget_platform_interface to ^0.3.1

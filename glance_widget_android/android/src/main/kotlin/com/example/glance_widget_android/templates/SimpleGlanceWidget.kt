@@ -1,11 +1,14 @@
 package com.example.glance_widget_android.templates
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
+import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -43,6 +46,7 @@ private fun SimpleWidgetContent(prefs: Preferences) {
     val value = prefs[GlanceWidgetManager.valueKey] ?: "--"
     val subtitle = prefs[GlanceWidgetManager.subtitleKey]
     val subtitleColor = prefs[GlanceWidgetManager.subtitleColorKey]
+    val deepLinkUri = prefs[GlanceWidgetManager.deepLinkUriKey]
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
 
     // Theme colors
@@ -65,7 +69,11 @@ private fun SimpleWidgetContent(prefs: Preferences) {
             .fillMaxSize()
             .background(backgroundColor)
             .clickable {
-                GlanceWidgetManager.sendActionEvent(widgetId, "tap")
+                if (deepLinkUri != null) {
+                    actionStartActivity(Intent(Intent.ACTION_VIEW, Uri.parse(deepLinkUri)))
+                } else {
+                    GlanceWidgetManager.sendActionEvent(widgetId, "tap")
+                }
             }
             .padding(16.dp),
         contentAlignment = Alignment.Center

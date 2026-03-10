@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.5.0
+
+* **New Widget Templates** - Calendar, Image, Chart, Gauge
+  * `CalendarGlanceWidget` - Date header with event list
+  * `ImageGlanceWidget` - Base64 image display with content modes
+  * `ChartGlanceWidget` - Canvas-rendered line/bar/sparkline charts
+  * `GaugeGlanceWidget` - Radial gauge (Canvas) and dashboard metric cards
+* **Deep Link Support** - All widgets support `deepLinkUri` via `actionStartActivity`
+* **Lock Screen Widgets** - `widgetCategory="home_screen|keyguard"` for all templates
+* **Interactive Actions** - Checkbox toggle support in List Widget
+* **Widget Configuration** - `completeWidgetConfiguration` handler
+* Updated Compose BOM to 2025.01.01, coroutines to 1.9.0, WorkManager to 2.10.0
+* Updated SDK constraints to Dart >=3.6.0, Flutter >=3.27.0
+* Updated dependency on glance_widget_platform_interface to ^0.6.0
+
+## 0.3.0
+
+* **Background Updates** - WorkManager integration for updates when app is closed
+  * `GlanceWidgetWorker` - CoroutineWorker for API fetching and widget updates
+  * `BackgroundUpdateManager` - WorkManager scheduling and cancellation
+  * `BackgroundUpdateConfig` - Configuration storage with SharedPreferences
+* New method handlers in `GlanceWidgetPlugin`:
+  * `configureBackgroundUpdate`
+  * `cancelBackgroundUpdate`
+  * `getBackgroundUpdateStatus`
+* Added WorkManager dependency (`androidx.work:work-runtime-ktx:2.9.0`)
+* Updated dependency on glance_widget_platform_interface to ^0.4.0
+
 ## 0.2.1
 
 * **JSON Serialization** - Fixed list widget item parsing using proper JSON instead of delimiter-based parsing
