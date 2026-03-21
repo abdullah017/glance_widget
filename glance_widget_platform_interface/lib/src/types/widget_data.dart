@@ -1,5 +1,18 @@
 import 'dart:ui';
 
+/// Base class for all widget data models.
+/// Sealed — cannot be extended outside this library.
+sealed class WidgetData {
+  const WidgetData({this.deepLinkUri});
+  final String? deepLinkUri;
+
+  /// The template type this data corresponds to.
+  GlanceTemplate get template;
+
+  /// Serializes this data for platform channel communication.
+  Map<String, dynamic> toMap();
+}
+
 /// Widget template types.
 enum GlanceTemplate {
   /// Simple widget with title, value, and optional subtitle.
@@ -25,7 +38,7 @@ enum GlanceTemplate {
 }
 
 /// Data model for Simple Widget template.
-class SimpleWidgetData {
+class SimpleWidgetData extends WidgetData {
   /// The main title of the widget.
   final String title;
 
@@ -44,8 +57,8 @@ class SimpleWidgetData {
   /// Optional custom icon as base64 encoded image.
   final String? iconBase64;
 
-  /// Optional deep link URI to open when the widget is tapped.
-  final String? deepLinkUri;
+  @override
+  GlanceTemplate get template => GlanceTemplate.simple;
 
   /// Creates a SimpleWidgetData with required title and value.
   ///
@@ -59,10 +72,11 @@ class SimpleWidgetData {
     this.subtitleColor,
     this.iconName,
     this.iconBase64,
-    this.deepLinkUri,
+    super.deepLinkUri,
   })  : assert(title.length > 0, 'title cannot be empty'),
         assert(value.length > 0, 'value cannot be empty');
 
+  @override
   Map<String, dynamic> toMap() => {
     'title': title,
     'value': value,
@@ -84,7 +98,7 @@ enum ProgressType {
 }
 
 /// Data model for Progress Widget template.
-class ProgressWidgetData {
+class ProgressWidgetData extends WidgetData {
   /// The title of the widget.
   final String title;
 
@@ -103,8 +117,8 @@ class ProgressWidgetData {
   /// Optional background color for the progress track.
   final Color? trackColor;
 
-  /// Optional deep link URI to open when the widget is tapped.
-  final String? deepLinkUri;
+  @override
+  GlanceTemplate get template => GlanceTemplate.progress;
 
   /// Creates a ProgressWidgetData with required title and progress.
   ///
@@ -118,11 +132,12 @@ class ProgressWidgetData {
     this.progressType = ProgressType.circular,
     this.progressColor,
     this.trackColor,
-    this.deepLinkUri,
+    super.deepLinkUri,
   })  : assert(title.length > 0, 'title cannot be empty'),
         assert(progress >= 0.0 && progress <= 1.0,
             'progress must be between 0.0 and 1.0');
 
+  @override
   Map<String, dynamic> toMap() => {
     'title': title,
     'progress': progress,
@@ -164,7 +179,7 @@ class GlanceListItem {
 }
 
 /// Data model for List Widget template.
-class ListWidgetData {
+class ListWidgetData extends WidgetData {
   /// The title of the widget.
   final String title;
 
@@ -177,8 +192,8 @@ class ListWidgetData {
   /// Maximum number of items to display (default: 5).
   final int maxItems;
 
-  /// Optional deep link URI to open when the widget is tapped.
-  final String? deepLinkUri;
+  @override
+  GlanceTemplate get template => GlanceTemplate.list;
 
   /// Creates a ListWidgetData with required title and items.
   ///
@@ -190,11 +205,12 @@ class ListWidgetData {
     required this.items,
     this.showCheckboxes = false,
     this.maxItems = 5,
-    this.deepLinkUri,
+    super.deepLinkUri,
   })  : assert(title.length > 0, 'title cannot be empty'),
         assert(maxItems >= 1 && maxItems <= 20,
             'maxItems must be between 1 and 20');
 
+  @override
   Map<String, dynamic> toMap() => {
     'title': title,
     'items': items.map((e) => e.toMap()).toList(),
@@ -217,7 +233,7 @@ enum ImageFit {
 }
 
 /// Data model for Image Widget template.
-class ImageWidgetData {
+class ImageWidgetData extends WidgetData {
   /// The title of the widget.
   final String title;
 
@@ -233,8 +249,8 @@ class ImageWidgetData {
   /// How the image should be fitted in the widget.
   final ImageFit fit;
 
-  /// Optional deep link URI to open when the widget is tapped.
-  final String? deepLinkUri;
+  @override
+  GlanceTemplate get template => GlanceTemplate.image;
 
   /// Creates an ImageWidgetData with required title.
   ///
@@ -247,9 +263,10 @@ class ImageWidgetData {
     this.imageBase64,
     this.subtitle,
     this.fit = ImageFit.cover,
-    this.deepLinkUri,
+    super.deepLinkUri,
   }) : assert(title.length > 0, 'title cannot be empty');
 
+  @override
   Map<String, dynamic> toMap() => {
     'title': title,
     'imageUrl': imageUrl,
@@ -273,7 +290,7 @@ enum ChartType {
 }
 
 /// Data model for Chart Widget template.
-class ChartWidgetData {
+class ChartWidgetData extends WidgetData {
   /// The title of the widget.
   final String title;
 
@@ -289,8 +306,8 @@ class ChartWidgetData {
   /// Optional subtitle text.
   final String? subtitle;
 
-  /// Optional deep link URI to open when the widget is tapped.
-  final String? deepLinkUri;
+  @override
+  GlanceTemplate get template => GlanceTemplate.chart;
 
   /// Creates a ChartWidgetData with required title and data points.
   ///
@@ -303,10 +320,11 @@ class ChartWidgetData {
     this.chartType = ChartType.line,
     this.color,
     this.subtitle,
-    this.deepLinkUri,
+    super.deepLinkUri,
   })  : assert(title.length > 0, 'title cannot be empty'),
         assert(dataPoints.length > 0, 'dataPoints cannot be empty');
 
+  @override
   Map<String, dynamic> toMap() => {
     'title': title,
     'dataPoints': dataPoints,
@@ -347,7 +365,7 @@ class CalendarEvent {
 }
 
 /// Data model for Calendar Widget template.
-class CalendarWidgetData {
+class CalendarWidgetData extends WidgetData {
   /// The title of the widget (e.g. "Today's Events").
   final String title;
 
@@ -360,8 +378,8 @@ class CalendarWidgetData {
   /// Maximum number of events to show (default: 5).
   final int maxEvents;
 
-  /// Optional deep link URI to open when the widget is tapped.
-  final String? deepLinkUri;
+  @override
+  GlanceTemplate get template => GlanceTemplate.calendar;
 
   /// Creates a CalendarWidgetData with required title, date, and events.
   ///
@@ -373,11 +391,12 @@ class CalendarWidgetData {
     required this.date,
     required this.events,
     this.maxEvents = 5,
-    this.deepLinkUri,
+    super.deepLinkUri,
   })  : assert(title.length > 0, 'title cannot be empty'),
         assert(maxEvents >= 1 && maxEvents <= 10,
             'maxEvents must be between 1 and 10');
 
+  @override
   Map<String, dynamic> toMap() => {
     'title': title,
     'date': date.toIso8601String(),
@@ -434,7 +453,7 @@ class GaugeMetric {
 }
 
 /// Data model for Gauge Widget template.
-class GaugeWidgetData {
+class GaugeWidgetData extends WidgetData {
   /// The title of the widget.
   final String title;
 
@@ -444,8 +463,8 @@ class GaugeWidgetData {
   /// The type of gauge display.
   final GaugeType gaugeType;
 
-  /// Optional deep link URI to open when the widget is tapped.
-  final String? deepLinkUri;
+  @override
+  GlanceTemplate get template => GlanceTemplate.gauge;
 
   /// Creates a GaugeWidgetData with required title and metrics.
   ///
@@ -456,10 +475,11 @@ class GaugeWidgetData {
     required this.title,
     required this.metrics,
     this.gaugeType = GaugeType.radial,
-    this.deepLinkUri,
+    super.deepLinkUri,
   })  : assert(title.length > 0, 'title cannot be empty'),
         assert(metrics.length > 0, 'metrics cannot be empty');
 
+  @override
   Map<String, dynamic> toMap() => {
     'title': title,
     'metrics': metrics.map((e) => e.toMap()).toList(),
