@@ -49,7 +49,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  glance_widget: ^0.7.0
+  glance_widget: ^1.0.0
 ```
 
 ## Requirements
@@ -256,6 +256,51 @@ await GlanceWidget.simple(
 );
 ```
 
+### Type-Safe Controllers (v1.0)
+
+For advanced use cases, use generic type-safe controllers:
+
+```dart
+import 'package:glance_widget/glance_widget.dart';
+
+// Convenience controller — compile-time type safety
+final controller = SimpleWidgetController(widgetId: 'crypto_btc');
+
+await controller.update(SimpleWidgetData(
+  title: 'Bitcoin',
+  value: '\$94,532.00',
+  subtitle: '+2.34%',
+  subtitleColor: Colors.green,
+));
+
+// Listen for widget interactions
+controller.onAction.listen((action) {
+  print('Widget tapped: ${action.type}');
+});
+
+// Don't forget to dispose
+controller.dispose();
+```
+
+Available controllers:
+- `SimpleWidgetController`
+- `ProgressWidgetController`
+- `ListWidgetController`
+- `ImageWidgetController`
+- `ChartWidgetController`
+- `CalendarWidgetController`
+- `GaugeWidgetController`
+
+Or use the generic form directly:
+```dart
+final ctrl = GlanceWidgetController<ChartWidgetData>(widgetId: 'chart1');
+await ctrl.update(ChartWidgetData(
+  title: 'Revenue',
+  dataPoints: [12, 19, 15, 25, 22, 30, 28],
+));
+ctrl.dispose();
+```
+
 ### Progress Widget
 
 ```dart
@@ -394,31 +439,32 @@ await GlanceWidget.simple(
 ## Background Updates (Android)
 
 ```dart
-await GlanceWidget.configureBackgroundUpdate(
+await GlanceBackground.configureUpdate(
   widgetId: 'crypto_btc',
   template: GlanceTemplate.simple,
   apiUrl: 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
-  interval: Duration(minutes: 15),
+  intervalMinutes: 15,
   title: 'Bitcoin',
   valuePath: r'$.bitcoin.usd',
   valuePrefix: r'$',
 );
 
 // Cancel
-await GlanceWidget.cancelBackgroundUpdate('crypto_btc');
+await GlanceBackground.cancelUpdate('crypto_btc');
+
+// Check status
+final status = await GlanceBackground.getUpdateStatus('crypto_btc');
 ```
 
 ## Timeline Refresh (iOS)
 
 ```dart
-// Enable periodic refresh via WidgetKit
-await GlanceWidget.configureTimelineRefresh(
+await GlanceBackground.configureTimelineRefresh(
   widgetId: 'weather',
-  interval: Duration(minutes: 30),
+  intervalMinutes: 30,
 );
 
-// Disable
-await GlanceWidget.cancelTimelineRefresh('weather');
+await GlanceBackground.cancelTimelineRefresh('weather');
 ```
 
 ## DebouncedWidgetController (Real-time Data)
@@ -426,12 +472,12 @@ await GlanceWidget.cancelTimelineRefresh('weather');
 For high-frequency updates like crypto prices or live scores:
 
 ```dart
-final controller = DebouncedWidgetController(
+final controller = DebouncedWidgetController<SimpleWidgetData>(
   widgetId: 'crypto_btc',
-  template: GlanceTemplate.simple,
   theme: GlanceTheme.dark(),
   debounceInterval: Duration(milliseconds: 100),
   maxWaitTime: Duration(milliseconds: 500),
+  stalenessThreshold: Duration(seconds: 15),
 );
 
 priceStream.listen((price) {
@@ -441,6 +487,7 @@ priceStream.listen((price) {
   ));
 });
 
+// Flushes pending updates automatically when app goes to background
 controller.dispose();
 ```
 
@@ -453,6 +500,20 @@ if (await GlanceWidget.isWidgetPushSupported()) {
     await api.registerWidgetPushToken(token);
   }
 }
+```
+
+---
+
+## Platform Safety
+
+`glance_widget` runs gracefully on unsupported platforms (Web, macOS, Windows, Linux):
+
+```dart
+// Default: methods return false/empty and log a warning
+await GlanceWidget.simple(id: 'test', title: 'T', value: 'V'); // no-op on Web
+
+// Opt-in to strict mode (recommended in debug):
+GlanceConfig.strictMode = kDebugMode; // throws UnsupportedError on Web/desktop
 ```
 
 ---
