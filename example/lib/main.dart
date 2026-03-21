@@ -45,13 +45,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   // Simple widget state
   double _cryptoPrice = 94532.00;
   double _priceChange = 2.34;
-  DebouncedWidgetController? _cryptoController;
+  DebouncedWidgetController<SimpleWidgetData>? _cryptoController;
+  SimpleWidgetController? _simpleController;
   Timer? _realtimeTimer;
   bool _isRealtimeActive = false;
 
   // Progress widget state
   double _downloadProgress = 0.0;
   Timer? _downloadTimer;
+  ProgressWidgetController? _progressController;
 
   // List widget state
   final List<GlanceListItem> _todoItems = [
@@ -60,10 +62,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     const GlanceListItem(text: 'Finish report', checked: false),
     const GlanceListItem(text: 'Go to gym', checked: false),
   ];
+  ListWidgetController? _listController;
 
   // Chart widget state
   List<double> _chartData = [12, 19, 15, 25, 22, 30, 28];
   ChartType _selectedChartType = ChartType.line;
+  ChartWidgetController? _chartController;
 
   // Calendar widget state
   final List<CalendarEvent> _events = [
@@ -72,12 +76,17 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     const CalendarEvent(time: '14:00', title: 'Sprint Planning', color: Color(0xFFFFA726)),
     const CalendarEvent(time: 'All Day', title: 'Project Deadline', color: Color(0xFFE53935), isAllDay: true),
   ];
+  CalendarWidgetController? _calendarController;
 
   // Gauge widget state
   double _cpuUsage = 45.0;
   double _memoryUsage = 72.0;
   double _diskUsage = 58.0;
   GaugeType _selectedGaugeType = GaugeType.radial;
+  GaugeWidgetController? _gaugeController;
+
+  // Image widget state
+  ImageWidgetController? _imageController;
 
   // Platform info
   StreamSubscription<GlanceWidgetAction>? _actionSubscription;
@@ -90,11 +99,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   void initState() {
     super.initState();
+    // Enable strict mode in debug builds — throws on unsupported platforms
+    GlanceConfig.strictMode = kDebugMode;
+
     _tabController = TabController(length: 4, vsync: this);
     _setupWidgetActions();
     _setDarkTheme();
     _checkPlatformFeatures();
-    _initCryptoController();
+    _initControllers();
   }
 
   @override
@@ -103,18 +115,35 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _downloadTimer?.cancel();
     _realtimeTimer?.cancel();
     _cryptoController?.dispose();
+    _simpleController?.dispose();
+    _progressController?.dispose();
+    _listController?.dispose();
+    _chartController?.dispose();
+    _calendarController?.dispose();
+    _gaugeController?.dispose();
+    _imageController?.dispose();
     _actionSubscription?.cancel();
     super.dispose();
   }
 
-  void _initCryptoController() {
-    _cryptoController = DebouncedWidgetController(
+  void _initControllers() {
+    // Debounced controller for high-frequency crypto updates
+    _cryptoController = DebouncedWidgetController<SimpleWidgetData>(
       widgetId: 'crypto_btc',
-      template: GlanceTemplate.simple,
       theme: GlanceTheme.dark(),
       debounceInterval: const Duration(milliseconds: 100),
       maxWaitTime: const Duration(milliseconds: 500),
+      stalenessThreshold: const Duration(seconds: 15),
     );
+
+    // Type-safe convenience controllers for each widget type
+    _simpleController = SimpleWidgetController(widgetId: 'crypto_btc');
+    _progressController = ProgressWidgetController(widgetId: 'download_demo');
+    _listController = ListWidgetController(widgetId: 'todo_demo');
+    _chartController = ChartWidgetController(widgetId: 'chart_demo');
+    _calendarController = CalendarWidgetController(widgetId: 'calendar_demo');
+    _gaugeController = GaugeWidgetController(widgetId: 'gauge_demo');
+    _imageController = ImageWidgetController(widgetId: 'photo_demo');
   }
 
   void _setupWidgetActions() {
@@ -220,14 +249,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _priceChange = (change / _cryptoPrice) * 100;
     });
 
-    await GlanceWidget.simple(
-      id: 'crypto_btc',
+    // v1.0: Use type-safe SimpleWidgetController with update()
+    await _simpleController?.update(SimpleWidgetData(
       title: 'Bitcoin',
       value: '\$${_cryptoPrice.toStringAsFixed(2)}',
       subtitle: '${_priceChange >= 0 ? '+' : ''}${_priceChange.toStringAsFixed(2)}%',
       subtitleColor: _priceChange >= 0 ? Colors.green : Colors.red,
       deepLinkUri: 'glancewidget://crypto/btc',
-    );
+    ));
   }
 
   // ── Progress Widget ──
@@ -238,26 +267,25 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     _downloadTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) async {
       setState(() => _downloadProgress += 0.02);
 
-      await GlanceWidget.progress(
-        id: 'download_demo',
+      // v1.0: Use type-safe ProgressWidgetController with update()
+      await _progressController?.update(ProgressWidgetData(
         title: 'Downloading...',
         progress: _downloadProgress.clamp(0.0, 1.0),
         subtitle: '${(_downloadProgress * 100).toInt().clamp(0, 100)}% complete',
         progressType: ProgressType.circular,
         progressColor: Colors.blue,
         deepLinkUri: 'glancewidget://downloads',
-      );
+      ));
 
       if (_downloadProgress >= 1.0) {
         timer.cancel();
-        await GlanceWidget.progress(
-          id: 'download_demo',
+        await _progressController?.update(ProgressWidgetData(
           title: 'Complete!',
           progress: 1.0,
           subtitle: 'Download finished',
           progressType: ProgressType.circular,
           progressColor: Colors.green,
-        );
+        ));
       }
     });
   }
@@ -265,13 +293,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   // ── List Widget ──
 
   Future<void> _updateListWidget() async {
-    await GlanceWidget.list(
-      id: 'todo_demo',
+    // v1.0: Use type-safe ListWidgetController with update()
+    await _listController?.update(ListWidgetData(
       title: 'Today\'s Tasks',
       items: _todoItems,
       showCheckboxes: true,
       deepLinkUri: 'glancewidget://todos',
-    );
+    ));
   }
 
   void _toggleTodoItem(int index) {
@@ -293,14 +321,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     // Generate a simple gradient image as base64
     final base64Image = await _generateSampleImage();
 
-    await GlanceWidget.image(
-      id: 'photo_demo',
+    // v1.0: Use type-safe ImageWidgetController with update()
+    await _imageController?.update(ImageWidgetData(
       title: 'Photo of the Day',
       imageBase64: base64Image,
       subtitle: 'Generated gradient',
       fit: ImageFit.cover,
       deepLinkUri: 'glancewidget://gallery',
-    );
+    ));
   }
 
   Future<String> _generateSampleImage() async {
@@ -331,15 +359,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   // ── Chart Widget ──
 
   Future<void> _updateChartWidget() async {
-    await GlanceWidget.chart(
-      id: 'chart_demo',
+    // v1.0: Use type-safe ChartWidgetController with update()
+    await _chartController?.update(ChartWidgetData(
       title: 'Revenue',
       dataPoints: _chartData,
       chartType: _selectedChartType,
       color: Colors.blue,
       subtitle: 'Last 7 days',
       deepLinkUri: 'glancewidget://analytics',
-    );
+    ));
   }
 
   void _randomizeChartData() {
@@ -353,21 +381,21 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   // ── Calendar Widget ──
 
   Future<void> _updateCalendarWidget() async {
-    await GlanceWidget.calendar(
-      id: 'calendar_demo',
+    // v1.0: Use type-safe CalendarWidgetController with update()
+    await _calendarController?.update(CalendarWidgetData(
       title: 'Today\'s Events',
       date: DateTime.now(),
       events: _events,
       maxEvents: 5,
       deepLinkUri: 'glancewidget://calendar',
-    );
+    ));
   }
 
   // ── Gauge Widget ──
 
   Future<void> _updateGaugeWidget() async {
-    await GlanceWidget.gauge(
-      id: 'gauge_demo',
+    // v1.0: Use type-safe GaugeWidgetController with update()
+    await _gaugeController?.update(GaugeWidgetData(
       title: 'System Monitor',
       metrics: [
         GaugeMetric(label: 'CPU', value: _cpuUsage, maxValue: 100, color: Colors.green, unit: '%'),
@@ -376,7 +404,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       ],
       gaugeType: _selectedGaugeType,
       deepLinkUri: 'glancewidget://monitor',
-    );
+    ));
   }
 
   void _randomizeGaugeData() {
@@ -393,17 +421,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Future<void> _toggleBackgroundUpdates() async {
     if (_isBackgroundUpdateEnabled) {
-      await GlanceWidget.cancelBackgroundUpdate('crypto_btc');
+      // v1.0: Background methods moved to GlanceBackground
+      await GlanceBackground.cancelUpdate('crypto_btc');
       setState(() {
         _isBackgroundUpdateEnabled = false;
         _backgroundUpdateStatus = 'Cancelled';
       });
     } else {
-      final success = await GlanceWidget.configureBackgroundUpdate(
+      // v1.0: GlanceBackground.configureUpdate replaces GlanceWidget.configureBackgroundUpdate
+      final success = await GlanceBackground.configureUpdate(
         widgetId: 'crypto_btc',
         template: GlanceTemplate.simple,
         apiUrl: 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true',
-        interval: const Duration(minutes: 15),
+        intervalMinutes: 15,
         title: 'Bitcoin',
         valuePath: r'$.bitcoin.usd',
         subtitlePath: r'$.bitcoin.usd_24h_change',
@@ -417,7 +447,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   Future<void> _checkBackgroundUpdateStatus() async {
-    final status = await GlanceWidget.getBackgroundUpdateStatus('crypto_btc');
+    final status = await GlanceBackground.getUpdateStatus('crypto_btc');
     setState(() {
       final isConfigured = status['isConfigured'] == true;
       final workState = status['workState'] ?? 'Unknown';
@@ -431,7 +461,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       _showSnackBar('Please enable background updates first', Colors.orange);
       return;
     }
-    final success = await GlanceWidget.testBackgroundUpdate('crypto_btc');
+    final success = await GlanceBackground.testUpdate('crypto_btc');
     _showSnackBar(
       success ? 'Test triggered! Check widget in a few seconds...' : 'Failed to trigger test',
       success ? Colors.green : Colors.red,
@@ -442,13 +472,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Future<void> _toggleTimelineRefresh() async {
     if (_isTimelineRefreshEnabled) {
-      await GlanceWidget.cancelTimelineRefresh('calendar_demo');
+      // v1.0: Timeline refresh moved to GlanceBackground
+      await GlanceBackground.cancelTimelineRefresh('calendar_demo');
       setState(() => _isTimelineRefreshEnabled = false);
       _showSnackBar('Timeline refresh disabled', Colors.orange);
     } else {
-      final success = await GlanceWidget.configureTimelineRefresh(
+      final success = await GlanceBackground.configureTimelineRefresh(
         widgetId: 'calendar_demo',
-        interval: const Duration(minutes: 30),
+        intervalMinutes: 30,
       );
       setState(() => _isTimelineRefreshEnabled = success);
       _showSnackBar(
