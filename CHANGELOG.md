@@ -1,3 +1,7 @@
+## 1.0.1
+
+* Updated sub-package dependencies to v1.0.0 (platform_interface, android, ios)
+
 ## 1.0.0
 
 ### Breaking Changes

@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0
+
+* Complete all platform method overrides (was 9/18, now 18/18)
+* Method channel namespace changed from `com.example.glance_widget` to `dev.glance.widget`
+* Added `dispose()` override for resource cleanup
+* Updated dependency: `glance_widget_platform_interface: ^1.0.0`
+
 ## 0.5.0
 
 * **New Widget Templates** - Calendar, Image, Chart, Gauge

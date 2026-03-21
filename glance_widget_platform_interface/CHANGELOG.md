@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0
+
+* **Breaking:** `WidgetData` is now a `sealed class` — all 7 data types extend it
+* Added `WidgetData.template` getter for compile-time template identification
+* Added `dispose()` to `GlanceWidgetPlatform` and `MethodChannelGlanceWidget`
+* Platform instance setter now auto-disposes old instance on swap
+* Method channel namespace changed from `com.example.glance_widget` to `dev.glance.widget`
+
 ## 0.6.0
 
 * Added 4 new widget data models: `ImageWidgetData`, `ChartWidgetData`, `CalendarWidgetData`, `GaugeWidgetData`
