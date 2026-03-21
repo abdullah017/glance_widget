@@ -294,6 +294,14 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
     _eventSubscription = null;
   }
 
+  /// Releases resources. Called automatically when platform instance is swapped.
+  @override
+  void dispose() {
+    _stopListening();
+    _actionController?.close();
+    _actionController = null;
+  }
+
   /// Gets the Widget Push Token for server-triggered updates (iOS 26+).
   ///
   /// This token can be sent to your server to trigger widget updates via APNs.
