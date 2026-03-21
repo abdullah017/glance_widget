@@ -27,12 +27,12 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
 
   /// The method channel used to interact with the native platform.
   static const MethodChannel _methodChannel = MethodChannel(
-    'com.example.glance_widget/methods',
+    'dev.glance.widget/methods',
   );
 
   /// The event channel for receiving widget action events.
   static const EventChannel _eventChannel = EventChannel(
-    'com.example.glance_widget/events',
+    'dev.glance.widget/events',
   );
 
   /// Stream controller for widget actions.
