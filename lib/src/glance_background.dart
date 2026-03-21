@@ -1,6 +1,4 @@
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
-import 'package:logging/logging.dart';
-
 import 'glance_config.dart';
 import 'json_path_validator.dart';
 
@@ -17,8 +15,6 @@ import 'json_path_validator.dart';
 /// ```
 class GlanceBackground {
   GlanceBackground._();
-
-  static final _log = Logger('GlanceWidget.Background');
 
   /// Configures periodic background updates (Android: WorkManager).
   ///
