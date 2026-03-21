@@ -1,3 +1,48 @@
+## 1.0.0
+
+### Breaking Changes
+- `WidgetData` is now a `sealed class` — all 7 data types extend it with `template` getter
+- `GlanceWidgetController` is now generic: `GlanceWidgetController<T extends WidgetData>`
+- Old controller methods (`updateSimple()`, `updateProgress()`, etc.) replaced by single type-safe `update(T data)`
+- `DebouncedWidgetController` is now generic: `DebouncedWidgetController<T extends WidgetData>`
+- Background update methods moved from `GlanceWidget` to `GlanceBackground` class
+- Method channel namespace changed from `com.example.glance_widget` to `dev.glance.widget`
+
+### New Features
+- Compile-time type safety via generic controllers — wrong data type is a compilation error
+- 7 convenience controllers: `SimpleWidgetController`, `ProgressWidgetController`, `ListWidgetController`, `ImageWidgetController`, `ChartWidgetController`, `CalendarWidgetController`, `GaugeWidgetController`
+- `GlanceConfig.strictMode` for configurable platform safety
+- `PlatformGuard` for graceful behavior on unsupported platforms (Web, macOS, Windows, Linux)
+- `JsonPathValidator` for background update JSONPath validation
+- `AppLifecycleListener` integration in `DebouncedWidgetController` — flushes pending data on app background
+- Configurable `stalenessThreshold` in `DebouncedWidgetController`
+- Platform interface `dispose()` for resource cleanup on platform swap
+- Exhaustive `switch` on `WidgetData` — compiler warns when new widget type added
+
+### Fixes
+- Constructor side-effects removed from controllers (lazy initialization)
+- Stream multiplexing: single native EventChannel subscription regardless of controller count
+- Resource cleanup on platform swap (no more stream leaks)
+- Complete Android/iOS platform method overrides (was 7/18 and 9/18, now 18/18)
+- `skippedCount` in `DebouncedWidgetController` now correctly only counts replaced pending updates
+
+### Migration Guide
+```dart
+// BEFORE (v0.7.0)
+final ctrl = GlanceWidgetController(widgetId: 'btc', template: GlanceTemplate.simple);
+await ctrl.updateSimple(SimpleWidgetData(title: 'BTC', value: '\$94k'));
+
+// AFTER (v1.0.0)
+final ctrl = SimpleWidgetController(widgetId: 'btc');
+await ctrl.update(SimpleWidgetData(title: 'BTC', value: '\$94k'));
+
+// BEFORE
+await GlanceWidget.configureBackgroundUpdate(widgetId: 'crypto', ...);
+
+// AFTER
+await GlanceBackground.configureUpdate(widgetId: 'crypto', ...);
+```
+
 ## 0.7.0
 
 ### New Widget Templates

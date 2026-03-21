@@ -5,6 +5,26 @@
 
 Create instant-updating home screen widgets for **Android** and **iOS**. Built with Jetpack Glance (Android) and WidgetKit (iOS).
 
+<p align="center">
+  <img src="screenshots/list_image_chart.jpeg" width="250" alt="List, Image and Chart widgets" />
+  <img src="screenshots/gauge_image_progress.jpeg" width="250" alt="Gauge, Image and Progress widgets" />
+  <img src="screenshots/progress_bitcoin.jpeg" width="250" alt="Progress and Bitcoin widgets" />
+</p>
+
+## Why glance_widget?
+
+Unlike other packages (e.g., `home_widget`) that only provide a data bridge and require you to write all widget UI in native Swift/Kotlin, **glance_widget is a complete solution** — zero native code required.
+
+| | glance_widget | home_widget |
+|---|---|---|
+| **Widget UI** | 7 ready-to-use templates | Write native code yourself |
+| **Type Safety** | `sealed class` + generic controllers — compile-time errors | String keys — runtime errors |
+| **Real-time Updates** | `DebouncedWidgetController` — 100ms coalescing, auto-flush on app background | Not available — build it yourself |
+| **Background Updates** | Built-in `GlanceBackground` (WorkManager + Timeline) | Requires external `flutter_workmanager` |
+| **iOS Push** | Built-in iOS 26+ APNs support | Not available |
+| **Platform Safety** | `GlanceConfig.strictMode` — graceful on Web/desktop | Crashes on unsupported platforms |
+| **Native Code** | Zero | Required for every widget |
+
 ## Features
 
 - **Instant Updates** - Widgets update in < 1 second on both platforms
@@ -49,7 +69,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  glance_widget: ^0.7.0
+  glance_widget: ^1.0.0
 ```
 
 ## Requirements
@@ -256,6 +276,51 @@ await GlanceWidget.simple(
 );
 ```
 
+### Type-Safe Controllers (v1.0)
+
+For advanced use cases, use generic type-safe controllers:
+
+```dart
+import 'package:glance_widget/glance_widget.dart';
+
+// Convenience controller — compile-time type safety
+final controller = SimpleWidgetController(widgetId: 'crypto_btc');
+
+await controller.update(SimpleWidgetData(
+  title: 'Bitcoin',
+  value: '\$94,532.00',
+  subtitle: '+2.34%',
+  subtitleColor: Colors.green,
+));
+
+// Listen for widget interactions
+controller.onAction.listen((action) {
+  print('Widget tapped: ${action.type}');
+});
+
+// Don't forget to dispose
+controller.dispose();
+```
+
+Available controllers:
+- `SimpleWidgetController`
+- `ProgressWidgetController`
+- `ListWidgetController`
+- `ImageWidgetController`
+- `ChartWidgetController`
+- `CalendarWidgetController`
+- `GaugeWidgetController`
+
+Or use the generic form directly:
+```dart
+final ctrl = GlanceWidgetController<ChartWidgetData>(widgetId: 'chart1');
+await ctrl.update(ChartWidgetData(
+  title: 'Revenue',
+  dataPoints: [12, 19, 15, 25, 22, 30, 28],
+));
+ctrl.dispose();
+```
+
 ### Progress Widget
 
 ```dart
@@ -394,31 +459,32 @@ await GlanceWidget.simple(
 ## Background Updates (Android)
 
 ```dart
-await GlanceWidget.configureBackgroundUpdate(
+await GlanceBackground.configureUpdate(
   widgetId: 'crypto_btc',
   template: GlanceTemplate.simple,
   apiUrl: 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd',
-  interval: Duration(minutes: 15),
+  intervalMinutes: 15,
   title: 'Bitcoin',
   valuePath: r'$.bitcoin.usd',
   valuePrefix: r'$',
 );
 
 // Cancel
-await GlanceWidget.cancelBackgroundUpdate('crypto_btc');
+await GlanceBackground.cancelUpdate('crypto_btc');
+
+// Check status
+final status = await GlanceBackground.getUpdateStatus('crypto_btc');
 ```
 
 ## Timeline Refresh (iOS)
 
 ```dart
-// Enable periodic refresh via WidgetKit
-await GlanceWidget.configureTimelineRefresh(
+await GlanceBackground.configureTimelineRefresh(
   widgetId: 'weather',
-  interval: Duration(minutes: 30),
+  intervalMinutes: 30,
 );
 
-// Disable
-await GlanceWidget.cancelTimelineRefresh('weather');
+await GlanceBackground.cancelTimelineRefresh('weather');
 ```
 
 ## DebouncedWidgetController (Real-time Data)
@@ -426,12 +492,12 @@ await GlanceWidget.cancelTimelineRefresh('weather');
 For high-frequency updates like crypto prices or live scores:
 
 ```dart
-final controller = DebouncedWidgetController(
+final controller = DebouncedWidgetController<SimpleWidgetData>(
   widgetId: 'crypto_btc',
-  template: GlanceTemplate.simple,
   theme: GlanceTheme.dark(),
   debounceInterval: Duration(milliseconds: 100),
   maxWaitTime: Duration(milliseconds: 500),
+  stalenessThreshold: Duration(seconds: 15),
 );
 
 priceStream.listen((price) {
@@ -441,6 +507,7 @@ priceStream.listen((price) {
   ));
 });
 
+// Flushes pending updates automatically when app goes to background
 controller.dispose();
 ```
 
@@ -453,6 +520,20 @@ if (await GlanceWidget.isWidgetPushSupported()) {
     await api.registerWidgetPushToken(token);
   }
 }
+```
+
+---
+
+## Platform Safety
+
+`glance_widget` runs gracefully on unsupported platforms (Web, macOS, Windows, Linux):
+
+```dart
+// Default: methods return false/empty and log a warning
+await GlanceWidget.simple(id: 'test', title: 'T', value: 'V'); // no-op on Web
+
+// Opt-in to strict mode (recommended in debug):
+GlanceConfig.strictMode = kDebugMode; // throws UnsupportedError on Web/desktop
 ```
 
 ---
@@ -474,20 +555,6 @@ Check the [example](example/) directory for a complete demo app showing all 7 wi
 cd example
 flutter run
 ```
-
-## Images
-<img width="400" height="2992" alt="Screenshot_1773150902" src="https://github.com/user-attachments/assets/3bbdd15f-feb8-411f-b611-058d7cd53855" />
-<img width="400" height="2992" alt="Screenshot_1773150912" src="https://github.com/user-attachments/assets/6f991764-17cd-4ef8-a0fa-700cefd7d719" />
-<img width="400" height="2992" alt="Screenshot_1773150915" src="https://github.com/user-attachments/assets/baa8eeb4-7ccc-43a1-895b-63d775c76ffd" />
-<img width="400" height="2992" alt="Screenshot_1773150927" src="https://github.com/user-attachments/assets/c133f631-7a90-4b76-9a1f-4a9a8c3b54a3" />
-<img width="400" height="2992" alt="Screenshot_1773150930" src="https://github.com/user-attachments/assets/6b3322fd-a051-45b1-9ac9-0184811ce1db" />
-<img width="400" height="2992" alt="Screenshot_1773150936" src="https://github.com/user-attachments/assets/83f3be25-3e4f-425b-b8ca-96895f68008d" />
-<img width="400" height="2992" alt="Screenshot_1773150941" src="https://github.com/user-attachments/assets/33fa451b-f6d0-4518-bfa7-348f04e02237" />
-<img width="400" height="2992" alt="Screenshot_1773150950" src="https://github.com/user-attachments/assets/cc7e4a87-b00c-4bc3-8572-215be8397302" />
-<img width="400" height="2992" alt="Screenshot_1773151220" src="https://github.com/user-attachments/assets/4a6e30a1-0e46-4776-a7c8-b0b91bbed0c6" />
-<img width="400" height="2992" alt="Screenshot_1773151233" src="https://github.com/user-attachments/assets/a50e6bd1-a305-48be-bcc9-dcff7c04fe08" />
-
-
 
 ## Contributing
 

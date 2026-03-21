@@ -18,10 +18,17 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
 
   /// Platform-specific implementations should set this with their own
   /// platform-specific class that extends [GlanceWidgetPlatform].
-  static set instance(GlanceWidgetPlatform instance) {
-    PlatformInterface.verifyToken(instance, _token);
-    _instance = instance;
+  static set instance(GlanceWidgetPlatform value) {
+    PlatformInterface.verifyToken(value, _token);
+    if (!identical(_instance, value)) {
+      _instance.dispose();
+    }
+    _instance = value;
   }
+
+  /// Releases resources held by this platform implementation.
+  /// Subclasses should override to clean up streams and subscriptions.
+  void dispose() {}
 
   /// Updates a Simple Widget with the given data.
   Future<bool> updateSimpleWidget({

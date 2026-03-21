@@ -17,11 +17,11 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let methodChannel = FlutterMethodChannel(
-            name: "com.example.glance_widget/methods",
+            name: "dev.glance.widget/methods",
             binaryMessenger: registrar.messenger()
         )
         let eventChannel = FlutterEventChannel(
-            name: "com.example.glance_widget/events",
+            name: "dev.glance.widget/events",
             binaryMessenger: registrar.messenger()
         )
 

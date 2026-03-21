@@ -1,216 +1,116 @@
 import 'dart:async';
 
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
-import 'package:logging/logging.dart';
 
-// GlanceTemplate is now exported from glance_widget_platform_interface
-
-/// Controller for managing a single Glance widget instance.
+/// Generic controller for managing a single Glance widget instance.
 ///
-/// Use this for more advanced control over a widget, including:
-/// - Typed data updates
-/// - Action event handling
-/// - Theme management
+/// Provides compile-time type safety — the wrong data type causes a
+/// compilation error, not a runtime exception.
 ///
-/// Example:
+/// Use convenience subclasses for simpler construction:
 /// ```dart
-/// final controller = GlanceWidgetController(
-///   widgetId: 'crypto_btc',
-///   template: GlanceTemplate.simple,
-/// );
-///
-/// // Update with new data
-/// await controller.updateSimple(
-///   SimpleWidgetData(
-///     title: 'Bitcoin',
-///     value: '\$94,532',
-///     subtitle: '+2.34%',
-///   ),
-/// );
-///
-/// // Listen for taps
-/// controller.onAction.listen((action) {
-///   print('Widget tapped!');
-/// });
-///
-/// // Don't forget to dispose
-/// controller.dispose();
+/// final ctrl = SimpleWidgetController(widgetId: 'btc');
+/// await ctrl.update(SimpleWidgetData(title: 'BTC', value: '\$94k'));
 /// ```
-class GlanceWidgetController {
-  /// Logger for this class.
-  static final _log = Logger('GlanceWidgetController');
-
+///
+/// Or use the generic form directly:
+/// ```dart
+/// final ctrl = GlanceWidgetController<ChartWidgetData>(widgetId: 'chart1');
+/// await ctrl.update(ChartWidgetData(title: 'Trend', dataPoints: [1, 2, 3]));
+/// ```
+class GlanceWidgetController<T extends WidgetData> {
   /// Creates a controller for a specific widget.
   ///
-  /// - [widgetId]: Unique identifier for the widget
-  /// - [template]: The template type for this widget
-  /// - [theme]: Optional default theme for this widget
+  /// No side effects in constructor — stream subscription is lazy.
   GlanceWidgetController({
     required this.widgetId,
-    required this.template,
     this.theme,
-  }) {
-    _setupActionListener();
-  }
+  });
 
   /// The unique identifier for this widget.
   final String widgetId;
 
-  /// The template type for this widget.
-  final GlanceTemplate template;
-
-  /// The default theme for this widget.
+  /// The current theme for this widget (passed to platform on updates).
   GlanceTheme? theme;
 
-  final _actionController = StreamController<GlanceWidgetAction>.broadcast();
+  // Lazy initialization — no subscription until onAction is accessed
   StreamSubscription<GlanceWidgetAction>? _subscription;
+  final _actionController = StreamController<GlanceWidgetAction>.broadcast();
+  bool _disposed = false;
 
-  void _setupActionListener() {
-    _subscription = GlanceWidgetPlatform.instance.onWidgetAction.listen(
-      (action) {
-        if (action.widgetId == widgetId) {
-          _actionController.add(action);
-        }
-      },
-      onError: (Object error, StackTrace stackTrace) {
-        _log.warning(
-          'Widget action stream error for widget $widgetId',
-          error,
-          stackTrace,
-        );
-        _actionController.addError(error, stackTrace);
-      },
-      onDone: () {
-        _log.fine('Widget action stream closed for widget $widgetId');
-      },
-    );
+  /// Updates the widget with type-safe data.
+  ///
+  /// The wrong data type causes a COMPILATION ERROR:
+  /// ```dart
+  /// final ctrl = SimpleWidgetController(widgetId: 'test');
+  /// ctrl.update(ProgressWidgetData(...)); // Won't compile!
+  /// ```
+  Future<bool> update(T data) async {
+    _assertNotDisposed();
+    return _dispatchUpdate(data);
   }
 
   /// Stream of action events for this specific widget.
-  Stream<GlanceWidgetAction> get onAction => _actionController.stream;
-
-  /// Updates a Simple widget with the given data.
   ///
-  /// Throws [StateError] if this controller is not for a simple widget.
-  Future<bool> updateSimple(SimpleWidgetData data) {
-    if (template != GlanceTemplate.simple) {
-      throw StateError(
-        'Cannot update simple widget: controller is for ${template.name} template',
-      );
-    }
-    return GlanceWidgetPlatform.instance.updateSimpleWidget(
-      widgetId: widgetId,
-      data: data,
-      theme: theme,
-    );
+  /// Lazily subscribes to the global platform stream and filters by widgetId.
+  /// Multiple controllers share a single native EventChannel subscription.
+  Stream<GlanceWidgetAction> get onAction {
+    _assertNotDisposed();
+    _subscription ??= GlanceWidgetPlatform.instance.onWidgetAction
+        .where((action) => action.widgetId == widgetId)
+        .listen(
+          _actionController.add,
+          onError: _actionController.addError,
+        );
+    return _actionController.stream;
   }
 
-  /// Updates a Progress widget with the given data.
-  ///
-  /// Throws [StateError] if this controller is not for a progress widget.
-  Future<bool> updateProgress(ProgressWidgetData data) {
-    if (template != GlanceTemplate.progress) {
-      throw StateError(
-        'Cannot update progress widget: controller is for ${template.name} template',
-      );
-    }
-    return GlanceWidgetPlatform.instance.updateProgressWidget(
-      widgetId: widgetId,
-      data: data,
-      theme: theme,
-    );
-  }
-
-  /// Updates a List widget with the given data.
-  ///
-  /// Throws [StateError] if this controller is not for a list widget.
-  Future<bool> updateList(ListWidgetData data) {
-    if (template != GlanceTemplate.list) {
-      throw StateError(
-        'Cannot update list widget: controller is for ${template.name} template',
-      );
-    }
-    return GlanceWidgetPlatform.instance.updateListWidget(
-      widgetId: widgetId,
-      data: data,
-      theme: theme,
-    );
-  }
-
-  /// Updates an Image widget with the given data.
-  ///
-  /// Throws [StateError] if this controller is not for an image widget.
-  Future<bool> updateImage(ImageWidgetData data) {
-    if (template != GlanceTemplate.image) {
-      throw StateError(
-        'Cannot update image widget: controller is for ${template.name} template',
-      );
-    }
-    return GlanceWidgetPlatform.instance.updateImageWidget(
-      widgetId: widgetId,
-      data: data,
-      theme: theme,
-    );
-  }
-
-  /// Updates a Chart widget with the given data.
-  ///
-  /// Throws [StateError] if this controller is not for a chart widget.
-  Future<bool> updateChart(ChartWidgetData data) {
-    if (template != GlanceTemplate.chart) {
-      throw StateError(
-        'Cannot update chart widget: controller is for ${template.name} template',
-      );
-    }
-    return GlanceWidgetPlatform.instance.updateChartWidget(
-      widgetId: widgetId,
-      data: data,
-      theme: theme,
-    );
-  }
-
-  /// Updates a Calendar widget with the given data.
-  ///
-  /// Throws [StateError] if this controller is not for a calendar widget.
-  Future<bool> updateCalendar(CalendarWidgetData data) {
-    if (template != GlanceTemplate.calendar) {
-      throw StateError(
-        'Cannot update calendar widget: controller is for ${template.name} template',
-      );
-    }
-    return GlanceWidgetPlatform.instance.updateCalendarWidget(
-      widgetId: widgetId,
-      data: data,
-      theme: theme,
-    );
-  }
-
-  /// Updates a Gauge widget with the given data.
-  ///
-  /// Throws [StateError] if this controller is not for a gauge widget.
-  Future<bool> updateGauge(GaugeWidgetData data) {
-    if (template != GlanceTemplate.gauge) {
-      throw StateError(
-        'Cannot update gauge widget: controller is for ${template.name} template',
-      );
-    }
-    return GlanceWidgetPlatform.instance.updateGaugeWidget(
-      widgetId: widgetId,
-      data: data,
-      theme: theme,
-    );
-  }
-
-  /// Updates the theme for this widget.
-  Future<void> setTheme(GlanceTheme newTheme) async {
+  /// Updates the global theme and stores it locally for future updates.
+  Future<bool> setTheme(GlanceTheme newTheme) async {
+    _assertNotDisposed();
     theme = newTheme;
-    // Trigger a refresh with the new theme
-    await GlanceWidgetPlatform.instance.forceRefreshAll();
+    return GlanceWidgetPlatform.instance.setGlobalTheme(newTheme);
   }
 
   /// Disposes of the controller and releases resources.
+  ///
+  /// After disposal, calling [update], [onAction], or [setTheme]
+  /// throws [StateError].
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     _subscription?.cancel();
     _actionController.close();
+  }
+
+  /// Dispatches the update to the correct platform method using
+  /// sealed class pattern matching.
+  Future<bool> _dispatchUpdate(WidgetData data) {
+    final platform = GlanceWidgetPlatform.instance;
+    return switch (data) {
+      SimpleWidgetData() => platform.updateSimpleWidget(
+          widgetId: widgetId, data: data, theme: theme),
+      ProgressWidgetData() => platform.updateProgressWidget(
+          widgetId: widgetId, data: data, theme: theme),
+      ListWidgetData() => platform.updateListWidget(
+          widgetId: widgetId, data: data, theme: theme),
+      ImageWidgetData() => platform.updateImageWidget(
+          widgetId: widgetId, data: data, theme: theme),
+      ChartWidgetData() => platform.updateChartWidget(
+          widgetId: widgetId, data: data, theme: theme),
+      CalendarWidgetData() => platform.updateCalendarWidget(
+          widgetId: widgetId, data: data, theme: theme),
+      GaugeWidgetData() => platform.updateGaugeWidget(
+          widgetId: widgetId, data: data, theme: theme),
+    };
+  }
+
+  void _assertNotDisposed() {
+    if (_disposed) {
+      throw StateError(
+        'GlanceWidgetController<$T> for "$widgetId" has been disposed. '
+        'Create a new controller or check your widget lifecycle.',
+      );
+    }
   }
 }

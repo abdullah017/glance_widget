@@ -22,13 +22,13 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
 
         methodChannel = MethodChannel(
             binding.binaryMessenger,
-            "com.example.glance_widget/methods"
+            "dev.glance.widget/methods"
         )
         methodChannel.setMethodCallHandler(this)
 
         eventChannel = EventChannel(
             binding.binaryMessenger,
-            "com.example.glance_widget/events"
+            "dev.glance.widget/events"
         )
         eventChannel.setStreamHandler(this)
 

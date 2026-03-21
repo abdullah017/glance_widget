@@ -27,12 +27,12 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
 
   /// The method channel used to interact with the native platform.
   static const MethodChannel _methodChannel = MethodChannel(
-    'com.example.glance_widget/methods',
+    'dev.glance.widget/methods',
   );
 
   /// The event channel for receiving widget action events.
   static const EventChannel _eventChannel = EventChannel(
-    'com.example.glance_widget/events',
+    'dev.glance.widget/events',
   );
 
   /// Stream controller for widget actions.
@@ -292,6 +292,14 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
   void _stopListening() {
     _eventSubscription?.cancel();
     _eventSubscription = null;
+  }
+
+  /// Releases resources. Called automatically when platform instance is swapped.
+  @override
+  void dispose() {
+    _stopListening();
+    _actionController?.close();
+    _actionController = null;
   }
 
   /// Gets the Widget Push Token for server-triggered updates (iOS 26+).

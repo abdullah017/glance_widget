@@ -68,6 +68,9 @@ app.*.map.json
 *.freezed.dart
 *.mocks.dart
 
+# Docs (specs and plans - not for git)
+docs/
+
 # Credentials and secrets
 .env
 .env.*

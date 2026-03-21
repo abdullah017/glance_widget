@@ -6,7 +6,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   const MethodChannel methodChannel = MethodChannel(
-    'com.example.glance_widget/methods',
+    'dev.glance.widget/methods',
   );
 
   late List<MethodCall> log;
