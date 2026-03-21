@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:glance_widget/glance_widget.dart';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-import 'package:glance_widget/src/glance_widget_controller.dart';
-import 'package:glance_widget/src/controllers/simple_widget_controller.dart';
 
 class MockGlanceWidgetPlatform extends Mock
     with MockPlatformInterfaceMixin
