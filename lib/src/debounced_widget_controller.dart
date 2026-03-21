@@ -54,6 +54,9 @@ class DebouncedWidgetController {
   /// The underlying widget controller.
   final GlanceWidgetController _controller;
 
+  /// The template type for this widget (kept for backward compatibility).
+  final GlanceTemplate template;
+
   /// The interval to wait before sending an update.
   ///
   /// If another update arrives during this interval, the timer resets.
@@ -66,7 +69,7 @@ class DebouncedWidgetController {
 
   Timer? _debounceTimer;
   Timer? _maxWaitTimer;
-  dynamic _pendingData;
+  WidgetData? _pendingData;
   DateTime? _firstPendingUpdate;
   DateTime? _lastUpdateTime;
   int _updateCount = 0;
@@ -81,21 +84,17 @@ class DebouncedWidgetController {
   /// - [maxWaitTime]: Maximum time before forcing update (default: 500ms)
   DebouncedWidgetController({
     required String widgetId,
-    required GlanceTemplate template,
+    required this.template,
     GlanceTheme? theme,
     this.debounceInterval = const Duration(milliseconds: 100),
     this.maxWaitTime = const Duration(milliseconds: 500),
   }) : _controller = GlanceWidgetController(
           widgetId: widgetId,
-          template: template,
           theme: theme,
         );
 
   /// The unique identifier for this widget.
   String get widgetId => _controller.widgetId;
-
-  /// The template type for this widget.
-  GlanceTemplate get template => _controller.template;
 
   /// Stream of action events for this specific widget.
   Stream<GlanceWidgetAction> get onAction => _controller.onAction;
@@ -137,7 +136,7 @@ class DebouncedWidgetController {
   /// - [GlanceTemplate.simple]: [SimpleWidgetData]
   /// - [GlanceTemplate.progress]: [ProgressWidgetData]
   /// - [GlanceTemplate.list]: [ListWidgetData]
-  void scheduleUpdate(dynamic data) {
+  void scheduleUpdate(WidgetData data) {
     // Track if we're replacing a pending update (skipped)
     if (_pendingData != null) {
       _skippedCount++;
@@ -172,59 +171,7 @@ class DebouncedWidgetController {
     if (data == null) return;
 
     try {
-      bool success = false;
-
-      switch (_controller.template) {
-        case GlanceTemplate.simple:
-          if (data is SimpleWidgetData) {
-            success = await _controller.updateSimple(data);
-          } else {
-            _log.warning(
-                'Invalid data type for simple widget: ${data.runtimeType}');
-          }
-        case GlanceTemplate.progress:
-          if (data is ProgressWidgetData) {
-            success = await _controller.updateProgress(data);
-          } else {
-            _log.warning(
-                'Invalid data type for progress widget: ${data.runtimeType}');
-          }
-        case GlanceTemplate.list:
-          if (data is ListWidgetData) {
-            success = await _controller.updateList(data);
-          } else {
-            _log.warning(
-                'Invalid data type for list widget: ${data.runtimeType}');
-          }
-        case GlanceTemplate.image:
-          if (data is ImageWidgetData) {
-            success = await _controller.updateImage(data);
-          } else {
-            _log.warning(
-                'Invalid data type for image widget: ${data.runtimeType}');
-          }
-        case GlanceTemplate.chart:
-          if (data is ChartWidgetData) {
-            success = await _controller.updateChart(data);
-          } else {
-            _log.warning(
-                'Invalid data type for chart widget: ${data.runtimeType}');
-          }
-        case GlanceTemplate.calendar:
-          if (data is CalendarWidgetData) {
-            success = await _controller.updateCalendar(data);
-          } else {
-            _log.warning(
-                'Invalid data type for calendar widget: ${data.runtimeType}');
-          }
-        case GlanceTemplate.gauge:
-          if (data is GaugeWidgetData) {
-            success = await _controller.updateGauge(data);
-          } else {
-            _log.warning(
-                'Invalid data type for gauge widget: ${data.runtimeType}');
-          }
-      }
+      final success = await _controller.update(data);
 
       if (success) {
         _lastUpdateTime = DateTime.now();
