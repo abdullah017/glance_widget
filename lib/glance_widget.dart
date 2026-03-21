@@ -24,6 +24,7 @@
 /// See the [README](https://github.com/abdullah017/glance_widget) for complete documentation.
 library;
 
+export 'src/glance_background.dart';
 export 'src/glance_widget.dart';
 export 'src/glance_widget_controller.dart';
 export 'src/debounced_widget_controller.dart';
