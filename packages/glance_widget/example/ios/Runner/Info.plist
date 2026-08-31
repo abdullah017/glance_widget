@@ -30,6 +30,11 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<!-- Without this an app can build a Live Activity presentation, request
+	     one, and get an error at runtime with nothing on screen. It is the
+	     app's key, not the extension's. -->
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

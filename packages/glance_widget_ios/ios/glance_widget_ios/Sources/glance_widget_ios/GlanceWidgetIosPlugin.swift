@@ -69,11 +69,105 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
             handleConfigureTimelineRefresh(call, result: result)
         case "cancelTimelineRefresh":
             handleCancelTimelineRefresh(call, result: result)
+        case "startLiveActivity", "updateLiveActivity", "endLiveActivity",
+             "areLiveActivitiesEnabled", "isLiveActivityRunning":
+            handleLiveActivity(call, result: result)
         case "completeWidgetConfiguration":
             // iOS handles configuration differently through the system.
             result(true)
         default:
             result(FlutterMethodNotImplemented)
+        }
+    }
+
+    // MARK: - Live Activities
+
+    /// Routes the four Live Activity calls.
+    ///
+    /// Kept in one handler because they share the same two guards -- the OS
+    /// version and the authorization -- and because the whole surface is
+    /// unavailable below iOS 16.2, which is easier to state once.
+    private func handleLiveActivity(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+#if canImport(ActivityKit)
+        guard #available(iOS 16.2, *) else {
+            replyUnsupported(call, result: result)
+            return
+        }
+        if call.method == "areLiveActivitiesEnabled" {
+            result(GlanceLiveActivityManager.areEnabled)
+            return
+        }
+        let args = call.arguments as? [String: Any]
+        guard let activityId = args?["activityId"] as? String, !activityId.isEmpty else {
+            result(FlutterError(code: "INVALID_ARGS", message: "activityId is required", details: nil))
+            return
+        }
+        if call.method == "isLiveActivityRunning" {
+            result(GlanceLiveActivityManager.isRunning(activityId))
+            return
+        }
+        do {
+            switch call.method {
+            case "startLiveActivity":
+                let state = try GlanceActivityAttributes.ContentState.from(args?["content"])
+                try GlanceLiveActivityManager.start(activityId: activityId, state: state)
+                result(true)
+            case "updateLiveActivity":
+                let state = try GlanceActivityAttributes.ContentState.from(args?["content"])
+                Task {
+                    await self.finish(result) {
+                        try await GlanceLiveActivityManager.update(activityId: activityId, state: state)
+                    }
+                }
+            default:
+                // `content` is optional when ending: without one the activity
+                // freezes on whatever it last showed.
+                let state = args?["content"].map { try? GlanceActivityAttributes.ContentState.from($0) } ?? nil
+                let dismissal = args?["dismissal"] as? String ?? "standard"
+                Task {
+                    await self.finish(result) {
+                        try await GlanceLiveActivityManager.end(
+                            activityId: activityId,
+                            state: state,
+                            dismissal: dismissal
+                        )
+                    }
+                }
+            }
+        } catch let error as GlanceLiveActivityError {
+            result(FlutterError(code: error.rawValue, message: error.message, details: nil))
+        } catch {
+            result(FlutterError(code: "LIVE_ACTIVITY_FAILED", message: "\(error)", details: nil))
+        }
+#else
+        replyUnsupported(call, result: result)
+#endif
+    }
+
+    /// Runs an async Live Activity call and answers Dart with its outcome.
+    private func finish(_ result: @escaping FlutterResult, _ work: () async throws -> Void) async {
+        do {
+            try await work()
+            result(true)
+        } catch let error as GlanceLiveActivityError {
+            result(FlutterError(code: error.rawValue, message: error.message, details: nil))
+        } catch {
+            result(FlutterError(code: "LIVE_ACTIVITY_FAILED", message: "\(error)", details: nil))
+        }
+    }
+
+    /// An OS too old for `ActivityConfiguration` answers the query with `false`
+    /// and refuses the three mutating calls, rather than reporting a success
+    /// that put nothing on screen.
+    private func replyUnsupported(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        if call.method == "areLiveActivitiesEnabled" || call.method == "isLiveActivityRunning" {
+            result(false)
+        } else {
+            result(FlutterError(
+                code: GlanceLiveActivityError.unsupportedVersion.rawValue,
+                message: GlanceLiveActivityError.unsupportedVersion.message,
+                details: nil
+            ))
         }
     }
 

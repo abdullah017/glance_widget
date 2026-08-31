@@ -84,6 +84,7 @@ GlanceWidgets/
 ├── GlanceFamily.swift       # Widget family classification (shared)
 ├── AccessoryViews.swift     # Lock screen building blocks (shared)
 ├── GlanceInteractive.swift  # App Intents for in-place taps (shared)
+├── GlanceLiveActivityWidget.swift  # Live Activity (optional, iOS 16.2+)
 ├── Info.plist               # Extension info
 └── GlanceWidgets.entitlements
 ```
@@ -108,6 +109,34 @@ does the plugin.
 > own source. The second is inside the pub cache -- `flutter pub get` throws
 > the edit away, and the widget goes back to reading a store nobody writes to.
 > Neither edit is needed now.
+
+## Step 4b: Live Activities (optional)
+
+Skip this if you are not using `GlanceWidget.startLiveActivity`.
+
+1. Copy `GlanceLiveActivityWidget.swift` into the extension along with the
+   other templates, and add `GlanceLiveActivityWidget()` to your
+   `WidgetBundle`, guarded by `if #available(iOS 16.2, *)` if your extension
+   targets anything lower.
+2. Add `NSSupportsLiveActivities` to your **app's** `Info.plist` (not the
+   extension's):
+
+   ```xml
+   <key>NSSupportsLiveActivities</key>
+   <true/>
+   ```
+
+   Without it you can build the presentation, request an activity, and get an
+   error at runtime with nothing on screen.
+
+The file declares its own copy of `GlanceActivityAttributes`, because an
+extension cannot import the plugin's Swift package. **Keep the type name and
+the fields of `ContentState` exactly as they are.** ActivityKit matches a
+running activity to the presentation that draws it by that name and shape;
+change one and nothing fails to compile -- the activity simply never appears.
+
+Everything above the `// MARK: - Presentation` line is that contract. Below it
+is yours to restyle.
 
 ## Step 5: Configure URL Scheme
 
@@ -206,6 +235,17 @@ GlanceWidgetController().onAction.listen((action) {
 ### Tap events not received
 - Ensure URL scheme is configured in `Info.plist`
 - Check that `GlanceWidgetIosPlugin` is handling URL callbacks
+
+### A Live Activity starts but nothing appears
+- Check `NSSupportsLiveActivities` is in the **app's** Info.plist.
+- Check the extension's `WidgetBundle` actually lists
+  `GlanceLiveActivityWidget()`.
+- Check `GlanceActivityAttributes` in your copy still has the same name and
+  the same `ContentState` fields as the plugin's. This is the failure with no
+  error message anywhere: ActivityKit finds no presentation for the type and
+  draws nothing.
+- `Settings → your app → Live Activities` -- the user can turn them off.
+  `GlanceWidget.areLiveActivitiesEnabled()` reports that.
 
 ### Install fails: "bundleVersion must be set in placeholder attributes"
 An app extension cannot be installed with an empty `CFBundleVersion`, and a

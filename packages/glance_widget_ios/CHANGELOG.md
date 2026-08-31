@@ -1,5 +1,22 @@
 ## 2.0.0
 
+**Added:** Live Activities, on iOS 16.2+. The plugin owns
+`GlanceActivityAttributes` and requests activities itself; the extension
+declares its own copy, and `GlanceLiveActivityWidget.swift` is a new template
+to copy alongside the other seven.
+
+That the two copies match at all was measured rather than assumed -- ActivityKit
+matches by the attributes type's name and the shape of its `ContentState`, not
+by module. See `findings-live-activity-module-boundary.md`. Since a drift
+between the copies fails nothing at compile time and simply stops the activity
+appearing, `GlanceLiveActivityContractTests` compares them: both names, and
+both encoded shapes byte for byte.
+
+Running activities are looked up through `Activity.activities` rather than a
+registry. An activity outlives the process that started it, so anything held in
+memory would be wrong exactly when it mattered -- which is also why
+`isLiveActivityRunning` exists.
+
 **Fixed:** the widget templates are now compiled by this repository. They were
 copied into a consumer's extension and nothing here built them, so a type error
 could sit in one indefinitely -- which is how the image `fit` key drifted apart

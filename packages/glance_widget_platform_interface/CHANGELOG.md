@@ -1,5 +1,16 @@
 ## 2.0.0
 
+**Added:** `startLiveActivity`, `updateLiveActivity`, `endLiveActivity`,
+`isLiveActivityRunning` and `areLiveActivitiesEnabled`, with
+`LiveActivityContent` and `LiveActivityDismissal`. A platform that answers
+`notImplemented` produces an `UnsupportedError` for the three mutating calls
+and `false` for the two queries.
+
+`LiveActivityContent` validates before the channel: an empty title or status,
+a progress outside 0.0-1.0, and content over ActivityKit's 4KB limit are all
+refused here, where the offending field is still known. Past the channel the
+same failures surface as a platform error naming nothing useful.
+
 **Added:** `forgetWidget(String widgetId)`, for dropping everything stored for
 an id.
 

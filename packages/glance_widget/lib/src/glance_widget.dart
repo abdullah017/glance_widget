@@ -481,6 +481,114 @@ class GlanceWidget {
     return PlatformGuard.guardVoid(() => _platform.forgetWidget(widgetId));
   }
 
+  /// Starts a Live Activity: the Lock Screen card and, on a device that has
+  /// one, the Dynamic Island.
+  ///
+  /// [activityId] is your own name for it. ActivityKit assigns an id you never
+  /// see, and this is what [updateLiveActivity] and [endLiveActivity] use to
+  /// find the activity again -- so it has to be an id your app can reproduce
+  /// later, not a random one.
+  ///
+  /// ```dart
+  /// if (await GlanceWidget.areLiveActivitiesEnabled()) {
+  ///   await GlanceWidget.startLiveActivity(
+  ///     activityId: 'delivery-42',
+  ///     content: const LiveActivityContent(
+  ///       title: 'Order on its way',
+  ///       status: '12 min away',
+  ///       progress: 0.4,
+  ///       stats: {'Driver': 'Sam', 'Items': '3'},
+  ///     ),
+  ///   );
+  /// }
+  /// ```
+  ///
+  /// iOS 16.2+ only. **Android throws [UnsupportedError]** -- its nearest
+  /// equivalent, Android 16's Live Updates, is a notification rather than a
+  /// widget, and pretending otherwise would leave a caller believing something
+  /// is on screen. Guard with [areLiveActivitiesEnabled], which answers `false`
+  /// there rather than throwing.
+  ///
+  /// Your app needs `NSSupportsLiveActivities` in its `Info.plist` and a copy
+  /// of `GlanceLiveActivityWidget.swift` in its widget extension; see
+  /// WIDGET_SETUP.md.
+  static Future<void> startLiveActivity({
+    required String activityId,
+    required LiveActivityContent content,
+  }) {
+    return PlatformGuard.guardVoid(
+      () =>
+          _platform.startLiveActivity(activityId: activityId, content: content),
+    );
+  }
+
+  /// Replaces what a running Live Activity shows.
+  ///
+  /// Throws a [GlanceWidgetException] if no activity is running under
+  /// [activityId] -- it may have been ended, or dismissed by the user, or the
+  /// app may have been relaunched since it started. An activity outlives the
+  /// process that requested it, and the plugin finds it again by
+  /// [activityId] rather than by anything held in memory.
+  static Future<void> updateLiveActivity({
+    required String activityId,
+    required LiveActivityContent content,
+  }) {
+    return PlatformGuard.guardVoid(
+      () => _platform.updateLiveActivity(
+        activityId: activityId,
+        content: content,
+      ),
+    );
+  }
+
+  /// Ends a running Live Activity.
+  ///
+  /// [content] becomes its final state -- "Delivered" rather than a frozen "12
+  /// min away". With [LiveActivityDismissal.standard] the card stays readable
+  /// for a while afterwards, which is the point of passing one.
+  static Future<void> endLiveActivity({
+    required String activityId,
+    LiveActivityContent? content,
+    LiveActivityDismissal dismissal = LiveActivityDismissal.standard,
+  }) {
+    return PlatformGuard.guardVoid(
+      () => _platform.endLiveActivity(
+        activityId: activityId,
+        content: content,
+        dismissal: dismissal,
+      ),
+    );
+  }
+
+  /// Whether the activity started under [activityId] is still running.
+  ///
+  /// An activity outlives the app that started it -- it stays on the Lock
+  /// Screen across a relaunch, and the user can dismiss it without the app
+  /// hearing about it. So an app that resumes with work still in flight asks
+  /// this rather than remembering: it is the difference between calling
+  /// [updateLiveActivity] and calling [startLiveActivity].
+  ///
+  /// `false` on every platform that has no Live Activities.
+  static Future<bool> isLiveActivityRunning(String activityId) {
+    return PlatformGuard.guard(
+      () => _platform.isLiveActivityRunning(activityId),
+      false,
+    );
+  }
+
+  /// Whether a Live Activity can be started right now.
+  ///
+  /// `false` when the user has turned Live Activities off for your app in
+  /// Settings, on iOS before 16.2, and on every platform that has no Live
+  /// Activities at all. This is the call to branch on: the three above throw
+  /// on Android rather than doing nothing quietly.
+  static Future<bool> areLiveActivitiesEnabled() {
+    return PlatformGuard.guard(
+      () => _platform.areLiveActivitiesEnabled(),
+      false,
+    );
+  }
+
   /// Stream of widget action events.
   ///
   /// Listen to this stream to receive callbacks when users interact with

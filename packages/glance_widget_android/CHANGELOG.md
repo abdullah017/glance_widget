@@ -1,5 +1,12 @@
 ## 2.0.0
 
+**Unchanged, deliberately:** the Live Activity methods added in this release
+are not implemented here. The plugin answers them with `notImplemented`, which
+Dart turns into an `UnsupportedError`. Android 16's Live Updates
+(`ProgressStyle` notifications) are the nearest equivalent and are a
+notification rather than a widget; standing in for one would put nothing on a
+home screen while reporting success.
+
 **Fixed:** all seven templates now override `GlanceAppWidget.onDelete`, which
 Glance calls before it deletes an instance's own state -- the only moment at
 which the `widgetId` the instance carried is still readable. It drops the
