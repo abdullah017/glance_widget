@@ -148,6 +148,11 @@ struct ImageWidgetData: Codable {
     let title: String
     let imageUrl: String?
     let imageBase64: String?
+    /// Where the plugin put the fetched, downsampled picture. `imageUrl` is
+    /// resolved when the update is applied, not here: an extension cannot
+    /// afford the memory of a full-size decode and WidgetKit will not wait for
+    /// a network round trip during a reload.
+    let imagePath: String?
     let subtitle: String?
     let fit: String  // "cover", "contain", "fill"
     let deepLinkUri: String?
@@ -160,6 +165,7 @@ struct ImageWidgetData: Codable {
             title: "Photo",
             imageUrl: nil,
             imageBase64: nil,
+            imagePath: nil,
             subtitle: nil,
             fit: "cover",
             deepLinkUri: nil,

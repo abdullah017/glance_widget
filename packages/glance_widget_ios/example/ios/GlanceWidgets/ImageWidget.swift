@@ -56,6 +56,13 @@ struct ImageWidgetEntryView: View {
     }
 
     private var decodedImage: UIImage? {
+        // The plugin resolved and downsampled the picture at update time, so
+        // this is a small file read rather than a full-size decode.
+        if let path = entry.data.imagePath, let image = UIImage(contentsOfFile: path) {
+            return image
+        }
+        // Kept for data written by an older version of the plugin, which stored
+        // the bytes inline.
         guard let base64String = entry.data.imageBase64,
               let imageData = Data(base64Encoded: base64String) else {
             return nil
@@ -115,7 +122,9 @@ struct ImageWidgetEntryView: View {
                         .foregroundColor(Color(argb: theme.secondaryTextColor).opacity(0.4))
 
                     if let imageUrl = entry.data.imageUrl, !imageUrl.isEmpty {
-                        Text("Remote images limited in widgets")
+                        // Reaching here means the fetch failed; the plugin
+                        // resolves imageUrl before the widget is ever drawn.
+                        Text("Image unavailable")
                             .font(.caption2)
                             .foregroundColor(Color(argb: theme.secondaryTextColor).opacity(0.4))
                             .lineLimit(1)

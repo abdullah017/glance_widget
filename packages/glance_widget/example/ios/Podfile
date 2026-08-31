@@ -1,5 +1,9 @@
-# Uncomment this line to define a global platform for your project
-# platform :ios, '15.0'
+# glance_widget_ios requires iOS 16 (WidgetKit's `AccessoryWidgetBackground`,
+# `Text(timerInterval:)` and the container-background modifier). Flutter reads
+# this line to generate FlutterGeneratedPluginSwiftPackage; leaving it commented
+# out generates that package at Flutter's 15.0 default and the plugin's own
+# `.iOS("16.0")` then fails to resolve against it.
+platform :ios, '16.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'

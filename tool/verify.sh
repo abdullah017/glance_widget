@@ -62,6 +62,16 @@ else
 fi
 
 echo
+echo "iOS widget templates"
+# Nothing else in the repository compiles these, so this is the only thing
+# standing between a renamed field and a template that silently stops working.
+if command -v xcrun >/dev/null 2>&1; then
+  run "template-typecheck" ./tool/typecheck_templates.sh
+else
+  echo "  skipped: no Xcode toolchain on PATH"
+fi
+
+echo
 echo "Publish dry-run"
 for pkg in "${PACKAGES[@]}"; do
   [[ "$pkg" == */example ]] && continue

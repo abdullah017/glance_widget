@@ -262,16 +262,19 @@ Copy the ready-made views from [`glance_widget_ios/example/ios/GlanceWidgets/`](
 
 ### 4. Set the Deployment Target
 
-This plugin requires iOS 16. Set the same floor on your app, in Xcode under
-Runner → General → Minimum Deployments, or in `ios/Podfile`:
+This plugin requires iOS 16. Set the floor in `ios/Podfile`:
 
 ```ruby
 platform :ios, '16.0'
 ```
 
-Under CocoaPods a lower target is silently tolerated until something breaks at
-runtime; under Swift Package Manager the build stops with
-`requires minimum platform version 16.0 for the iOS platform`.
+Set it there even on a Swift Package Manager project that has no pods left.
+Flutter reads that line to generate `FlutterGeneratedPluginSwiftPackage`, and a
+commented-out line generates it at Flutter's 15.0 default no matter what the
+Xcode target says — so raising the target in Xcode under Runner → General →
+Minimum Deployments alone leaves the build failing with
+`requires minimum platform version 16.0 for the iOS platform`. Under CocoaPods
+a lower target is instead silently tolerated until something breaks at runtime.
 
 ### 5. Configure URL Scheme
 
