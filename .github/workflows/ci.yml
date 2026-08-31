@@ -167,31 +167,15 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
-      - run: flutter pub get
       # Native iOS code is tested through the example app's XCTest target, the
       # way a Flutter plugin normally is -- the plugin's own SPM package depends
       # on FlutterFramework and cannot be built for the host platform.
-      - name: Generate the Xcode configuration
-        working-directory: packages/glance_widget/example
-        run: flutter build ios --config-only --no-codesign
-      # The runner image decides which simulators exist, and that set changes
-      # without notice -- a hardcoded device name turns an image update into a
-      # red build on a green tree. Take whichever iPhone is actually installed.
-      - name: Pick a simulator
-        id: sim
-        run: |
-          udid=$(xcrun simctl list devices available --json \
-            | python3 -c 'import json,sys; ds=json.load(sys.stdin)["devices"]; print(next(d["udid"] for r in sorted(ds, reverse=True) for d in ds[r] if d["name"].startswith("iPhone")))')
-          echo "Using simulator $udid"
-          echo "udid=$udid" >> "$GITHUB_OUTPUT"
-      - name: Run tests on a simulator
-        working-directory: packages/glance_widget/example/ios
-        run: |
-          xcodebuild test \
-            -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
-            -quiet \
-            CODE_SIGNING_ALLOWED=NO
+      #
+      # The script is what contributors run locally too, so the two cannot
+      # drift. It also owns the two steps that are easy to get wrong by hand:
+      # generating the Xcode configuration before xcodebuild, and discovering a
+      # simulator instead of naming one.
+      - name: Run the iOS unit tests
+        run: ./tool/test_ios.sh
       - name: Type-check the widget extension templates
         run: ./tool/typecheck_templates.sh

@@ -37,11 +37,13 @@ cannot be pointed at a `widgetId`.
   timeline reload.
 * Images were carried through App Group `UserDefaults` as base64. The bytes now
   live in a file, so every widget reload no longer has to read them back.
-* Documented the iOS 16 floor as something to set in Xcode *or* the `Podfile`.
-  Only the `Podfile` line works: Flutter generates
-  `FlutterGeneratedPluginSwiftPackage` from it, so with that line commented out
-  the generated package pins iOS 15 and this package fails to resolve against
-  it -- whatever the Xcode target says. The example app hit exactly that.
+* Documented the iOS floor as something to set in Xcode *or* the `Podfile`.
+  Neither on its own is the whole story. The Xcode target
+  (`IPHONEOS_DEPLOYMENT_TARGET`) is the value that counts, and it reaches
+  `FlutterGeneratedPluginSwiftPackage` only when `flutter build ios` runs;
+  `flutter pub get` rewrites that manifest at Flutter's own 15.0 default
+  whatever both the Xcode target and the `Podfile` say. The example app hit
+  exactly that.
 
 ### Changed
 

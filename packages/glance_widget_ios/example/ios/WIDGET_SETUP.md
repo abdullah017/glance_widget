@@ -8,10 +8,11 @@ This guide explains how to add the Glance Widgets extension to your Flutter iOS 
 - iOS 17.0+ deployment target
 - Apple Developer account (for App Groups)
 
-Set the deployment target in `ios/Podfile` (`platform :ios, '17.0'`), not only
-in Xcode. Flutter generates `FlutterGeneratedPluginSwiftPackage` from that line,
-so a commented-out one pins the generated package to Flutter's default and
-`glance_widget_ios` fails to resolve against it.
+Set the deployment target to 17.0 in Xcode (Runner → General → Minimum
+Deployments), then run `flutter build ios --config-only` before you build from
+Xcode. `flutter pub get` regenerates `FlutterGeneratedPluginSwiftPackage` at
+Flutter's 15.0 default and only a build propagates the Xcode value, so without
+that step `glance_widget_ios` fails to resolve against the generated package.
 
 ## Choosing What Each Widget Shows
 
