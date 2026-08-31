@@ -1,8 +1,7 @@
 import 'dart:ui';
 
+import 'package:glance_widget/src/glance_config.dart';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
-
-import 'glance_config.dart';
 
 /// Main class for creating and updating Glance widgets.
 ///

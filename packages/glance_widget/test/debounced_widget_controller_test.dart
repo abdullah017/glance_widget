@@ -1,8 +1,8 @@
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:glance_widget/glance_widget.dart';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 class MockGlanceWidgetPlatform extends Mock
@@ -49,9 +49,9 @@ void main() {
           debounceInterval: const Duration(milliseconds: 100),
         );
 
-        ctrl.scheduleUpdate(SimpleWidgetData(title: 'A', value: '1'));
-        ctrl.scheduleUpdate(SimpleWidgetData(title: 'B', value: '2'));
-        ctrl.scheduleUpdate(SimpleWidgetData(title: 'C', value: '3'));
+        ctrl.scheduleUpdate(const SimpleWidgetData(title: 'A', value: '1'));
+        ctrl.scheduleUpdate(const SimpleWidgetData(title: 'B', value: '2'));
+        ctrl.scheduleUpdate(const SimpleWidgetData(title: 'C', value: '3'));
 
         async.elapse(const Duration(milliseconds: 150));
 
@@ -87,7 +87,7 @@ void main() {
           widgetId: 'test',
         );
 
-        ctrl.scheduleUpdate(SimpleWidgetData(title: 'T', value: 'V'));
+        ctrl.scheduleUpdate(const SimpleWidgetData(title: 'T', value: 'V'));
         ctrl.flush();
         async.flushMicrotasks();
 
@@ -111,7 +111,7 @@ void main() {
         widgetId: 'test',
         stalenessThreshold: const Duration(seconds: 10),
       );
-      ctrl.scheduleUpdate(SimpleWidgetData(title: 'T', value: 'V'));
+      ctrl.scheduleUpdate(const SimpleWidgetData(title: 'T', value: 'V'));
       await ctrl.flush();
       expect(ctrl.isStale, false);
       ctrl.dispose();
@@ -131,7 +131,7 @@ void main() {
         final ctrl = DebouncedWidgetController<SimpleWidgetData>(
           widgetId: 'test',
         );
-        ctrl.scheduleUpdate(SimpleWidgetData(title: 'T', value: 'V'));
+        ctrl.scheduleUpdate(const SimpleWidgetData(title: 'T', value: 'V'));
         ctrl.dispose();
         // No crash when timers fire after dispose
         async.elapse(const Duration(seconds: 1));

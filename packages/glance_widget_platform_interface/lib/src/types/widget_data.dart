@@ -3,7 +3,10 @@ import 'dart:ui';
 /// Base class for all widget data models.
 /// Sealed — cannot be extended outside this library.
 sealed class WidgetData {
+  /// Creates widget data that optionally opens [deepLinkUri] when tapped.
   const WidgetData({this.deepLinkUri});
+
+  /// Optional URI opened by the host app when the widget is tapped.
   final String? deepLinkUri;
 
   /// The template type this data corresponds to.
@@ -39,6 +42,22 @@ enum GlanceTemplate {
 
 /// Data model for Simple Widget template.
 class SimpleWidgetData extends WidgetData {
+  /// Creates a SimpleWidgetData with required title and value.
+  ///
+  /// Throws [AssertionError] if:
+  /// - [title] is empty
+  /// - [value] is empty
+  const SimpleWidgetData({
+    required this.title,
+    required this.value,
+    this.subtitle,
+    this.subtitleColor,
+    this.iconName,
+    this.iconBase64,
+    super.deepLinkUri,
+  }) : assert(title.length > 0, 'title cannot be empty'),
+       assert(value.length > 0, 'value cannot be empty');
+
   /// The main title of the widget.
   final String title;
 
@@ -59,22 +78,6 @@ class SimpleWidgetData extends WidgetData {
 
   @override
   GlanceTemplate get template => GlanceTemplate.simple;
-
-  /// Creates a SimpleWidgetData with required title and value.
-  ///
-  /// Throws [AssertionError] if:
-  /// - [title] is empty
-  /// - [value] is empty
-  const SimpleWidgetData({
-    required this.title,
-    required this.value,
-    this.subtitle,
-    this.subtitleColor,
-    this.iconName,
-    this.iconBase64,
-    super.deepLinkUri,
-  }) : assert(title.length > 0, 'title cannot be empty'),
-       assert(value.length > 0, 'value cannot be empty');
 
   @override
   Map<String, dynamic> toMap() => {
@@ -99,6 +102,25 @@ enum ProgressType {
 
 /// Data model for Progress Widget template.
 class ProgressWidgetData extends WidgetData {
+  /// Creates a ProgressWidgetData with required title and progress.
+  ///
+  /// Throws [AssertionError] if:
+  /// - [title] is empty
+  /// - [progress] is not between 0.0 and 1.0
+  const ProgressWidgetData({
+    required this.title,
+    required this.progress,
+    this.subtitle,
+    this.progressType = ProgressType.circular,
+    this.progressColor,
+    this.trackColor,
+    super.deepLinkUri,
+  }) : assert(title.length > 0, 'title cannot be empty'),
+       assert(
+         progress >= 0.0 && progress <= 1.0,
+         'progress must be between 0.0 and 1.0',
+       );
+
   /// The title of the widget.
   final String title;
 
@@ -120,25 +142,6 @@ class ProgressWidgetData extends WidgetData {
   @override
   GlanceTemplate get template => GlanceTemplate.progress;
 
-  /// Creates a ProgressWidgetData with required title and progress.
-  ///
-  /// Throws [AssertionError] if:
-  /// - [title] is empty
-  /// - [progress] is not between 0.0 and 1.0
-  const ProgressWidgetData({
-    required this.title,
-    required this.progress,
-    this.subtitle,
-    this.progressType = ProgressType.circular,
-    this.progressColor,
-    this.trackColor,
-    super.deepLinkUri,
-  }) : assert(title.length > 0, 'title cannot be empty'),
-       assert(
-         progress >= 0.0 && progress <= 1.0,
-         'progress must be between 0.0 and 1.0',
-       );
-
   @override
   Map<String, dynamic> toMap() => {
     'title': title,
@@ -153,6 +156,14 @@ class ProgressWidgetData extends WidgetData {
 
 /// Data model for a single list item.
 class GlanceListItem {
+  /// Creates a single row of a list widget.
+  const GlanceListItem({
+    required this.text,
+    this.checked = false,
+    this.secondaryText,
+    this.iconName,
+  });
+
   /// The text content of the item.
   final String text;
 
@@ -165,13 +176,7 @@ class GlanceListItem {
   /// Optional icon name.
   final String? iconName;
 
-  const GlanceListItem({
-    required this.text,
-    this.checked = false,
-    this.secondaryText,
-    this.iconName,
-  });
-
+  /// Serialises this row for transport over a platform channel.
   Map<String, dynamic> toMap() => {
     'text': text,
     'checked': checked,
@@ -182,21 +187,6 @@ class GlanceListItem {
 
 /// Data model for List Widget template.
 class ListWidgetData extends WidgetData {
-  /// The title of the widget.
-  final String title;
-
-  /// List of items to display.
-  final List<GlanceListItem> items;
-
-  /// Whether to show checkboxes for items.
-  final bool showCheckboxes;
-
-  /// Maximum number of items to display (default: 5).
-  final int maxItems;
-
-  @override
-  GlanceTemplate get template => GlanceTemplate.list;
-
   /// Creates a ListWidgetData with required title and items.
   ///
   /// Throws [AssertionError] if:
@@ -213,6 +203,21 @@ class ListWidgetData extends WidgetData {
          maxItems >= 1 && maxItems <= 20,
          'maxItems must be between 1 and 20',
        );
+
+  /// The title of the widget.
+  final String title;
+
+  /// List of items to display.
+  final List<GlanceListItem> items;
+
+  /// Whether to show checkboxes for items.
+  final bool showCheckboxes;
+
+  /// Maximum number of items to display (default: 5).
+  final int maxItems;
+
+  @override
+  GlanceTemplate get template => GlanceTemplate.list;
 
   @override
   Map<String, dynamic> toMap() => {
@@ -238,6 +243,20 @@ enum ImageFit {
 
 /// Data model for Image Widget template.
 class ImageWidgetData extends WidgetData {
+  /// Creates an ImageWidgetData with required title.
+  ///
+  /// At least one of [imageUrl] or [imageBase64] should be provided.
+  ///
+  /// Throws [AssertionError] if [title] is empty.
+  const ImageWidgetData({
+    required this.title,
+    this.imageUrl,
+    this.imageBase64,
+    this.subtitle,
+    this.fit = ImageFit.cover,
+    super.deepLinkUri,
+  }) : assert(title.length > 0, 'title cannot be empty');
+
   /// The title of the widget.
   final String title;
 
@@ -255,20 +274,6 @@ class ImageWidgetData extends WidgetData {
 
   @override
   GlanceTemplate get template => GlanceTemplate.image;
-
-  /// Creates an ImageWidgetData with required title.
-  ///
-  /// At least one of [imageUrl] or [imageBase64] should be provided.
-  ///
-  /// Throws [AssertionError] if [title] is empty.
-  const ImageWidgetData({
-    required this.title,
-    this.imageUrl,
-    this.imageBase64,
-    this.subtitle,
-    this.fit = ImageFit.cover,
-    super.deepLinkUri,
-  }) : assert(title.length > 0, 'title cannot be empty');
 
   @override
   Map<String, dynamic> toMap() => {
@@ -295,6 +300,21 @@ enum ChartType {
 
 /// Data model for Chart Widget template.
 class ChartWidgetData extends WidgetData {
+  /// Creates a ChartWidgetData with required title and data points.
+  ///
+  /// Throws [AssertionError] if:
+  /// - [title] is empty
+  /// - [dataPoints] is empty
+  const ChartWidgetData({
+    required this.title,
+    required this.dataPoints,
+    this.chartType = ChartType.line,
+    this.color,
+    this.subtitle,
+    super.deepLinkUri,
+  }) : assert(title.length > 0, 'title cannot be empty'),
+       assert(dataPoints.length > 0, 'dataPoints cannot be empty');
+
   /// The title of the widget.
   final String title;
 
@@ -313,21 +333,6 @@ class ChartWidgetData extends WidgetData {
   @override
   GlanceTemplate get template => GlanceTemplate.chart;
 
-  /// Creates a ChartWidgetData with required title and data points.
-  ///
-  /// Throws [AssertionError] if:
-  /// - [title] is empty
-  /// - [dataPoints] is empty
-  const ChartWidgetData({
-    required this.title,
-    required this.dataPoints,
-    this.chartType = ChartType.line,
-    this.color,
-    this.subtitle,
-    super.deepLinkUri,
-  }) : assert(title.length > 0, 'title cannot be empty'),
-       assert(dataPoints.length > 0, 'dataPoints cannot be empty');
-
   @override
   Map<String, dynamic> toMap() => {
     'title': title,
@@ -341,6 +346,14 @@ class ChartWidgetData extends WidgetData {
 
 /// Data model for a single calendar event.
 class CalendarEvent {
+  /// Creates a single entry of a calendar widget.
+  const CalendarEvent({
+    required this.time,
+    required this.title,
+    this.color,
+    this.isAllDay = false,
+  });
+
   /// Time string (e.g. "09:00" or "All Day").
   final String time;
 
@@ -353,13 +366,7 @@ class CalendarEvent {
   /// Whether this is an all-day event.
   final bool isAllDay;
 
-  const CalendarEvent({
-    required this.time,
-    required this.title,
-    this.color,
-    this.isAllDay = false,
-  });
-
+  /// Serialises this event for transport over a platform channel.
   Map<String, dynamic> toMap() => {
     'time': time,
     'title': title,
@@ -370,21 +377,6 @@ class CalendarEvent {
 
 /// Data model for Calendar Widget template.
 class CalendarWidgetData extends WidgetData {
-  /// The title of the widget (e.g. "Today's Events").
-  final String title;
-
-  /// The date to display.
-  final DateTime date;
-
-  /// List of events for the date.
-  final List<CalendarEvent> events;
-
-  /// Maximum number of events to show (default: 5).
-  final int maxEvents;
-
-  @override
-  GlanceTemplate get template => GlanceTemplate.calendar;
-
   /// Creates a CalendarWidgetData with required title, date, and events.
   ///
   /// Throws [AssertionError] if:
@@ -401,6 +393,21 @@ class CalendarWidgetData extends WidgetData {
          maxEvents >= 1 && maxEvents <= 10,
          'maxEvents must be between 1 and 10',
        );
+
+  /// The title of the widget (e.g. "Today's Events").
+  final String title;
+
+  /// The date to display.
+  final DateTime date;
+
+  /// List of events for the date.
+  final List<CalendarEvent> events;
+
+  /// Maximum number of events to show (default: 5).
+  final int maxEvents;
+
+  @override
+  GlanceTemplate get template => GlanceTemplate.calendar;
 
   @override
   Map<String, dynamic> toMap() => {
@@ -423,6 +430,17 @@ enum GaugeType {
 
 /// Data model for a single gauge metric.
 class GaugeMetric {
+  /// Creates a GaugeMetric with required label, value, and maxValue.
+  ///
+  /// Throws [AssertionError] if [maxValue] is <= 0.
+  const GaugeMetric({
+    required this.label,
+    required this.value,
+    required this.maxValue,
+    this.color,
+    this.unit,
+  }) : assert(maxValue > 0, 'maxValue must be greater than 0');
+
   /// Label for the metric.
   final String label;
 
@@ -438,17 +456,7 @@ class GaugeMetric {
   /// Optional unit string (e.g. "%", "km/h").
   final String? unit;
 
-  /// Creates a GaugeMetric with required label, value, and maxValue.
-  ///
-  /// Throws [AssertionError] if [maxValue] is <= 0.
-  const GaugeMetric({
-    required this.label,
-    required this.value,
-    required this.maxValue,
-    this.color,
-    this.unit,
-  }) : assert(maxValue > 0, 'maxValue must be greater than 0');
-
+  /// Serialises this metric for transport over a platform channel.
   Map<String, dynamic> toMap() => {
     'label': label,
     'value': value,
@@ -460,18 +468,6 @@ class GaugeMetric {
 
 /// Data model for Gauge Widget template.
 class GaugeWidgetData extends WidgetData {
-  /// The title of the widget.
-  final String title;
-
-  /// Metrics to display.
-  final List<GaugeMetric> metrics;
-
-  /// The type of gauge display.
-  final GaugeType gaugeType;
-
-  @override
-  GlanceTemplate get template => GlanceTemplate.gauge;
-
   /// Creates a GaugeWidgetData with required title and metrics.
   ///
   /// Throws [AssertionError] if:
@@ -484,6 +480,18 @@ class GaugeWidgetData extends WidgetData {
     super.deepLinkUri,
   }) : assert(title.length > 0, 'title cannot be empty'),
        assert(metrics.length > 0, 'metrics cannot be empty');
+
+  /// The title of the widget.
+  final String title;
+
+  /// Metrics to display.
+  final List<GaugeMetric> metrics;
+
+  /// The type of gauge display.
+  final GaugeType gaugeType;
+
+  @override
+  GlanceTemplate get template => GlanceTemplate.gauge;
 
   @override
   Map<String, dynamic> toMap() => {

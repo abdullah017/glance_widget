@@ -1,6 +1,6 @@
+import 'package:glance_widget/src/glance_config.dart';
+import 'package:glance_widget/src/json_path_validator.dart';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
-import 'glance_config.dart';
-import 'json_path_validator.dart';
 
 /// Background update and timeline refresh operations.
 ///

@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+import 'package:glance_widget/src/glance_widget_controller.dart';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
 import 'package:logging/logging.dart';
-
-import 'glance_widget_controller.dart';
 
 /// Controller that debounces rapid widget updates for real-time data.
 ///
@@ -22,6 +21,13 @@ import 'glance_widget_controller.dart';
 /// ctrl.scheduleUpdate(SimpleWidgetData(title: 'BTC', value: '\$94k'));
 /// ```
 class DebouncedWidgetController<T extends WidgetData> {
+  /// Creates a debouncing controller for the widget identified by
+  /// [widgetId], optionally pinned to [theme].
+  ///
+  /// Updates scheduled within [debounceInterval] of each other are
+  /// coalesced into one dispatch. [maxWaitTime] bounds how long a
+  /// continuously-updating stream can defer a dispatch, and
+  /// [stalenessThreshold] is the age after which [isStale] reports true.
   DebouncedWidgetController({
     required String widgetId,
     GlanceTheme? theme,

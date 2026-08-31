@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
+import 'support/payload.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -76,7 +77,7 @@ void main() {
       final map = data.toMap();
 
       expect(map['title'], 'Tasks');
-      expect((map['items'] as List).length, 1);
+      expect(map.childList('items').length, 1);
     });
   });
 
@@ -216,7 +217,7 @@ void main() {
       final data = ChartWidgetData(
         title: 'Sales',
         dataPoints: [10.0],
-        color: Color(0xFF00FF00),
+        color: const Color(0xFF00FF00),
       );
       final map = data.toMap();
 
@@ -291,7 +292,7 @@ void main() {
         ],
       );
       final map = data.toMap();
-      final events = map['events'] as List;
+      final events = map.childList('events');
 
       expect(events.length, 2);
       expect(events[0]['time'], '09:00');
@@ -354,27 +355,29 @@ void main() {
     test('toMap includes required fields', () {
       final data = GaugeWidgetData(
         title: 'Performance',
-        metrics: [GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0)],
+        metrics: [
+          const GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
+        ],
       );
       final map = data.toMap();
 
       expect(map['title'], 'Performance');
       expect(map['gaugeType'], 'radial');
-      expect(map['metrics'], isA<List>());
-      expect((map['metrics'] as List).length, 1);
+      expect(map['metrics'], isA<List<Object?>>());
+      expect(map.childList('metrics').length, 1);
     });
 
     test('toMap serializes all gauge types', () {
       final radialData = GaugeWidgetData(
         title: 'T',
-        metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+        metrics: [const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
         gaugeType: GaugeType.radial,
       );
       expect(radialData.toMap()['gaugeType'], 'radial');
 
       final dashboardData = GaugeWidgetData(
         title: 'T',
-        metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+        metrics: [const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
         gaugeType: GaugeType.dashboard,
       );
       expect(dashboardData.toMap()['gaugeType'], 'dashboard');
@@ -384,18 +387,23 @@ void main() {
       final data = GaugeWidgetData(
         title: 'System',
         metrics: [
-          GaugeMetric(
+          const GaugeMetric(
             label: 'CPU',
             value: 75.0,
             maxValue: 100.0,
             color: Color(0xFFFF0000),
             unit: '%',
           ),
-          GaugeMetric(label: 'RAM', value: 8.0, maxValue: 16.0, unit: 'GB'),
+          const GaugeMetric(
+            label: 'RAM',
+            value: 8.0,
+            maxValue: 16.0,
+            unit: 'GB',
+          ),
         ],
       );
       final map = data.toMap();
-      final metrics = map['metrics'] as List;
+      final metrics = map.childList('metrics');
 
       expect(metrics.length, 2);
       expect(metrics[0]['label'], 'CPU');
@@ -410,7 +418,7 @@ void main() {
     test('default gaugeType is radial', () {
       final data = GaugeWidgetData(
         title: 'T',
-        metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+        metrics: [const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
       );
       expect(data.gaugeType, GaugeType.radial);
     });

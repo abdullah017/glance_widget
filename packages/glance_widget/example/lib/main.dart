@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:glance_widget/glance_widget.dart';
 
 void main() {
@@ -195,7 +195,7 @@ class _HomePageState extends State<HomePage>
   }
 
   void _showConfigDialog(String widgetId) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A2E),
@@ -313,7 +313,7 @@ class _HomePageState extends State<HomePage>
       if (_downloadProgress >= 1.0) {
         timer.cancel();
         await _progressController?.update(
-          ProgressWidgetData(
+          const ProgressWidgetData(
             title: 'Complete!',
             progress: 1.0,
             subtitle: 'Download finished',
@@ -331,7 +331,7 @@ class _HomePageState extends State<HomePage>
     // v1.0: Use type-safe ListWidgetController with update()
     await _listController?.update(
       ListWidgetData(
-        title: 'Today\'s Tasks',
+        title: "Today's Tasks",
         items: _todoItems,
         showCheckboxes: true,
         deepLinkUri: 'glancewidget://todos',
@@ -373,7 +373,7 @@ class _HomePageState extends State<HomePage>
   Future<String> _generateSampleImage() async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-    final size = const Size(200, 200);
+    const size = Size(200, 200);
 
     // Draw gradient
     final paint = Paint()
@@ -425,7 +425,7 @@ class _HomePageState extends State<HomePage>
     // v1.0: Use type-safe CalendarWidgetController with update()
     await _calendarController?.update(
       CalendarWidgetData(
-        title: 'Today\'s Events',
+        title: "Today's Events",
         date: DateTime.now(),
         events: _events,
         maxEvents: 5,
@@ -970,7 +970,7 @@ class _HomePageState extends State<HomePage>
               Row(
                 children: [
                   const Text(
-                    'Today\'s Tasks',
+                    "Today's Tasks",
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -1218,7 +1218,7 @@ class _HomePageState extends State<HomePage>
               Row(
                 children: [
                   const Text(
-                    'Today\'s Events',
+                    "Today's Events",
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -1933,10 +1933,9 @@ class _HomePageState extends State<HomePage>
 // ── MINI CHART PAINTER ──
 
 class _MiniChartPainter extends CustomPainter {
+  _MiniChartPainter(this.data, this.chartType);
   final List<double> data;
   final ChartType chartType;
-
-  _MiniChartPainter(this.data, this.chartType);
 
   @override
   void paint(Canvas canvas, Size size) {

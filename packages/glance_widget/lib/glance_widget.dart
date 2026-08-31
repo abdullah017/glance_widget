@@ -31,22 +31,6 @@
 /// See the [README](https://github.com/abdullahtas0/glance_widget) for complete documentation.
 library;
 
-// Core
-export 'src/glance_widget.dart';
-export 'src/glance_config.dart';
-export 'src/glance_background.dart';
-
-// Controllers
-export 'src/glance_widget_controller.dart';
-export 'src/debounced_widget_controller.dart';
-export 'src/controllers/simple_widget_controller.dart';
-export 'src/controllers/progress_widget_controller.dart';
-export 'src/controllers/list_widget_controller.dart';
-export 'src/controllers/image_widget_controller.dart';
-export 'src/controllers/chart_widget_controller.dart';
-export 'src/controllers/calendar_widget_controller.dart';
-export 'src/controllers/gauge_widget_controller.dart';
-
 // Types (re-exported from platform interface)
 export 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart'
     show
@@ -72,3 +56,18 @@ export 'package:glance_widget_platform_interface/glance_widget_platform_interfac
         GlanceWidgetException,
         GlanceWidgetTimeoutException,
         GlanceWidgetValidationException;
+
+export 'src/controllers/calendar_widget_controller.dart';
+export 'src/controllers/chart_widget_controller.dart';
+export 'src/controllers/gauge_widget_controller.dart';
+export 'src/controllers/image_widget_controller.dart';
+export 'src/controllers/list_widget_controller.dart';
+export 'src/controllers/progress_widget_controller.dart';
+export 'src/controllers/simple_widget_controller.dart';
+export 'src/debounced_widget_controller.dart';
+export 'src/glance_background.dart';
+export 'src/glance_config.dart';
+// Core
+export 'src/glance_widget.dart';
+// Controllers
+export 'src/glance_widget_controller.dart';

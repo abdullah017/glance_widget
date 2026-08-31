@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glance_widget/glance_widget.dart';
+import 'support/payload.dart';
 
 void main() {
   group('GlanceTheme', () {
@@ -48,11 +49,11 @@ void main() {
     });
 
     test('toMap color values are integers', () {
-      final theme = GlanceTheme(
-        backgroundColor: const Color(0xFF1A1A2E),
-        textColor: const Color(0xFFFFFFFF),
-        secondaryTextColor: const Color(0xFFB0B0B0),
-        accentColor: const Color(0xFF00D9FF),
+      const theme = GlanceTheme(
+        backgroundColor: Color(0xFF1A1A2E),
+        textColor: Color(0xFFFFFFFF),
+        secondaryTextColor: Color(0xFFB0B0B0),
+        accentColor: Color(0xFF00D9FF),
         borderRadius: 16.0,
         isDark: true,
       );
@@ -241,9 +242,9 @@ void main() {
 
       expect(map['title'], 'Tasks');
       expect(map['showCheckboxes'], true);
-      expect(map['items'], isA<List>());
+      expect(map['items'], isA<List<Object?>>());
 
-      final items = map['items'] as List;
+      final items = map.childList('items');
       expect(items.length, 2);
       expect(items[0]['text'], 'Task 1');
       expect(items[1]['checked'], true);
@@ -660,7 +661,7 @@ void main() {
         title: 'Sales',
         dataPoints: [1.0, 2.0],
         chartType: ChartType.bar,
-        color: Color(0xFF0000FF),
+        color: const Color(0xFF0000FF),
         subtitle: 'Monthly',
       );
       expect(data.chartType, ChartType.bar);
@@ -678,7 +679,7 @@ void main() {
         title: 'Revenue',
         dataPoints: [100.0, 200.0, 150.0],
         chartType: ChartType.sparkline,
-        color: Color(0xFFFF0000),
+        color: const Color(0xFFFF0000),
         subtitle: 'Q1 2026',
       );
       final map = data.toMap();
@@ -725,7 +726,7 @@ void main() {
       final data = ChartWidgetData(
         title: 'Test',
         dataPoints: [1.0],
-        color: Color(0xFF00FF00),
+        color: const Color(0xFF00FF00),
       );
       final map = data.toMap();
       expect(map['color'], 0xFF00FF00);
@@ -847,7 +848,7 @@ void main() {
       expect(map['title'], 'Schedule');
       expect(map['date'], date.toIso8601String());
       expect(map['maxEvents'], 8);
-      expect(map['events'], isA<List>());
+      expect(map['events'], isA<List<Object?>>());
       expect((map['events'] as List).length, 1);
     });
 
@@ -877,7 +878,7 @@ void main() {
         ],
       );
       final map = data.toMap();
-      final events = map['events'] as List;
+      final events = map.childList('events');
       expect(events[0]['time'], '09:00');
       expect(events[0]['title'], 'Standup');
       expect(events[1]['isAllDay'], true);
@@ -891,7 +892,7 @@ void main() {
         events: const [],
       );
       final map = data.toMap();
-      expect((map['events'] as List), isEmpty);
+      expect(map['events'] as List, isEmpty);
     });
   });
 
@@ -970,7 +971,9 @@ void main() {
     test('creates data with required fields', () {
       final data = GaugeWidgetData(
         title: 'Performance',
-        metrics: [GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0)],
+        metrics: [
+          const GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
+        ],
       );
       expect(data.title, 'Performance');
       expect(data.metrics.length, 1);
@@ -980,9 +983,9 @@ void main() {
       final data = GaugeWidgetData(
         title: 'System',
         metrics: [
-          GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
-          GaugeMetric(label: 'RAM', value: 8.0, maxValue: 16.0),
-          GaugeMetric(label: 'Disk', value: 250.0, maxValue: 500.0),
+          const GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
+          const GaugeMetric(label: 'RAM', value: 8.0, maxValue: 16.0),
+          const GaugeMetric(label: 'Disk', value: 250.0, maxValue: 500.0),
         ],
       );
       expect(data.metrics.length, 3);
@@ -992,7 +995,7 @@ void main() {
     test('default gaugeType is radial', () {
       final data = GaugeWidgetData(
         title: 'Test',
-        metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+        metrics: [const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
       );
       expect(data.gaugeType, GaugeType.radial);
     });
@@ -1000,7 +1003,7 @@ void main() {
     test('dashboard gauge type', () {
       final data = GaugeWidgetData(
         title: 'Test',
-        metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+        metrics: [const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
         gaugeType: GaugeType.dashboard,
       );
       expect(data.gaugeType, GaugeType.dashboard);
@@ -1009,27 +1012,29 @@ void main() {
     test('toMap includes all fields', () {
       final data = GaugeWidgetData(
         title: 'Performance',
-        metrics: [GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0)],
+        metrics: [
+          const GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
+        ],
         gaugeType: GaugeType.dashboard,
       );
       final map = data.toMap();
       expect(map['title'], 'Performance');
       expect(map['gaugeType'], 'dashboard');
-      expect(map['metrics'], isA<List>());
+      expect(map['metrics'], isA<List<Object?>>());
       expect((map['metrics'] as List).length, 1);
     });
 
     test('toMap serializes gaugeType correctly for all values', () {
       final radialData = GaugeWidgetData(
         title: 'T',
-        metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+        metrics: [const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
         gaugeType: GaugeType.radial,
       );
       expect(radialData.toMap()['gaugeType'], 'radial');
 
       final dashboardData = GaugeWidgetData(
         title: 'T',
-        metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+        metrics: [const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
         gaugeType: GaugeType.dashboard,
       );
       expect(dashboardData.toMap()['gaugeType'], 'dashboard');
@@ -1039,7 +1044,7 @@ void main() {
       final data = GaugeWidgetData(
         title: 'System',
         metrics: [
-          GaugeMetric(
+          const GaugeMetric(
             label: 'CPU',
             value: 75.0,
             maxValue: 100.0,
@@ -1049,7 +1054,7 @@ void main() {
         ],
       );
       final map = data.toMap();
-      final metrics = map['metrics'] as List;
+      final metrics = map.childList('metrics');
       expect(metrics[0]['label'], 'CPU');
       expect(metrics[0]['value'], 75.0);
       expect(metrics[0]['maxValue'], 100.0);

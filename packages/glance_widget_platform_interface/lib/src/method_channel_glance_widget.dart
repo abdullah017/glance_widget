@@ -1,13 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
+import 'package:glance_widget_platform_interface/src/glance_widget_platform.dart';
+import 'package:glance_widget_platform_interface/src/types/glance_exception.dart';
+import 'package:glance_widget_platform_interface/src/types/widget_action.dart';
+import 'package:glance_widget_platform_interface/src/types/widget_data.dart';
+import 'package:glance_widget_platform_interface/src/types/widget_theme.dart';
 import 'package:logging/logging.dart';
-
-import 'glance_widget_platform.dart';
-import 'types/glance_exception.dart';
-import 'types/widget_data.dart';
-import 'types/widget_theme.dart';
-import 'types/widget_action.dart';
 
 /// An implementation of [GlanceWidgetPlatform] that uses method channels.
 class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
@@ -37,7 +36,7 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
 
   /// Stream controller for widget actions.
   StreamController<GlanceWidgetAction>? _actionController;
-  StreamSubscription? _eventSubscription;
+  StreamSubscription<Object?>? _eventSubscription;
 
   @override
   Future<bool> updateSimpleWidget({

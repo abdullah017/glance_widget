@@ -1,12 +1,15 @@
+import 'package:glance_widget_platform_interface/src/method_channel_glance_widget.dart';
+import 'package:glance_widget_platform_interface/src/types/widget_action.dart';
+import 'package:glance_widget_platform_interface/src/types/widget_data.dart';
+import 'package:glance_widget_platform_interface/src/types/widget_theme.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-
-import 'method_channel_glance_widget.dart';
-import 'types/widget_data.dart';
-import 'types/widget_theme.dart';
-import 'types/widget_action.dart';
 
 /// The interface that implementations of glance_widget must implement.
 abstract class GlanceWidgetPlatform extends PlatformInterface {
+  /// Constructs a platform implementation.
+  ///
+  /// Subclasses pass the shared verification token up, so that a class that
+  /// merely `implements` this interface cannot be installed as the instance.
   GlanceWidgetPlatform() : super(token: _token);
 
   static final Object _token = Object();

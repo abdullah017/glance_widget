@@ -1,8 +1,9 @@
 import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:glance_widget/glance_widget.dart';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 class MockGlanceWidgetPlatform extends Mock
@@ -31,7 +32,7 @@ void main() {
       'update() dispatches to correct platform method with typed data',
       () async {
         final ctrl = SimpleWidgetController(widgetId: 'test');
-        final data = SimpleWidgetData(title: 'T', value: 'V');
+        const data = SimpleWidgetData(title: 'T', value: 'V');
         when(
           () => mockPlatform.updateSimpleWidget(
             widgetId: any(named: 'widgetId'),
@@ -86,7 +87,7 @@ void main() {
         ),
       );
 
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
 
       expect(received.length, 2);
       expect(received.every((a) => a.widgetId == 'my_widget'), true);
@@ -105,7 +106,7 @@ void main() {
       final ctrl = SimpleWidgetController(widgetId: 'test');
       ctrl.dispose();
       expect(
-        () => ctrl.update(SimpleWidgetData(title: 'T', value: 'V')),
+        () => ctrl.update(const SimpleWidgetData(title: 'T', value: 'V')),
         throwsStateError,
       );
       expect(() => ctrl.onAction, throwsStateError);
@@ -127,7 +128,7 @@ void main() {
     test('double dispose does not throw', () {
       final ctrl = SimpleWidgetController(widgetId: 'test');
       ctrl.dispose();
-      expect(() => ctrl.dispose(), returnsNormally);
+      expect(ctrl.dispose, returnsNormally);
     });
   });
 }

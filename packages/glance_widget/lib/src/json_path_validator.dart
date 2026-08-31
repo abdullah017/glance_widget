@@ -1,7 +1,6 @@
+import 'package:glance_widget/src/glance_config.dart';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
 import 'package:logging/logging.dart';
-
-import 'glance_config.dart';
 
 /// Validates JSONPath expressions used in background update configuration.
 class JsonPathValidator {
@@ -9,7 +8,8 @@ class JsonPathValidator {
 
   static final _log = Logger('GlanceWidget.JsonPathValidator');
 
-  /// Basic JSONPath pattern: $.field, $.field[0], $.a.b.c, $.*, $[*]
+  /// Basic JSONPath pattern, covering `\$.field`, `\$.field[0]`,
+  /// `\$.a.b.c`, `\$.*` and `\$[*]`.
   static final _basicPattern = RegExp(
     r'^\$(\.[a-zA-Z_][a-zA-Z0-9_]*|\[\d+\]|\[\*\]|\.\*)*$',
   );

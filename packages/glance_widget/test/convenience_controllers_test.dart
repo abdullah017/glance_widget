@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:glance_widget/src/controllers/simple_widget_controller.dart';
-import 'package:glance_widget/src/controllers/progress_widget_controller.dart';
-import 'package:glance_widget/src/controllers/list_widget_controller.dart';
-import 'package:glance_widget/src/controllers/image_widget_controller.dart';
-import 'package:glance_widget/src/controllers/chart_widget_controller.dart';
 import 'package:glance_widget/src/controllers/calendar_widget_controller.dart';
+import 'package:glance_widget/src/controllers/chart_widget_controller.dart';
 import 'package:glance_widget/src/controllers/gauge_widget_controller.dart';
+import 'package:glance_widget/src/controllers/image_widget_controller.dart';
+import 'package:glance_widget/src/controllers/list_widget_controller.dart';
+import 'package:glance_widget/src/controllers/progress_widget_controller.dart';
+import 'package:glance_widget/src/controllers/simple_widget_controller.dart';
 
 void main() {
   group('Convenience controllers', () {

@@ -1,8 +1,9 @@
 import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:glance_widget/glance_widget.dart';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 class MockGlanceWidgetPlatform extends Mock
@@ -38,13 +39,13 @@ void main() {
 
       final ctrl = SimpleWidgetController(widgetId: 'test');
       final result = await ctrl.update(
-        SimpleWidgetData(title: 'Test', value: '100'),
+        const SimpleWidgetData(title: 'Test', value: '100'),
       );
       expect(result, true);
 
       ctrl.dispose();
       expect(
-        () => ctrl.update(SimpleWidgetData(title: 'T', value: 'V')),
+        () => ctrl.update(const SimpleWidgetData(title: 'T', value: 'V')),
         throwsStateError,
       );
     });
@@ -86,7 +87,7 @@ void main() {
         ),
       );
 
-      await Future.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
 
       expect(actionsA.length, 2);
       expect(actionsB.length, 1);
@@ -116,7 +117,7 @@ void main() {
 
         final ctrl = SimpleWidgetController(widgetId: 'test');
         final result = await ctrl.update(
-          SimpleWidgetData(title: 'T', value: 'V'),
+          const SimpleWidgetData(title: 'T', value: 'V'),
         );
         expect(result, true);
         ctrl.dispose();

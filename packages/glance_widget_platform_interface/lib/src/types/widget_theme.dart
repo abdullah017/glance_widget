@@ -2,24 +2,7 @@ import 'dart:ui';
 
 /// Theme configuration for Glance Widgets.
 class GlanceTheme {
-  /// Background color of the widget.
-  final Color backgroundColor;
-
-  /// Primary text color.
-  final Color textColor;
-
-  /// Secondary/muted text color.
-  final Color secondaryTextColor;
-
-  /// Accent color for highlights and interactive elements.
-  final Color accentColor;
-
-  /// Border radius in logical pixels.
-  final double borderRadius;
-
-  /// Whether to use dark theme.
-  final bool isDark;
-
+  /// Creates a theme describing how a widget should be painted natively.
   const GlanceTheme({
     required this.backgroundColor,
     required this.textColor,
@@ -49,6 +32,25 @@ class GlanceTheme {
     isDark: true,
   );
 
+  /// Background color of the widget.
+  final Color backgroundColor;
+
+  /// Primary text color.
+  final Color textColor;
+
+  /// Secondary/muted text color.
+  final Color secondaryTextColor;
+
+  /// Accent color for highlights and interactive elements.
+  final Color accentColor;
+
+  /// Border radius in logical pixels.
+  final double borderRadius;
+
+  /// Whether to use dark theme.
+  final bool isDark;
+
+  /// Serialises this theme for transport over a platform channel.
   Map<String, dynamic> toMap() => {
     'backgroundColor': backgroundColor.toARGB32(),
     'textColor': textColor.toARGB32(),
@@ -58,6 +60,7 @@ class GlanceTheme {
     'isDark': isDark,
   };
 
+  /// Returns a copy of this theme with the given fields replaced.
   GlanceTheme copyWith({
     Color? backgroundColor,
     Color? textColor,

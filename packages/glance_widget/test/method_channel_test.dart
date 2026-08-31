@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
+import 'support/payload.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -61,10 +62,10 @@ void main() {
         expect(log.length, 1);
         expect(log[0].method, 'updateSimpleWidget');
 
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['widgetId'], 'test_widget');
-        expect(args['data']['title'], 'Test');
-        expect(args['data']['value'], '100');
+        expect(args.child('data')['title'], 'Test');
+        expect(args.child('data')['value'], '100');
       });
 
       test('sends theme when provided', () async {
@@ -75,9 +76,9 @@ void main() {
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['theme'], isNotNull);
-        expect(args['theme']['isDark'], true);
+        expect(args.child('theme')['isDark'], true);
       });
 
       test('sends null theme when not provided', () async {
@@ -87,7 +88,7 @@ void main() {
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['theme'], isNull);
       });
     });
@@ -103,10 +104,10 @@ void main() {
         expect(log.length, 1);
         expect(log[0].method, 'updateProgressWidget');
 
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['widgetId'], 'progress_widget');
-        expect(args['data']['title'], 'Loading');
-        expect(args['data']['progress'], 0.5);
+        expect(args.child('data')['title'], 'Loading');
+        expect(args.child('data')['progress'], 0.5);
       });
 
       test('sends progress type', () async {
@@ -120,8 +121,8 @@ void main() {
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
-        expect(args['data']['progressType'], 'linear');
+        final args = log[0].payload;
+        expect(args.child('data')['progressType'], 'linear');
       });
     });
 
@@ -142,11 +143,11 @@ void main() {
         expect(log.length, 1);
         expect(log[0].method, 'updateListWidget');
 
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['widgetId'], 'list_widget');
-        expect(args['data']['title'], 'Tasks');
-        expect(args['data']['items'], isA<List>());
-        expect((args['data']['items'] as List).length, 2);
+        expect(args.child('data')['title'], 'Tasks');
+        expect(args.child('data')['items'], isA<List<Object?>>());
+        expect(args.child('data').childList('items').length, 2);
       });
 
       test('sends showCheckboxes flag', () async {
@@ -160,8 +161,8 @@ void main() {
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
-        expect(args['data']['showCheckboxes'], true);
+        final args = log[0].payload;
+        expect(args.child('data')['showCheckboxes'], true);
       });
     });
 
@@ -179,10 +180,10 @@ void main() {
         expect(log.length, 1);
         expect(log[0].method, 'updateImageWidget');
 
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['widgetId'], 'image_widget');
-        expect(args['data']['title'], 'Photo');
-        expect(args['data']['imageUrl'], 'https://example.com/photo.jpg');
+        expect(args.child('data')['title'], 'Photo');
+        expect(args.child('data')['imageUrl'], 'https://example.com/photo.jpg');
       });
 
       test('sends theme when provided', () async {
@@ -193,9 +194,9 @@ void main() {
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['theme'], isNotNull);
-        expect(args['theme']['isDark'], true);
+        expect(args.child('theme')['isDark'], true);
       });
 
       test('sends null theme when not provided', () async {
@@ -205,7 +206,7 @@ void main() {
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['theme'], isNull);
       });
 
@@ -216,8 +217,8 @@ void main() {
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
-        expect(args['data']['fit'], 'contain');
+        final args = log[0].payload;
+        expect(args.child('data')['fit'], 'contain');
       });
 
       test('sends imageBase64 when provided', () async {
@@ -230,8 +231,8 @@ void main() {
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
-        expect(args['data']['imageBase64'], 'base64data');
+        final args = log[0].payload;
+        expect(args.child('data')['imageBase64'], 'base64data');
       });
     });
 
@@ -246,10 +247,10 @@ void main() {
         expect(log.length, 1);
         expect(log[0].method, 'updateChartWidget');
 
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['widgetId'], 'chart_widget');
-        expect(args['data']['title'], 'Sales');
-        expect(args['data']['dataPoints'], [10.0, 20.0, 30.0]);
+        expect(args.child('data')['title'], 'Sales');
+        expect(args.child('data')['dataPoints'], [10.0, 20.0, 30.0]);
       });
 
       test('sends chart type', () async {
@@ -263,8 +264,8 @@ void main() {
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
-        expect(args['data']['chartType'], 'bar');
+        final args = log[0].payload;
+        expect(args.child('data')['chartType'], 'bar');
       });
 
       test('sends theme when provided', () async {
@@ -275,9 +276,9 @@ void main() {
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['theme'], isNotNull);
-        expect(args['theme']['isDark'], false);
+        expect(args.child('theme')['isDark'], false);
       });
 
       test('sends subtitle and color', () async {
@@ -287,14 +288,14 @@ void main() {
             title: 'Sales',
             dataPoints: [10.0],
             subtitle: 'Monthly',
-            color: Color(0xFFFF0000),
+            color: const Color(0xFFFF0000),
           ),
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
-        expect(args['data']['subtitle'], 'Monthly');
-        expect(args['data']['color'], 0xFFFF0000);
+        final args = log[0].payload;
+        expect(args.child('data')['subtitle'], 'Monthly');
+        expect(args.child('data')['color'], 0xFFFF0000);
       });
     });
 
@@ -314,10 +315,10 @@ void main() {
         expect(log.length, 1);
         expect(log[0].method, 'updateCalendarWidget');
 
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['widgetId'], 'calendar_widget');
-        expect(args['data']['title'], 'Today');
-        expect(args['data']['date'], date.toIso8601String());
+        expect(args.child('data')['title'], 'Today');
+        expect(args.child('data')['date'], date.toIso8601String());
       });
 
       test('sends events', () async {
@@ -334,8 +335,8 @@ void main() {
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
-        final events = args['data']['events'] as List;
+        final args = log[0].payload;
+        final events = args.child('data').childList('events');
         expect(events.length, 2);
         expect(events[0]['time'], '09:00');
         expect(events[0]['title'], 'Standup');
@@ -354,9 +355,9 @@ void main() {
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['theme'], isNotNull);
-        expect(args['theme']['isDark'], true);
+        expect(args.child('theme')['isDark'], true);
       });
 
       test('sends maxEvents', () async {
@@ -371,8 +372,8 @@ void main() {
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
-        expect(args['data']['maxEvents'], 3);
+        final args = log[0].payload;
+        expect(args.child('data')['maxEvents'], 3);
       });
     });
 
@@ -382,7 +383,9 @@ void main() {
           widgetId: 'gauge_widget',
           data: GaugeWidgetData(
             title: 'Performance',
-            metrics: [GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0)],
+            metrics: [
+              const GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
+            ],
           ),
         );
 
@@ -390,9 +393,9 @@ void main() {
         expect(log.length, 1);
         expect(log[0].method, 'updateGaugeWidget');
 
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['widgetId'], 'gauge_widget');
-        expect(args['data']['title'], 'Performance');
+        expect(args.child('data')['title'], 'Performance');
       });
 
       test('sends metrics', () async {
@@ -401,20 +404,25 @@ void main() {
           data: GaugeWidgetData(
             title: 'System',
             metrics: [
-              GaugeMetric(
+              const GaugeMetric(
                 label: 'CPU',
                 value: 75.0,
                 maxValue: 100.0,
                 unit: '%',
               ),
-              GaugeMetric(label: 'RAM', value: 8.0, maxValue: 16.0, unit: 'GB'),
+              const GaugeMetric(
+                label: 'RAM',
+                value: 8.0,
+                maxValue: 16.0,
+                unit: 'GB',
+              ),
             ],
           ),
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
-        final metrics = args['data']['metrics'] as List;
+        final args = log[0].payload;
+        final metrics = args.child('data').childList('metrics');
         expect(metrics.length, 2);
         expect(metrics[0]['label'], 'CPU');
         expect(metrics[0]['value'], 75.0);
@@ -428,15 +436,17 @@ void main() {
           widgetId: 'gauge_widget',
           data: GaugeWidgetData(
             title: 'Test',
-            metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+            metrics: [
+              const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0),
+            ],
           ),
           theme: GlanceTheme.light(),
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['theme'], isNotNull);
-        expect(args['theme']['isDark'], false);
+        expect(args.child('theme')['isDark'], false);
       });
 
       test('sends gauge type', () async {
@@ -444,14 +454,16 @@ void main() {
           widgetId: 'gauge_widget',
           data: GaugeWidgetData(
             title: 'Dashboard',
-            metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+            metrics: [
+              const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0),
+            ],
             gaugeType: GaugeType.dashboard,
           ),
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
-        expect(args['data']['gaugeType'], 'dashboard');
+        final args = log[0].payload;
+        expect(args.child('data')['gaugeType'], 'dashboard');
       });
 
       test('sends metric color', () async {
@@ -460,7 +472,7 @@ void main() {
           data: GaugeWidgetData(
             title: 'Test',
             metrics: [
-              GaugeMetric(
+              const GaugeMetric(
                 label: 'X',
                 value: 1.0,
                 maxValue: 10.0,
@@ -471,8 +483,8 @@ void main() {
         );
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
-        final metrics = args['data']['metrics'] as List;
+        final args = log[0].payload;
+        final metrics = args.child('data').childList('metrics');
         expect(metrics[0]['color'], 0xFFFF0000);
       });
     });
@@ -485,7 +497,7 @@ void main() {
         expect(log.length, 1);
         expect(log[0].method, 'setGlobalTheme');
 
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['isDark'], true);
       });
 
@@ -493,7 +505,7 @@ void main() {
         await platform.setGlobalTheme(GlanceTheme.light());
 
         expect(log.length, 1);
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['isDark'], false);
       });
     });
@@ -574,7 +586,7 @@ void main() {
         expect(log.length, 1);
         expect(log[0].method, 'completeWidgetConfiguration');
 
-        final args = log[0].arguments as Map;
+        final args = log[0].payload;
         expect(args['widgetId'], 'test_widget');
       });
 

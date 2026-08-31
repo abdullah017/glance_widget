@@ -31,18 +31,18 @@ void main() {
 
     test('each subclass returns correct template', () {
       expect(
-        SimpleWidgetData(title: 't', value: 'v').template,
+        const SimpleWidgetData(title: 't', value: 'v').template,
         GlanceTemplate.simple,
       );
       expect(
-        ProgressWidgetData(title: 't', progress: 0.5).template,
+        const ProgressWidgetData(title: 't', progress: 0.5).template,
         GlanceTemplate.progress,
       );
       expect(
-        ListWidgetData(title: 't', items: []).template,
+        const ListWidgetData(title: 't', items: []).template,
         GlanceTemplate.list,
       );
-      expect(ImageWidgetData(title: 't').template, GlanceTemplate.image);
+      expect(const ImageWidgetData(title: 't').template, GlanceTemplate.image);
       expect(
         ChartWidgetData(title: 't', dataPoints: [1.0]).template,
         GlanceTemplate.chart,
@@ -58,18 +58,18 @@ void main() {
       expect(
         GaugeWidgetData(
           title: 't',
-          metrics: [GaugeMetric(label: 'x', value: 1, maxValue: 10)],
+          metrics: [const GaugeMetric(label: 'x', value: 1, maxValue: 10)],
         ).template,
         GlanceTemplate.gauge,
       );
     });
 
     test('SimpleWidgetData toMap serializes all fields', () {
-      final data = SimpleWidgetData(
+      const data = SimpleWidgetData(
         title: 'BTC',
         value: '\$94k',
         subtitle: 'Price',
-        subtitleColor: const Color(0xFF00FF00),
+        subtitleColor: Color(0xFF00FF00),
         iconName: 'bitcoin',
         deepLinkUri: 'myapp://crypto',
       );
@@ -84,15 +84,15 @@ void main() {
 
     test('exhaustive switch on WidgetData covers all types', () {
       final List<WidgetData> allTypes = [
-        SimpleWidgetData(title: 't', value: 'v'),
-        ProgressWidgetData(title: 't', progress: 0.5),
-        ListWidgetData(title: 't', items: []),
-        ImageWidgetData(title: 't'),
+        const SimpleWidgetData(title: 't', value: 'v'),
+        const ProgressWidgetData(title: 't', progress: 0.5),
+        const ListWidgetData(title: 't', items: []),
+        const ImageWidgetData(title: 't'),
         ChartWidgetData(title: 't', dataPoints: [1.0]),
         CalendarWidgetData(title: 't', date: DateTime(2026), events: []),
         GaugeWidgetData(
           title: 't',
-          metrics: [GaugeMetric(label: 'x', value: 1, maxValue: 10)],
+          metrics: [const GaugeMetric(label: 'x', value: 1, maxValue: 10)],
         ),
       ];
       for (final data in allTypes) {
