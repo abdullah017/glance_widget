@@ -4,11 +4,11 @@ import Testing
 import WidgetKit
 
 /// The lock screen layouts are the one part of the widget templates nothing
-/// renders in CI: `tool/typecheck_templates.sh` proves they compile, and a
-/// simulator would be needed to prove they draw. What can be pinned without a
-/// render is the arithmetic they hand to SwiftUI, and that is where the bugs
-/// live -- a family classified wrong, a `Gauge` handed a NaN, a divide by a
-/// `maxValue` of zero.
+/// renders in CI: the extension build proves they compile, and a simulator
+/// would be needed to prove they draw. What can be pinned without a render is
+/// the arithmetic they hand to SwiftUI, and that is where the bugs live -- a
+/// family classified wrong, a `Gauge` handed a NaN, a divide by a `maxValue`
+/// of zero.
 ///
 /// These types are compiled into this test target directly from
 /// `packages/glance_widget_ios/example/ios/GlanceWidgets/`, so a change to the

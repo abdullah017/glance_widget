@@ -1,5 +1,15 @@
 ## 2.0.0
 
+**Fixed:** the widget templates are now compiled by this repository. They were
+copied into a consumer's extension and nothing here built them, so a type error
+could sit in one indefinitely -- which is how the image `fit` key drifted apart
+from what Dart sends. The example app now ships a real widget extension, and
+the same twelve files are compiled into its test target, where they can be
+asserted about rather than only type-checked. Two bugs surfaced the moment
+anything built them: `ImagePreview` had not compiled since `imagePath` was
+added (`#if DEBUG` was never a defined condition anywhere), and the example app
+had no `version:`, which an app extension cannot install without.
+
 **Added:** `forgetWidget(_:)` drops every template's payload for an id, its
 downsampled image, and the id itself. WidgetKit gives an app no signal when a
 widget is removed -- an extension is not told, and

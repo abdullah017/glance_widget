@@ -50,12 +50,13 @@ drop.
 
 Android is now covered by `WidgetInstanceResolver` and 11 JVM unit tests,
 because the routing decision could be extracted into a type free of Android
-types. iOS cannot be covered the same way — the widget extension is not built by
-this repository at all (issue #10), so no test can reach `SimpleWidgetProvider`.
+types. iOS could not be covered the same way while the widget extension was not
+built by this repository at all (issue #10), so no test could reach
+`SimpleWidgetProvider`. The example app now ships one, and the templates are
+compiled into its test target too.
 
 What is covered is the contract underneath it: `GlanceStorageKeys` now owns the
 App Group key layout that both halves depend on, and `GlanceStorageKeysTests`
 pins the exact prefix strings the templates type out by hand. Renaming one used
 to fail nothing and silently empty the configuration picker; it now turns three
-tests red. The rest of the iOS fix rests on `tool/typecheck_templates.sh` until
-issue #10 lands.
+tests red.

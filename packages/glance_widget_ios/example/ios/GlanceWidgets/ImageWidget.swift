@@ -207,7 +207,13 @@ struct ImageWidgetEntryView: View {
         return URL(string: "glancewidget://action?widgetId=\(entry.data.widgetId)&type=tap")
     }
 
-    private var contentMode: ContentMode {
+    /// Not private so `ImageWidgetFitTests` can pin it.
+    ///
+    /// This mapping is one half of a contract with Dart, and the half that has
+    /// already drifted once: the `fit` key changed on the Dart side and nothing
+    /// here noticed. A compiler cannot catch a string that stops matching a
+    /// `switch`. A test can.
+    var contentMode: ContentMode {
         switch entry.data.fit {
         case "contain":
             return .fit
@@ -312,6 +318,10 @@ struct ImageWidget_Previews: PreviewProvider {
                     title: "Vacation Photo",
                     imageUrl: nil,
                     imageBase64: nil,
+                    // Added with the field itself and missed here, because
+                    // nothing compiled this block: `swiftc -typecheck` does not
+                    // define DEBUG, and no target built the templates at all.
+                    imagePath: nil,
                     subtitle: "Summer 2025",
                     fit: "cover",
                     deepLinkUri: nil,

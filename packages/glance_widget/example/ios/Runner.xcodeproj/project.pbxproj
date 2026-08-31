@@ -7,10 +7,35 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		06486A12AB01400BC19ADA0B /* ImageWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9363794AF692A7D6B3D1A139 /* ImageWidget.swift */; };
+		095FCB8D8E3718213F1F7BC3 /* GlanceInteractive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E57BF49D7D837AEA7A8AB5 /* GlanceInteractive.swift */; };
+		0E36DBD8DA5C6EE5FEE828FC /* ChartWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3BBF8CA3D8D4A530192392E /* ChartWidget.swift */; };
+		1070CDC9F2018EAD34C2FBC8 /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D16FACB8A66C653D0D50C6A4 /* SharedModels.swift */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
+		36F823EE8E181CBF782F8920 /* SimpleWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 169E791C1A90F1C74EE3B381 /* SimpleWidget.swift */; };
+		3A7CB501A9640BC32EF8F087 /* ListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2017EF9345E0E7A98044E82A /* ListWidget.swift */; };
+		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		3E0164E9EC6AA5600684477F /* CalendarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 924F4E88395D2D90563A1B5C /* CalendarWidget.swift */; };
+		44768CEE39B3287F4FDEEC70 /* SimpleWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 169E791C1A90F1C74EE3B381 /* SimpleWidget.swift */; };
+		537AAD732BD32EC5BB21EAD9 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 594939FF96D034239C67062C /* SwiftUI.framework */; };
+		53CB764FFB54B08F0E87EDAC /* CalendarWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 924F4E88395D2D90563A1B5C /* CalendarWidget.swift */; };
+		5B1E7FC3A483B8A4BCEF53BD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EB7936A4DF3C790FBBF79612 /* Foundation.framework */; };
+		647E6F6707245CD3CC0A0415 /* ImageWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9363794AF692A7D6B3D1A139 /* ImageWidget.swift */; };
+		670264F547DB50E3FE1E8E4D /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8DCF156AB02955F11C1624E9 /* WidgetKit.framework */; };
+		6BA83BF83F7D76594E7A0560 /* GaugeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9408B4FB8244E35D6776FE /* GaugeWidget.swift */; };
+		70D573FBB1712A20CA42C68D /* GaugeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B9408B4FB8244E35D6776FE /* GaugeWidget.swift */; };
+		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
+		7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */; };
+		78A02C44F04FD9ABC403F2F7 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9764F4D510B1941E2C977806 /* Pods_Runner.framework */; };
+		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
+		7919A17D265D02FF7158B106 /* GlanceWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC97395E778FF01710F21B57 /* GlanceWidgets.swift */; };
+		830303B11F198EDF8650676D /* ProgressWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4923F213A38009DC49159D8 /* ProgressWidget.swift */; };
+		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
+		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
+		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		9D4E03AB5B3F33F26559F48A /* GlanceWidgets.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 29C5AFAD5B5D64676D8E8418 /* GlanceWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		A11CE0AA2F0000000000E001 /* GlanceImageResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E002 /* GlanceImageResolverTests.swift */; };
-		A11CE0AA2F0000000000E015 /* GlanceAppGroupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E016 /* GlanceAppGroupTests.swift */; };
 		A11CE0AA2F0000000000E003 /* GlanceStorageKeysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E004 /* GlanceStorageKeysTests.swift */; };
 		A11CE0AA2F0000000000E005 /* GlanceBatchRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E006 /* GlanceBatchRequestTests.swift */; };
 		A11CE0AA2F0000000000E007 /* GlanceAccessoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E008 /* GlanceAccessoryTests.swift */; };
@@ -20,18 +45,25 @@
 		A11CE0AA2F0000000000E00F /* GlanceInteractiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E010 /* GlanceInteractiveTests.swift */; };
 		A11CE0AA2F0000000000E011 /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E012 /* SharedModels.swift */; };
 		A11CE0AA2F0000000000E013 /* GlanceInteractive.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E014 /* GlanceInteractive.swift */; };
-		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
-		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
-		7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */; };
-		78A02C44F04FD9ABC403F2F7 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9764F4D510B1941E2C977806 /* Pods_Runner.framework */; };
-		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
-		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
-		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
-		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		A11CE0AA2F0000000000E015 /* GlanceAppGroupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E016 /* GlanceAppGroupTests.swift */; };
+		A4B533C1AF25E372A3A36F3E /* ChartWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3BBF8CA3D8D4A530192392E /* ChartWidget.swift */; };
 		AFD46CEAE420C6ACBA130802 /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 216D850EF4DA3E7E0076CD5B /* Pods_RunnerTests.framework */; };
+		BBF1AA7DF41D3856547377CF /* AccessoryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AD3D4179AF41DD016B01BD0 /* AccessoryViews.swift */; };
+		C049516F88F92FFCB45DE89C /* ProgressWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4923F213A38009DC49159D8 /* ProgressWidget.swift */; };
+		D71F56A5127A83DBB1D25073 /* ListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2017EF9345E0E7A98044E82A /* ListWidget.swift */; };
+		E4FD2B329F15F15DF2150C9F /* GlanceWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC97395E778FF01710F21B57 /* GlanceWidgets.swift */; };
+		F0C6CCCBA9D08265083AF578 /* GlanceFamily.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7997B8A7BB274CAD0D78AD3 /* GlanceFamily.swift */; };
+		F3D4A0130095ED57FBC5DD61 /* ImageWidgetFitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0CDFF641B8C517A46BA3CA7 /* ImageWidgetFitTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		1365EF81F582D46B9FC4B64E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EA65B0DDC314CF3327D6AB4B;
+			remoteInfo = GlanceWidgets;
+		};
 		331C8085294A63A400263BE5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
@@ -42,6 +74,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		6BA70D61706754BC651E19D3 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				9D4E03AB5B3F33F26559F48A /* GlanceWidgets.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9705A1C41CF9048500538489 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -57,30 +100,29 @@
 /* Begin PBXFileReference section */
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		169E791C1A90F1C74EE3B381 /* SimpleWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SimpleWidget.swift; sourceTree = "<group>"; };
+		1AD3D4179AF41DD016B01BD0 /* AccessoryViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessoryViews.swift; sourceTree = "<group>"; };
+		2017EF9345E0E7A98044E82A /* ListWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ListWidget.swift; sourceTree = "<group>"; };
 		216D850EF4DA3E7E0076CD5B /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		29C5AFAD5B5D64676D8E8418 /* GlanceWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = GlanceWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		31E1F35F7164B99167A7C7E8 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
-		A11CE0AA2F0000000000E002 /* GlanceImageResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlanceImageResolverTests.swift; sourceTree = "<group>"; };
-		A11CE0AA2F0000000000E016 /* GlanceAppGroupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlanceAppGroupTests.swift; sourceTree = "<group>"; };
-		A11CE0AA2F0000000000E004 /* GlanceStorageKeysTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlanceStorageKeysTests.swift; sourceTree = "<group>"; };
-		A11CE0AA2F0000000000E006 /* GlanceBatchRequestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlanceBatchRequestTests.swift; sourceTree = "<group>"; };
-		A11CE0AA2F0000000000E008 /* GlanceAccessoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceAccessoryTests.swift; path = "GlanceAccessoryTests.swift"; sourceTree = "<group>"; };
-		A11CE0AA2F0000000000E00A /* GlanceFamily.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceFamily.swift; path = "../../../../glance_widget_ios/example/ios/GlanceWidgets/GlanceFamily.swift"; sourceTree = "<group>"; };
-		A11CE0AA2F0000000000E00C /* AccessoryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AccessoryViews.swift; path = "../../../../glance_widget_ios/example/ios/GlanceWidgets/AccessoryViews.swift"; sourceTree = "<group>"; };
-		A11CE0AA2F0000000000E00E /* GlanceActionQueueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceActionQueueTests.swift; path = "GlanceActionQueueTests.swift"; sourceTree = "<group>"; };
-		A11CE0AA2F0000000000E010 /* GlanceInteractiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceInteractiveTests.swift; path = "GlanceInteractiveTests.swift"; sourceTree = "<group>"; };
-		A11CE0AA2F0000000000E012 /* SharedModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SharedModels.swift; path = "../../../../glance_widget_ios/example/ios/GlanceWidgets/SharedModels.swift"; sourceTree = "<group>"; };
-		A11CE0AA2F0000000000E014 /* GlanceInteractive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceInteractive.swift; path = "../../../../glance_widget_ios/example/ios/GlanceWidgets/GlanceInteractive.swift"; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		35E57BF49D7D837AEA7A8AB5 /* GlanceInteractive.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlanceInteractive.swift; sourceTree = "<group>"; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		51C85A0FF04414226244D042 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
+		594939FF96D034239C67062C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		6FBF5FDA2DB831798FAFFDC0 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
+		8B9408B4FB8244E35D6776FE /* GaugeWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GaugeWidget.swift; sourceTree = "<group>"; };
+		8DCF156AB02955F11C1624E9 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		8EFBAF375A5F948BF65EF036 /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
+		924F4E88395D2D90563A1B5C /* CalendarWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CalendarWidget.swift; sourceTree = "<group>"; };
+		9363794AF692A7D6B3D1A139 /* ImageWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ImageWidget.swift; sourceTree = "<group>"; };
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		9740EEB31CF90195004384FC /* Generated.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = Generated.xcconfig; path = Flutter/Generated.xcconfig; sourceTree = "<group>"; };
 		9764F4D510B1941E2C977806 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -89,8 +131,26 @@
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E002 /* GlanceImageResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlanceImageResolverTests.swift; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E004 /* GlanceStorageKeysTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlanceStorageKeysTests.swift; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E006 /* GlanceBatchRequestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlanceBatchRequestTests.swift; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E008 /* GlanceAccessoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceAccessoryTests.swift; path = GlanceAccessoryTests.swift; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E00A /* GlanceFamily.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceFamily.swift; path = ../../../../glance_widget_ios/example/ios/GlanceWidgets/GlanceFamily.swift; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E00C /* AccessoryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AccessoryViews.swift; path = ../../../../glance_widget_ios/example/ios/GlanceWidgets/AccessoryViews.swift; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E00E /* GlanceActionQueueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceActionQueueTests.swift; path = GlanceActionQueueTests.swift; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E010 /* GlanceInteractiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceInteractiveTests.swift; path = GlanceInteractiveTests.swift; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E012 /* SharedModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SharedModels.swift; path = ../../../../glance_widget_ios/example/ios/GlanceWidgets/SharedModels.swift; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E014 /* GlanceInteractive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceInteractive.swift; path = ../../../../glance_widget_ios/example/ios/GlanceWidgets/GlanceInteractive.swift; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E016 /* GlanceAppGroupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlanceAppGroupTests.swift; sourceTree = "<group>"; };
+		AC97395E778FF01710F21B57 /* GlanceWidgets.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlanceWidgets.swift; sourceTree = "<group>"; };
+		B7997B8A7BB274CAD0D78AD3 /* GlanceFamily.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlanceFamily.swift; sourceTree = "<group>"; };
+		C0CDFF641B8C517A46BA3CA7 /* ImageWidgetFitTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ImageWidgetFitTests.swift; sourceTree = "<group>"; };
 		C3F3C0948F72B4306929864D /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
+		D16FACB8A66C653D0D50C6A4 /* SharedModels.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SharedModels.swift; sourceTree = "<group>"; };
 		D3A3F8901A4BA97497F17114 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
+		E3BBF8CA3D8D4A530192392E /* ChartWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChartWidget.swift; sourceTree = "<group>"; };
+		EB7936A4DF3C790FBBF79612 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		F4923F213A38009DC49159D8 /* ProgressWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProgressWidget.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,6 +160,16 @@
 			files = (
 				78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */,
 				78A02C44F04FD9ABC403F2F7 /* Pods_Runner.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C01AC3752599088A9FC5AF80 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B1E7FC3A483B8A4BCEF53BD /* Foundation.framework in Frameworks */,
+				670264F547DB50E3FE1E8E4D /* WidgetKit.framework in Frameworks */,
+				537AAD732BD32EC5BB21EAD9 /* SwiftUI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -114,6 +184,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		18C3A15BC2D6886042AB9972 /* GlanceWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				1AD3D4179AF41DD016B01BD0 /* AccessoryViews.swift */,
+				924F4E88395D2D90563A1B5C /* CalendarWidget.swift */,
+				E3BBF8CA3D8D4A530192392E /* ChartWidget.swift */,
+				8B9408B4FB8244E35D6776FE /* GaugeWidget.swift */,
+				B7997B8A7BB274CAD0D78AD3 /* GlanceFamily.swift */,
+				35E57BF49D7D837AEA7A8AB5 /* GlanceInteractive.swift */,
+				AC97395E778FF01710F21B57 /* GlanceWidgets.swift */,
+				9363794AF692A7D6B3D1A139 /* ImageWidget.swift */,
+				2017EF9345E0E7A98044E82A /* ListWidget.swift */,
+				F4923F213A38009DC49159D8 /* ProgressWidget.swift */,
+				D16FACB8A66C653D0D50C6A4 /* SharedModels.swift */,
+				169E791C1A90F1C74EE3B381 /* SimpleWidget.swift */,
+			);
+			name = GlanceWidgets;
+			path = ../../../glance_widget_ios/example/ios/GlanceWidgets;
+			sourceTree = "<group>";
+		};
 		331C8082294A63A400263BE5 /* RunnerTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -129,8 +219,17 @@
 				A11CE0AA2F0000000000E010 /* GlanceInteractiveTests.swift */,
 				A11CE0AA2F0000000000E012 /* SharedModels.swift */,
 				A11CE0AA2F0000000000E014 /* GlanceInteractive.swift */,
+				C0CDFF641B8C517A46BA3CA7 /* ImageWidgetFitTests.swift */,
 			);
 			path = RunnerTests;
+			sourceTree = "<group>";
+		};
+		474A04D143529BC20DB4E6A6 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				EB7936A4DF3C790FBBF79612 /* Foundation.framework */,
+			);
+			name = iOS;
 			sourceTree = "<group>";
 		};
 		951FD6A16F05F107DE1DCD91 /* Frameworks */ = {
@@ -138,6 +237,9 @@
 			children = (
 				9764F4D510B1941E2C977806 /* Pods_Runner.framework */,
 				216D850EF4DA3E7E0076CD5B /* Pods_RunnerTests.framework */,
+				474A04D143529BC20DB4E6A6 /* iOS */,
+				8DCF156AB02955F11C1624E9 /* WidgetKit.framework */,
+				594939FF96D034239C67062C /* SwiftUI.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -163,6 +265,7 @@
 				331C8082294A63A400263BE5 /* RunnerTests */,
 				DDCCC2395EBDF0755B41BBD9 /* Pods */,
 				951FD6A16F05F107DE1DCD91 /* Frameworks */,
+				18C3A15BC2D6886042AB9972 /* GlanceWidgets */,
 			);
 			sourceTree = "<group>";
 		};
@@ -171,6 +274,7 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
+				29C5AFAD5B5D64676D8E8418 /* GlanceWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -237,11 +341,13 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				6BA70D61706754BC651E19D3 /* Embed App Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				79FD9F96F4D865ADB2DE166F /* PBXTargetDependency */,
 			);
 			name = Runner;
 			packageProductDependencies = (
@@ -250,6 +356,23 @@
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
 			productType = "com.apple.product-type.application";
+		};
+		EA65B0DDC314CF3327D6AB4B /* GlanceWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B8A681EC790E3FBF0DA3450A /* Build configuration list for PBXNativeTarget "GlanceWidgets" */;
+			buildPhases = (
+				05E6B240B079BB53791FCFE8 /* Sources */,
+				C01AC3752599088A9FC5AF80 /* Frameworks */,
+				97D9D64CA3763184D4BDE46C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GlanceWidgets;
+			productName = GlanceWidgets;
+			productReference = 29C5AFAD5B5D64676D8E8418 /* GlanceWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -289,6 +412,7 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
+				EA65B0DDC314CF3327D6AB4B /* GlanceWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -309,6 +433,13 @@
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		97D9D64CA3763184D4BDE46C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,6 +524,25 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		05E6B240B079BB53791FCFE8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BBF1AA7DF41D3856547377CF /* AccessoryViews.swift in Sources */,
+				3E0164E9EC6AA5600684477F /* CalendarWidget.swift in Sources */,
+				0E36DBD8DA5C6EE5FEE828FC /* ChartWidget.swift in Sources */,
+				6BA83BF83F7D76594E7A0560 /* GaugeWidget.swift in Sources */,
+				F0C6CCCBA9D08265083AF578 /* GlanceFamily.swift in Sources */,
+				095FCB8D8E3718213F1F7BC3 /* GlanceInteractive.swift in Sources */,
+				7919A17D265D02FF7158B106 /* GlanceWidgets.swift in Sources */,
+				647E6F6707245CD3CC0A0415 /* ImageWidget.swift in Sources */,
+				3A7CB501A9640BC32EF8F087 /* ListWidget.swift in Sources */,
+				C049516F88F92FFCB45DE89C /* ProgressWidget.swift in Sources */,
+				1070CDC9F2018EAD34C2FBC8 /* SharedModels.swift in Sources */,
+				36F823EE8E181CBF782F8920 /* SimpleWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		331C807D294A63A400263BE5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -409,6 +559,15 @@
 				A11CE0AA2F0000000000E00F /* GlanceInteractiveTests.swift in Sources */,
 				A11CE0AA2F0000000000E011 /* SharedModels.swift in Sources */,
 				A11CE0AA2F0000000000E013 /* GlanceInteractive.swift in Sources */,
+				53CB764FFB54B08F0E87EDAC /* CalendarWidget.swift in Sources */,
+				A4B533C1AF25E372A3A36F3E /* ChartWidget.swift in Sources */,
+				70D573FBB1712A20CA42C68D /* GaugeWidget.swift in Sources */,
+				E4FD2B329F15F15DF2150C9F /* GlanceWidgets.swift in Sources */,
+				06486A12AB01400BC19ADA0B /* ImageWidget.swift in Sources */,
+				D71F56A5127A83DBB1D25073 /* ListWidget.swift in Sources */,
+				830303B11F198EDF8650676D /* ProgressWidget.swift in Sources */,
+				44768CEE39B3287F4FDEEC70 /* SimpleWidget.swift in Sources */,
+				F3D4A0130095ED57FBC5DD61 /* ImageWidgetFitTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -429,6 +588,12 @@
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
 			targetProxy = 331C8085294A63A400263BE5 /* PBXContainerItemProxy */;
+		};
+		79FD9F96F4D865ADB2DE166F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GlanceWidgets;
+			target = EA65B0DDC314CF3327D6AB4B /* GlanceWidgets */;
+			targetProxy = 1365EF81F582D46B9FC4B64E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -511,6 +676,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ../../../glance_widget_ios/example/ios/Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = F4XM395H4B;
 				ENABLE_BITCODE = NO;
@@ -524,6 +690,33 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Profile;
+		};
+		2C231A2C94BAA40DF4A32B5C /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB31CF90195004384FC /* Generated.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = ../../../glance_widget_ios/example/ios/GlanceWidgets/GlanceWidgets.entitlements;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ../../../glance_widget_ios/example/ios/GlanceWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.glanceWidgetExample.GlanceWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Profile;
 		};
@@ -696,6 +889,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ../../../glance_widget_ios/example/ios/Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = F4XM395H4B;
 				ENABLE_BITCODE = NO;
@@ -719,6 +913,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = ../../../glance_widget_ios/example/ios/Runner/Runner.entitlements;
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = F4XM395H4B;
 				ENABLE_BITCODE = NO;
@@ -732,6 +927,65 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		9AA099B96044EB2B820473F1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB31CF90195004384FC /* Generated.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = ../../../glance_widget_ios/example/ios/GlanceWidgets/GlanceWidgets.entitlements;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ../../../glance_widget_ios/example/ios/GlanceWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.glanceWidgetExample.GlanceWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		9CA8189398E7EE8E19D45A26 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB31CF90195004384FC /* Generated.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = ../../../glance_widget_ios/example/ios/GlanceWidgets/GlanceWidgets.entitlements;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ../../../glance_widget_ios/example/ios/GlanceWidgets/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.glanceWidgetExample.GlanceWidgets;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -764,6 +1018,16 @@
 				97C147061CF9000F007C117D /* Debug */,
 				97C147071CF9000F007C117D /* Release */,
 				249021D4217E4FDB00AE95B9 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B8A681EC790E3FBF0DA3450A /* Build configuration list for PBXNativeTarget "GlanceWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9CA8189398E7EE8E19D45A26 /* Release */,
+				9AA099B96044EB2B820473F1 /* Debug */,
+				2C231A2C94BAA40DF4A32B5C /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

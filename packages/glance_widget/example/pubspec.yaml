@@ -1,5 +1,11 @@
 name: glance_widget_example
 description: "Demonstrates how to use the glance_widget plugin."
+# Not decoration. The widget extension's Info.plist takes
+# CFBundleVersion from FLUTTER_BUILD_NUMBER, which comes from here, and
+# an app extension with an empty bundleVersion cannot be installed at
+# all: "bundleVersion must be set in placeholder attributes for an app
+# extension placeholder". The app alone only warns.
+version: 1.0.0+1
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
