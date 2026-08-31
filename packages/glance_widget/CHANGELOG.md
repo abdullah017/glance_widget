@@ -17,9 +17,13 @@ happened to be the example's. Both targets now read the group from the
 step in the README, which previously told you to configure entitlements and
 stopped there.
 
-**Fixed:** on Android, `SimpleWidget` clipped its own value when resized to the
-smallest slot the launcher allows. It now adapts what it shows to the room it
-has, as the iOS templates already did.
+**Fixed:** on Android, all seven templates painted one layout at every slot
+size, so a widget dragged smaller cut its own content off the bottom -- the
+percentage inside a progress dial, every gauge metric below the first, all but
+1dp of a calendar's events. Each template now measures its slot and drops what
+restates something already on screen before it drops the thing the widget
+exists to show. See "What a small widget shows" in the README for the order.
+The iOS templates already did this.
 
 **Added:** `GlanceTheme.useDynamicColor` opts a widget into Material You on
 Android 12 and above. Off by default; your theme's colours remain the fallback

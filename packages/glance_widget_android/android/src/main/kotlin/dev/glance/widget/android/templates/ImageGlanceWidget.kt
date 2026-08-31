@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
+import androidx.glance.LocalSize
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -27,6 +28,9 @@ import dev.glance.widget.android.GlanceWidgetManager
 import dev.glance.widget.android.widgetColors
 import dev.glance.widget.android.ImageCache
 import dev.glance.widget.android.ReportActionCallback
+import dev.glance.widget.android.WidgetSizeClass
+import dev.glance.widget.android.WidgetSlots
+import dev.glance.widget.android.WidgetTypeScale
 
 /**
  * Image Widget - displays a title, an image (from base64), and optional subtitle.
@@ -35,6 +39,8 @@ import dev.glance.widget.android.ReportActionCallback
 class ImageGlanceWidget : GlanceAppWidget() {
 
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
+
+    override val sizeMode = WidgetSlots.resizable
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
@@ -45,7 +51,7 @@ class ImageGlanceWidget : GlanceAppWidget() {
 }
 
 @Composable
-private fun ImageWidgetContent(prefs: Preferences) {
+internal fun ImageWidgetContent(prefs: Preferences) {
     val widgetId = prefs[GlanceWidgetManager.widgetIdKey] ?: "image"
     val title = prefs[GlanceWidgetManager.titleKey] ?: ""
     val subtitle = prefs[GlanceWidgetManager.subtitleKey]
@@ -56,6 +62,8 @@ private fun ImageWidgetContent(prefs: Preferences) {
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
 
     val colors = widgetColors(prefs)
+
+    val sizeClass = WidgetSizeClass.of(LocalSize.current)
 
     // Determine content scale from imageFit
     val contentScale = when (imageFit) {
@@ -81,19 +89,23 @@ private fun ImageWidgetContent(prefs: Preferences) {
                     ReportActionCallback.tap(widgetId, "tap")
                 }
             )
-            .padding(16.dp)
+            .padding(WidgetTypeScale.padding(sizeClass))
     ) {
-        // Title (if not empty)
-        if (title.isNotEmpty()) {
+        // The picture is the widget. It takes what is left after the text, so
+        // every line of text here is subtracted from it -- at the 110dp slot
+        // image_widget_info.xml allows, a title, a two-line caption and 32dp of
+        // padding left the picture 5dp. The text gives way instead.
+        if (title.isNotEmpty() && sizeClass != WidgetSizeClass.COMPACT) {
             Text(
                 text = title,
                 style = TextStyle(
                     color = colors.text,
-                    fontSize = 16.sp,
+                    fontSize = WidgetTypeScale.title(sizeClass),
                     fontWeight = FontWeight.Bold
-                )
+                ),
+                maxLines = 1
             )
-            Spacer(modifier = GlanceModifier.height(8.dp))
+            Spacer(modifier = GlanceModifier.height(WidgetTypeScale.gap(sizeClass)))
         }
 
         // Image
@@ -151,19 +163,22 @@ private fun ImageWidgetContent(prefs: Preferences) {
             }
         }
 
-        // Subtitle (optional)
-        subtitle?.let {
-            if (it.isNotEmpty()) {
-                Spacer(modifier = GlanceModifier.height(8.dp))
-                Text(
-                    text = it,
-                    style = TextStyle(
-                        color = colors.secondaryText,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal
-                    ),
-                    maxLines = 2
-                )
+        // Subtitle (optional). Two lines is most of a short slot, so it is one
+        // line until there is room for the second.
+        if (sizeClass != WidgetSizeClass.COMPACT) {
+            subtitle?.let {
+                if (it.isNotEmpty()) {
+                    Spacer(modifier = GlanceModifier.height(WidgetTypeScale.gap(sizeClass)))
+                    Text(
+                        text = it,
+                        style = TextStyle(
+                            color = colors.secondaryText,
+                            fontSize = WidgetTypeScale.caption(sizeClass),
+                            fontWeight = FontWeight.Normal
+                        ),
+                        maxLines = if (sizeClass == WidgetSizeClass.EXPANDED) 2 else 1
+                    )
+                }
             }
         }
     }

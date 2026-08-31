@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
+import androidx.glance.LocalSize
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -31,6 +32,9 @@ import dev.glance.widget.android.CornerRadius
 import dev.glance.widget.android.GlanceWidgetManager
 import dev.glance.widget.android.widgetColors
 import dev.glance.widget.android.ReportActionCallback
+import dev.glance.widget.android.WidgetSizeClass
+import dev.glance.widget.android.WidgetSlots
+import dev.glance.widget.android.WidgetTypeScale
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -42,6 +46,12 @@ import java.util.Locale
 class CalendarGlanceWidget : GlanceAppWidget() {
 
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
+
+    // Tall rather than fully resizable: calendar_widget_info.xml declares a
+    // 180dp minResizeWidth, so this template is never handed a compact slot
+    // through its own manifest. Declaring a layout for a slot it cannot be
+    // given would be a layout nothing ever renders.
+    override val sizeMode = WidgetSlots.tall
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
@@ -61,7 +71,7 @@ data class CalendarEvent(
 )
 
 @Composable
-private fun CalendarWidgetContent(prefs: Preferences) {
+internal fun CalendarWidgetContent(prefs: Preferences) {
     val widgetId = prefs[GlanceWidgetManager.widgetIdKey] ?: "calendar"
     val title = prefs[GlanceWidgetManager.titleKey] ?: "Calendar"
     val dateString = prefs[GlanceWidgetManager.dateKey] ?: ""
@@ -82,6 +92,8 @@ private fun CalendarWidgetContent(prefs: Preferences) {
 
     val colors = widgetColors(prefs)
 
+    val sizeClass = WidgetSizeClass.of(LocalSize.current)
+
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
@@ -98,77 +110,92 @@ private fun CalendarWidgetContent(prefs: Preferences) {
                     ReportActionCallback.tap(widgetId, "tap")
                 }
             )
-            .padding(16.dp)
+            .padding(WidgetTypeScale.padding(sizeClass))
     ) {
-        // Date header section
-        Row(
-            modifier = GlanceModifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Date number block
-            Box(
+        // The events are the widget. The header is 56dp of date block plus
+        // 12dp of padding, and with the divider and its spacer that is 109dp
+        // of a 110dp slot -- one device pixel left for the list underneath.
+        //
+        // So the header shrinks first and goes last: a calendar showing no
+        // events is not a calendar, while one showing events without today's
+        // date is still useful.
+        if (sizeClass != WidgetSizeClass.COMPACT) {
+            // Date header section
+            Row(
                 modifier = GlanceModifier
-                    .size(56.dp)
-                    .background(colors.accent),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
+                // Date number block
+                Box(
+                    modifier = GlanceModifier
+                        .size(if (sizeClass == WidgetSizeClass.EXPANDED) 56.dp else 44.dp)
+                        .background(colors.accent),
+                    contentAlignment = Alignment.Center
                 ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = dateNumber,
+                            style = TextStyle(
+                                color = ColorProvider(Color(0xFFFFFFFF.toInt())),
+                                fontSize = if (sizeClass == WidgetSizeClass.EXPANDED) 24.sp else 18.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            maxLines = 1
+                        )
+                        Text(
+                            text = dayName.uppercase(),
+                            style = TextStyle(
+                                color = ColorProvider(Color(0xFFFFFFFF.toInt())),
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier = GlanceModifier.width(12.dp))
+
+                // Title and month
+                Column {
                     Text(
-                        text = dateNumber,
+                        text = title,
                         style = TextStyle(
-                            color = ColorProvider(Color(0xFFFFFFFF.toInt())),
-                            fontSize = 24.sp,
+                            color = colors.text,
+                            fontSize = if (sizeClass == WidgetSizeClass.EXPANDED) 18.sp else 16.sp,
                             fontWeight = FontWeight.Bold
-                        )
+                        ),
+                        maxLines = 1
                     )
-                    Text(
-                        text = dayName.uppercase(),
-                        style = TextStyle(
-                            color = ColorProvider(Color(0xFFFFFFFF.toInt())),
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium
+                    // The month is already implied by the date block beside it.
+                    if (sizeClass == WidgetSizeClass.EXPANDED) {
+                        Text(
+                            text = monthName,
+                            style = TextStyle(
+                                color = colors.secondaryText,
+                                fontSize = WidgetTypeScale.caption(sizeClass)
+                            ),
+                            maxLines = 1
                         )
-                    )
+                    }
                 }
             }
 
-            Spacer(modifier = GlanceModifier.width(12.dp))
+            // Divider
+            Box(
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(ColorProvider(
+                        Color(if (isDark) 0xFF3A3A4E.toInt() else 0xFFE0E0E0.toInt())
+                    ))
+            ) {}
 
-            // Title and month
-            Column {
-                Text(
-                    text = title,
-                    style = TextStyle(
-                        color = colors.text,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-                Text(
-                    text = monthName,
-                    style = TextStyle(
-                        color = colors.secondaryText,
-                        fontSize = 14.sp
-                    )
-                )
-            }
+            Spacer(modifier = GlanceModifier.height(WidgetTypeScale.gap(sizeClass)))
         }
-
-        // Divider
-        Box(
-            modifier = GlanceModifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(ColorProvider(
-                    Color(if (isDark) 0xFF3A3A4E.toInt() else 0xFFE0E0E0.toInt())
-                ))
-        ) {}
-
-        Spacer(modifier = GlanceModifier.height(8.dp))
 
         // Events list
         if (events.isEmpty()) {

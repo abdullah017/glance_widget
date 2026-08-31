@@ -6,9 +6,9 @@ import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
+import androidx.glance.LocalSize
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -27,6 +27,9 @@ import dev.glance.widget.android.CornerRadius
 import dev.glance.widget.android.GlanceWidgetManager
 import dev.glance.widget.android.widgetColors
 import dev.glance.widget.android.ReportActionCallback
+import dev.glance.widget.android.WidgetSizeClass
+import dev.glance.widget.android.WidgetSlots
+import dev.glance.widget.android.WidgetTypeScale
 
 /**
  * Progress Widget - displays a progress indicator with title and subtitle.
@@ -35,6 +38,8 @@ import dev.glance.widget.android.ReportActionCallback
 class ProgressGlanceWidget : GlanceAppWidget() {
 
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
+
+    override val sizeMode = WidgetSlots.resizable
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
@@ -45,7 +50,7 @@ class ProgressGlanceWidget : GlanceAppWidget() {
 }
 
 @Composable
-private fun ProgressWidgetContent(prefs: Preferences) {
+internal fun ProgressWidgetContent(prefs: Preferences) {
     val widgetId = prefs[GlanceWidgetManager.widgetIdKey] ?: "progress"
     val title = prefs[GlanceWidgetManager.titleKey] ?: "Progress"
     val progress = prefs[GlanceWidgetManager.progressKey] ?: 0f
@@ -57,6 +62,8 @@ private fun ProgressWidgetContent(prefs: Preferences) {
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
 
     val colors = widgetColors(prefs)
+
+    val sizeClass = WidgetSizeClass.of(LocalSize.current)
 
     val progressColor = progressColorInt?.let { ColorProvider(Color(it.toInt())) } ?: colors.accent
     val trackColor = trackColorInt?.let { ColorProvider(Color(it.toInt())) }
@@ -78,7 +85,7 @@ private fun ProgressWidgetContent(prefs: Preferences) {
                     ReportActionCallback.tap(widgetId, "tap")
                 }
             )
-            .padding(16.dp),
+            .padding(WidgetTypeScale.padding(sizeClass)),
         contentAlignment = Alignment.Center
     ) {
         if (progressType == "linear") {
@@ -88,17 +95,22 @@ private fun ProgressWidgetContent(prefs: Preferences) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Title
-                Text(
-                    text = title,
-                    style = TextStyle(
-                        color = colors.text,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
+                // The bar is the widget. At the compact end the title is the
+                // first thing to go, because a title with no bar under it
+                // reports nothing at all.
+                if (sizeClass != WidgetSizeClass.COMPACT) {
+                    Text(
+                        text = title,
+                        style = TextStyle(
+                            color = colors.text,
+                            fontSize = WidgetTypeScale.title(sizeClass),
+                            fontWeight = FontWeight.Medium
+                        ),
+                        maxLines = 1
                     )
-                )
 
-                Spacer(modifier = GlanceModifier.height(12.dp))
+                    Spacer(modifier = GlanceModifier.height(WidgetTypeScale.gap(sizeClass)))
+                }
 
                 // Linear Progress
                 LinearProgressIndicator(
@@ -111,15 +123,18 @@ private fun ProgressWidgetContent(prefs: Preferences) {
                 )
 
                 // Subtitle
-                subtitle?.let {
-                    Spacer(modifier = GlanceModifier.height(8.dp))
-                    Text(
-                        text = it,
-                        style = TextStyle(
-                            color = colors.secondaryText,
-                            fontSize = 14.sp
+                if (sizeClass != WidgetSizeClass.COMPACT) {
+                    subtitle?.let {
+                        Spacer(modifier = GlanceModifier.height(WidgetTypeScale.gap(sizeClass)))
+                        Text(
+                            text = it,
+                            style = TextStyle(
+                                color = colors.secondaryText,
+                                fontSize = WidgetTypeScale.caption(sizeClass)
+                            ),
+                            maxLines = 1
                         )
-                    )
+                    }
                 }
             }
         } else {
@@ -129,49 +144,68 @@ private fun ProgressWidgetContent(prefs: Preferences) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Title
-                Text(
-                    text = title,
-                    style = TextStyle(
-                        color = colors.secondaryText,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
+                if (sizeClass != WidgetSizeClass.COMPACT) {
+                    Text(
+                        text = title,
+                        style = TextStyle(
+                            color = colors.secondaryText,
+                            fontSize = WidgetTypeScale.title(sizeClass),
+                            fontWeight = FontWeight.Medium
+                        ),
+                        maxLines = 1
                     )
-                )
 
-                Spacer(modifier = GlanceModifier.height(12.dp))
+                    Spacer(modifier = GlanceModifier.height(WidgetTypeScale.gap(sizeClass)))
+                }
 
-                // Circular Progress with percentage in center
-                // Note: Glance CircularProgressIndicator only supports indeterminate mode
-                // So we show a styled percentage display instead
-                Box(
-                    modifier = GlanceModifier
-                        .size(80.dp)
-                        .background(trackColor),
-                    contentAlignment = Alignment.Center
-                ) {
-                    // Percentage text
-                    val percentage = (progress * 100).toInt()
+                // Glance's CircularProgressIndicator is indeterminate only, so
+                // the reading is the number and this box is the dial around it.
+                //
+                // The box is what used to make this template the worst of the
+                // seven: 80dp of it plus 32dp of padding is 112dp before a
+                // single character, against a declared minResizeHeight of
+                // 110dp. It now gives way with the slot, and at the compact end
+                // it goes entirely -- a dial with no room for its own number
+                // reports nothing.
+                val percentage = (progress * 100).toInt()
+                val percentageText = @Composable {
                     Text(
                         text = "$percentage%",
                         style = TextStyle(
                             color = colors.text,
-                            fontSize = 24.sp,
+                            fontSize = WidgetTypeScale.value(sizeClass),
                             fontWeight = FontWeight.Bold
-                        )
+                        ),
+                        maxLines = 1
                     )
                 }
 
+                if (sizeClass == WidgetSizeClass.COMPACT) {
+                    percentageText()
+                } else {
+                    Box(
+                        modifier = GlanceModifier
+                            .size(if (sizeClass == WidgetSizeClass.EXPANDED) 80.dp else 56.dp)
+                            .background(trackColor),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        percentageText()
+                    }
+                }
+
                 // Subtitle
-                subtitle?.let {
-                    Spacer(modifier = GlanceModifier.height(8.dp))
-                    Text(
-                        text = it,
-                        style = TextStyle(
-                            color = colors.secondaryText,
-                            fontSize = 12.sp
+                if (sizeClass == WidgetSizeClass.EXPANDED) {
+                    subtitle?.let {
+                        Spacer(modifier = GlanceModifier.height(WidgetTypeScale.gap(sizeClass)))
+                        Text(
+                            text = it,
+                            style = TextStyle(
+                                color = colors.secondaryText,
+                                fontSize = WidgetTypeScale.caption(sizeClass)
+                            ),
+                            maxLines = 1
                         )
-                    )
+                    }
                 }
             }
         }

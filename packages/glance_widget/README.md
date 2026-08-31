@@ -65,7 +65,7 @@ widgets.
 | Min Version | Android 8.0 (API 26) | iOS 17.0 |
 | Rounded corners | `GlanceTheme.borderRadius`, Android 12+ only | `GlanceTheme.borderRadius` |
 | Wallpaper colours | `useDynamicColor`, Android 12+ only | Not available |
-| Adapts to slot size | `SimpleWidget` (see #28 for the rest) | All templates |
+| Adapts to slot size | All templates | All templates |
 
 ## Material You (Android 12+)
 
@@ -188,6 +188,39 @@ compositor, so a faithful in-app copy is not currently possible.
 | **ChartWidget** | Line, bar, or sparkline chart | Revenue trends, analytics |
 | **CalendarWidget** | Date header with event list | Daily schedule, meetings |
 | **GaugeWidget** | Radial or dashboard metrics | CPU usage, performance scores |
+
+### What a small widget shows
+
+A launcher can make a widget as small as the `minResizeWidth`/`minResizeHeight`
+in your widget info XML, and it does not scroll: whatever does not fit is cut
+off the bottom, with nothing on screen to say it was there. Every template
+measures its own slot and picks one of three layouts.
+
+| Band | Slot height | Idea |
+|------|-------------|------|
+| Compact | under 80dp | Only the thing the widget exists to show |
+| Medium | 80-180dp | Adds the title, and detail that earns its line |
+| Expanded | 180dp and up | Everything |
+
+What each template gives up first, in order:
+
+| Template | Compact | Medium |
+|----------|---------|--------|
+| Simple | value only | + title |
+| Progress | percentage only, no dial | + title, small dial |
+| Gauge | one metric row | two rows, no title |
+| Chart | the plot | + title |
+| Image | the picture | + title and caption |
+| Calendar | the events | + date block |
+| List | the items | + a second line per item |
+
+Labels beside a number are never what gets dropped -- an unlabelled reading
+does not say which reading it is. Titles are, because they restate what is
+already under them.
+
+Nothing here needs configuring. If you would rather a template kept its full
+layout at every size, give it a `minResizeHeight` of `180dp` in its widget info
+XML and the compact and medium branches become unreachable.
 
 ## Installation
 

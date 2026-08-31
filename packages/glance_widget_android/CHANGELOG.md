@@ -1,12 +1,34 @@
 ## 2.0.0
 
-**Fixed:** `SimpleWidget` overflowed the smallest slot a user can drag it to.
-`simple_widget_info.xml` declares `minResizeHeight="40dp"` alongside
-`minHeight="110dp"`, and the template painted the same layout into both -- a
-14sp title, an 8dp spacer, a 28sp value and 32dp of padding, roughly 90dp of
-content in a 40dp slot. What got clipped was the bottom, where the value is.
-It now drops the title and subtitle and shrinks the value when the slot is one
-cell tall, and grows the value on a tall one.
+**Fixed:** every template overflowed the smallest slot a user can drag it to.
+Each `*_widget_info.xml` declares a `minResizeHeight` well under its
+`minHeight`, and the templates painted the same layout into both. At each
+one's own declared floor:
+
+| Template | Fixed vertical cost | Slot | Left for content |
+|----------|--------------------|------|------------------|
+| Progress (circular) | 32dp padding + 18 title + 12 + 80dp dial + 8 + 16 = 166dp | 110dp | -56dp |
+| Gauge (dashboard) | 32 + 21 + 8 + one 70dp row = 131dp | 110dp | -21dp, and rows two onward were drawn invisibly |
+| Simple | 32 + 18 title + 8 + 28sp value = ~90dp | 40dp | -50dp |
+| Calendar | 32 + 56dp date block + 12 + divider + 8 = 109dp | 110dp | 1dp for the events |
+| Image | 32 + 29 title + 44 caption = 105dp | 110dp | 5dp for the picture |
+| Chart | 32 + 29 header + 26 subtitle = 87dp | 110dp | 23dp for the plot |
+
+Nothing scrolls, so the overflow was cut off the bottom with nothing on screen
+to say it existed. Each template now reads `LocalSize` and picks one of three
+layouts. `ListWidget` was already safe -- its `LazyColumn` scrolls -- but it
+now spends less of a short slot on a header it can restate.
+
+**Added:** `WidgetTypeScale`, one type and spacing scale for all seven
+templates. They each carried their own literals, which is how widgets on the
+same home screen end up disagreeing about what a title looks like, and it made
+the compact band unfixable one template at a time: the numbers that overflow a
+40dp slot were the same numbers in each of them.
+
+**Note:** `WidgetSlots.tall` is used by `CalendarWidget` and `ListWidget`,
+which declare a 180dp minResize in one axis and so cannot be handed a compact
+slot through this plugin's own widget info XML. Their compact branches are
+written and tested anyway, because a consumer writes their own.
 
 **Added:** JVM layout tests. `glance-appwidget-testing` composes a template at a
 chosen slot size and lets the test assert on the result, so what a widget shows
