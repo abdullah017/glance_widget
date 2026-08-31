@@ -701,23 +701,34 @@ object GlanceWidgetManager {
             val gaugeType = data["gaugeType"] as? String ?: "radial"
             val isDark = theme?.get("isDark") as? Boolean ?: true
 
-            // For radial gauge, render bitmap
+            // For radial gauge, render bitmap. Everything it draws comes out
+            // of the first metric -- see RadialGaugeParams for why it cannot be
+            // read straight off `data`.
+            val accentColor = (theme?.get("accentColor") as? Number)?.toInt()
+                ?: 0xFF2196F3.toInt()
             val gaugeBitmapBase64 = if (gaugeType == "radial") {
-                val progress = (data["progress"] as? Number)?.toFloat()?.coerceIn(0f, 1f) ?: 0f
-                val gaugeColor = (data["gaugeColor"] as? Number)?.toInt() ?: 0xFF2196F3.toInt()
-                val trackColor = (data["trackColor"] as? Number)?.toInt()
-                    ?: if (isDark) 0xFF3A3A4E.toInt() else 0xFFE0E0E0.toInt()
-                val valueText = data["value"] as? String ?: "${(progress * 100).toInt()}%"
-                val minLabel = data["minLabel"] as? String ?: "0"
-                val maxLabel = data["maxLabel"] as? String ?: "100"
-                renderGaugeBitmap(progress, gaugeColor, trackColor, valueText, minLabel, maxLabel, isDark)
+                val params = GaugeMetrics.forRadial(data, accentColor, isDark)
+                if (params == null) {
+                    ""
+                } else {
+                    renderGaugeBitmap(
+                        params.progress,
+                        params.gaugeColor,
+                        params.trackColor,
+                        params.valueText,
+                        params.minLabel,
+                        params.maxLabel,
+                        isDark
+                    )
+                }
             } else {
                 ""
             }
 
-            // Serialize metrics for dashboard type
-            @Suppress("UNCHECKED_CAST")
-            val metrics = data["metrics"] as? List<Map<String, Any?>> ?: emptyList()
+            // Serialize metrics for dashboard type. The template reads a
+            // formatted `value` string and a ready `progress` fraction, which
+            // is not the shape Dart sends -- GaugeMetrics does the translation.
+            val metrics = GaugeMetrics.forDashboard(data)
             val metricsJson = if (metrics.isNotEmpty()) serializeItems(metrics) else "[]"
 
             glanceIds.forEach { glanceId ->
