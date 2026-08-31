@@ -38,9 +38,7 @@ void main() {
       ).thenAnswer((_) async {});
 
       final ctrl = SimpleWidgetController(widgetId: 'test');
-      await ctrl.update(
-        const SimpleWidgetData(title: 'Test', value: '100'),
-      );
+      await ctrl.update(const SimpleWidgetData(title: 'Test', value: '100'));
 
       ctrl.dispose();
       expect(
@@ -115,9 +113,7 @@ void main() {
         ).thenAnswer((_) async {});
 
         final ctrl = SimpleWidgetController(widgetId: 'test');
-        await ctrl.update(
-          const SimpleWidgetData(title: 'T', value: 'V'),
-        );
+        await ctrl.update(const SimpleWidgetData(title: 'T', value: 'V'));
         ctrl.dispose();
       },
     );

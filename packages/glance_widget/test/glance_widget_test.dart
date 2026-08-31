@@ -971,9 +971,7 @@ void main() {
     test('creates data with required fields', () {
       const data = GaugeWidgetData(
         title: 'Performance',
-        metrics: [
-          GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
-        ],
+        metrics: [GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0)],
       );
       expect(data.title, 'Performance');
       expect(data.metrics.length, 1);
@@ -1012,9 +1010,7 @@ void main() {
     test('toMap includes all fields', () {
       const data = GaugeWidgetData(
         title: 'Performance',
-        metrics: [
-          GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
-        ],
+        metrics: [GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0)],
         gaugeType: GaugeType.dashboard,
       );
       final map = data.toMap();

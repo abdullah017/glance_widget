@@ -58,11 +58,12 @@ class GlanceWidgetController<T extends WidgetData> {
   /// Multiple controllers share a single native EventChannel subscription.
   Stream<GlanceWidgetAction> get onAction {
     _assertNotDisposed();
-    _subscription ??= PlatformGuard.guardStream(
-      () => GlanceWidgetPlatform.instance.onWidgetAction,
-    )
-        .where((action) => action.widgetId == widgetId)
-        .listen(_actionController.add, onError: _actionController.addError);
+    _subscription ??=
+        PlatformGuard.guardStream(
+              () => GlanceWidgetPlatform.instance.onWidgetAction,
+            )
+            .where((action) => action.widgetId == widgetId)
+            .listen(_actionController.add, onError: _actionController.addError);
     return _actionController.stream;
   }
 

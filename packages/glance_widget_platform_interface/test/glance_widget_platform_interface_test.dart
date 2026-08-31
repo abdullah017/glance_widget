@@ -355,9 +355,7 @@ void main() {
     test('toMap includes required fields', () {
       const data = GaugeWidgetData(
         title: 'Performance',
-        metrics: [
-          GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
-        ],
+        metrics: [GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0)],
       );
       final map = data.toMap();
 
@@ -394,12 +392,7 @@ void main() {
             color: Color(0xFFFF0000),
             unit: '%',
           ),
-          GaugeMetric(
-            label: 'RAM',
-            value: 8.0,
-            maxValue: 16.0,
-            unit: 'GB',
-          ),
+          GaugeMetric(label: 'RAM', value: 8.0, maxValue: 16.0, unit: 'GB'),
         ],
       );
       final map = data.toMap();

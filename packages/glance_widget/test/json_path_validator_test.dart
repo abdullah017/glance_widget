@@ -37,10 +37,7 @@ void main() {
         () => JsonPathValidator.validate(r'$.store.book[?(@.price < 10)]'),
         returnsNormally,
       );
-      expect(
-        () => JsonPathValidator.validate(r'$..author'),
-        returnsNormally,
-      );
+      expect(() => JsonPathValidator.validate(r'$..author'), returnsNormally);
     });
   });
 }

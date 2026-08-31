@@ -236,7 +236,10 @@ void main() {
       test('sends correct method call', () async {
         await platform.updateChartWidget(
           widgetId: 'chart_widget',
-          data: const ChartWidgetData(title: 'Sales', dataPoints: [10.0, 20.0, 30.0]),
+          data: const ChartWidgetData(
+            title: 'Sales',
+            dataPoints: [10.0, 20.0, 30.0],
+          ),
         );
 
         expect(log.length, 1);
@@ -377,9 +380,7 @@ void main() {
           widgetId: 'gauge_widget',
           data: const GaugeWidgetData(
             title: 'Performance',
-            metrics: [
-              GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
-            ],
+            metrics: [GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0)],
           ),
         );
 
@@ -403,12 +404,7 @@ void main() {
                 maxValue: 100.0,
                 unit: '%',
               ),
-              GaugeMetric(
-                label: 'RAM',
-                value: 8.0,
-                maxValue: 16.0,
-                unit: 'GB',
-              ),
+              GaugeMetric(label: 'RAM', value: 8.0, maxValue: 16.0, unit: 'GB'),
             ],
           ),
         );
@@ -429,9 +425,7 @@ void main() {
           widgetId: 'gauge_widget',
           data: const GaugeWidgetData(
             title: 'Test',
-            metrics: [
-              GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0),
-            ],
+            metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
           ),
           theme: GlanceTheme.light(),
         );
@@ -447,9 +441,7 @@ void main() {
           widgetId: 'gauge_widget',
           data: const GaugeWidgetData(
             title: 'Dashboard',
-            metrics: [
-              GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0),
-            ],
+            metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
             gaugeType: GaugeType.dashboard,
           ),
         );
@@ -552,9 +544,10 @@ void main() {
 
       test('answers false when the platform returns null', () async {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(methodChannel, (
-              MethodCall methodCall,
-            ) async => null);
+            .setMockMethodCallHandler(
+              methodChannel,
+              (MethodCall methodCall) async => null,
+            );
 
         expect(await platform.isWidgetPushSupported(), isFalse);
       });
@@ -562,9 +555,7 @@ void main() {
 
     group('completeWidgetConfiguration', () {
       test('sends correct method call', () async {
-        await platform.completeWidgetConfiguration(
-          'test_widget',
-        );
+        await platform.completeWidgetConfiguration('test_widget');
 
         expect(log.length, 1);
         expect(log[0].method, 'completeWidgetConfiguration');

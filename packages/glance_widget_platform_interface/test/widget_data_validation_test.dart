@@ -64,8 +64,11 @@ void main() {
           data: ChartWidgetData(title: 'T', dataPoints: emptyFromRuntime()),
         ),
         throwsA(
-          isA<GlanceWidgetValidationException>()
-              .having((e) => e.field, 'field', 'dataPoints'),
+          isA<GlanceWidgetValidationException>().having(
+            (e) => e.field,
+            'field',
+            'dataPoints',
+          ),
         ),
       );
       expect(log, isEmpty);
@@ -78,8 +81,11 @@ void main() {
           data: GaugeWidgetData(title: 'T', metrics: noMetrics()),
         ),
         throwsA(
-          isA<GlanceWidgetValidationException>()
-              .having((e) => e.field, 'field', 'metrics'),
+          isA<GlanceWidgetValidationException>().having(
+            (e) => e.field,
+            'field',
+            'metrics',
+          ),
         ),
       );
       expect(log, isEmpty);
@@ -92,8 +98,11 @@ void main() {
           data: const SimpleWidgetData(title: 'T', value: 'V'),
         ),
         throwsA(
-          isA<GlanceWidgetValidationException>()
-              .having((e) => e.field, 'field', 'widgetId'),
+          isA<GlanceWidgetValidationException>().having(
+            (e) => e.field,
+            'field',
+            'widgetId',
+          ),
         ),
       );
       expect(log, isEmpty);

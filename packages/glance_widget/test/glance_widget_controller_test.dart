@@ -114,9 +114,7 @@ void main() {
     test('setTheme delegates to setGlobalTheme', () async {
       final ctrl = SimpleWidgetController(widgetId: 'test');
       final theme = GlanceTheme.dark();
-      when(
-        () => mockPlatform.setGlobalTheme(any()),
-      ).thenAnswer((_) async {});
+      when(() => mockPlatform.setGlobalTheme(any())).thenAnswer((_) async {});
 
       await ctrl.setTheme(theme);
       verify(() => mockPlatform.setGlobalTheme(theme)).called(1);

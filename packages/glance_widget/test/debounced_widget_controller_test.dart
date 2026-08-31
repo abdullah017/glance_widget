@@ -36,9 +36,7 @@ void main() {
     when(
       () => mockPlatform.onWidgetAction,
     ).thenAnswer((_) => const Stream.empty());
-    when(
-      () => mockPlatform.setGlobalTheme(any()),
-    ).thenAnswer((_) async {});
+    when(() => mockPlatform.setGlobalTheme(any())).thenAnswer((_) async {});
   });
 
   group('DebouncedWidgetController', () {

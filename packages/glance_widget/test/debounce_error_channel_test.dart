@@ -90,32 +90,41 @@ void main() {
 
       controller.scheduleUpdate(const SimpleWidgetData(title: 'T', value: 'V'));
 
-      await expectLater(controller.flush(), throwsA(isA<GlanceWidgetException>()));
+      await expectLater(
+        controller.flush(),
+        throwsA(isA<GlanceWidgetException>()),
+      );
       expect(seen, isEmpty, reason: 'the awaiting caller already got it');
       expect(controller.failedCount, 1);
       expect(controller.updateCount, 0);
     });
 
-    testWidgets('a successful dispatch still counts and clears the pending data', (
-      WidgetTester tester,
-    ) async {
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(_channel, (MethodCall call) async => true);
+    testWidgets(
+      'a successful dispatch still counts and clears the pending data',
+      (WidgetTester tester) async {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+              _channel,
+              (MethodCall call) async => true,
+            );
 
-      final controller = DebouncedWidgetController<SimpleWidgetData>(
-        widgetId: 'w1',
-        debounceInterval: const Duration(milliseconds: 10),
-      );
-      addTearDown(controller.dispose);
+        final controller = DebouncedWidgetController<SimpleWidgetData>(
+          widgetId: 'w1',
+          debounceInterval: const Duration(milliseconds: 10),
+        );
+        addTearDown(controller.dispose);
 
-      controller.scheduleUpdate(const SimpleWidgetData(title: 'T', value: 'V'));
-      await tester.pump(const Duration(milliseconds: 50));
+        controller.scheduleUpdate(
+          const SimpleWidgetData(title: 'T', value: 'V'),
+        );
+        await tester.pump(const Duration(milliseconds: 50));
 
-      expect(controller.updateCount, 1);
-      expect(controller.failedCount, 0);
-      expect(controller.hasPendingUpdate, isFalse);
-      expect(controller.timeSinceLastUpdate, isNotNull);
-    });
+        expect(controller.updateCount, 1);
+        expect(controller.failedCount, 0);
+        expect(controller.hasPendingUpdate, isFalse);
+        expect(controller.timeSinceLastUpdate, isNotNull);
+      },
+    );
 
     testWidgets('a failure does not stop the next dispatch from succeeding', (
       WidgetTester tester,
@@ -124,7 +133,10 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(_channel, (MethodCall call) async {
             if (shouldFail) {
-              throw PlatformException(code: 'UNAVAILABLE', message: 'no widget');
+              throw PlatformException(
+                code: 'UNAVAILABLE',
+                message: 'no widget',
+              );
             }
             return true;
           });
