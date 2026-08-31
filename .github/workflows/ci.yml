@@ -243,5 +243,3 @@ jobs:
       # simulator instead of naming one.
       - name: Run the iOS unit tests
         run: ./tool/test_ios.sh
-      - name: Type-check the widget extension templates
-        run: ./tool/typecheck_templates.sh

@@ -26,6 +26,11 @@ configured shows whichever id was updated most recently.
 makes every placed widget show the same payload. If you write your own template,
 keep the intent and pass `configuration.widgetId` into `load...Widget(widgetId:)`.
 
+The plugin's own example app has this extension already wired up. If a step
+below is ambiguous, `packages/glance_widget/example/ios/Runner.xcodeproj` is a
+worked answer: it builds, installs and runs the same twelve template files this
+guide asks you to copy, and CI builds it on every push.
+
 ## Step 1: Create Widget Extension Target
 
 1. Open your iOS project in Xcode:
@@ -202,10 +207,28 @@ GlanceWidgetController().onAction.listen((action) {
 - Ensure URL scheme is configured in `Info.plist`
 - Check that `GlanceWidgetIosPlugin` is handling URL callbacks
 
+### Install fails: "bundleVersion must be set in placeholder attributes"
+An app extension cannot be installed with an empty `CFBundleVersion`, and a
+Flutter app has no version unless its `pubspec.yaml` names one. The app alone
+installs with a warning, so this appears only once you add the extension. Add a
+`version:` line to `pubspec.yaml` (for example `version: 1.0.0+1`), which
+Flutter turns into `FLUTTER_BUILD_NAME` and `FLUTTER_BUILD_NUMBER`.
+
+### Install fails: "Undefined variable FLUTTER_BUILD_NUMBER"
+The extension target has to include `Flutter/Generated.xcconfig` as its base
+configuration, the way `Runner` does; Xcode does not set one up for a target it
+created itself. Without it the target cannot see the values above, whatever
+`pubspec.yaml` says.
+
 ### Build errors
 - Clean build folder: Product → Clean Build Folder
 - Delete derived data and rebuild
 - Ensure all Swift files are added to the widget target
+- `#if DEBUG` blocks -- the SwiftUI previews at the bottom of each template --
+  are only compiled when the target defines `DEBUG` in
+  `SWIFT_ACTIVE_COMPILATION_CONDITIONS`. Xcode's own Debug configuration does;
+  a hand-made target may not, and then a stale preview compiles nowhere and
+  breaks the day someone turns it on.
 
 ## iOS 26+ Widget Push Updates
 

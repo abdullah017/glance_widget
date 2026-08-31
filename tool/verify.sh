@@ -62,11 +62,13 @@ else
 fi
 
 echo
-echo "iOS widget templates"
-# Nothing else in the repository compiles these, so this is the only thing
-# standing between a renamed field and a template that silently stops working.
+echo "iOS unit tests"
+# The templates are compiled by the example's widget extension and by its test
+# target, so this is what stands between a renamed field and a template that
+# silently stops working. It is the slowest gate here -- it boots a simulator --
+# and it is the only one that builds the thing that actually ships.
 if command -v xcrun >/dev/null 2>&1; then
-  run "template-typecheck" ./tool/typecheck_templates.sh
+  run "ios-unit-tests" ./tool/test_ios.sh
 else
   echo "  skipped: no Xcode toolchain on PATH"
 fi
