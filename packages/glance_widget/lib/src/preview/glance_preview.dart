@@ -63,6 +63,7 @@ class GlancePreview extends StatelessWidget {
     this.theme,
     this.platform,
     this.size = GlanceWidgetSize.medium,
+    this.androidApiLevel = PreviewContext.defaultAndroidApiLevel,
   });
 
   /// The widget content to draw.
@@ -82,6 +83,15 @@ class GlancePreview extends StatelessWidget {
   /// The home screen slot to draw at.
   final GlanceWidgetSize size;
 
+  /// The Android version to imitate, as an SDK level. Ignored on iOS.
+  ///
+  /// Defaults to 31 -- Android 12, where rounded widget corners arrive. The
+  /// plugin supports back to 8.0, and a widget does not look the same there:
+  /// `GlanceModifier.cornerRadius` is refused below 12, so a theme asking for
+  /// 4dp corners gets the launcher's own rounding instead. Pass 30 to see
+  /// that.
+  final int androidApiLevel;
+
   @override
   Widget build(BuildContext context) {
     final host = platform ?? GlancePlatform.current;
@@ -89,6 +99,7 @@ class GlancePreview extends StatelessWidget {
       theme: theme ?? _defaultTheme(context, host),
       platform: host,
       size: size,
+      androidApiLevel: androidApiLevel,
     );
     final logicalSize = previewContext.logicalSize;
 

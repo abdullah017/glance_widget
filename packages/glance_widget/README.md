@@ -813,7 +813,7 @@ than hiding them:
 | `SimpleWidgetData.iconName` | not drawn | drawn as an SF Symbol |
 | Radial gauge | first metric only, from a rasterised bitmap | one gauge per metric |
 | Charts | rasterised at 600x300 and stretched | laid out as views at the real size |
-| `GlanceTheme.borderRadius` | ignored; the launcher clips to the system radius | applied |
+| `GlanceTheme.borderRadius` | applied from Android 12; square below | applied |
 | No theme set | falls back to the dark palette | follows the device colour scheme |
 | Calendar header | day and weekday inside an accent square | weekday above the day number |
 | Empty chart | "No chart data" | "No data" |
@@ -827,7 +827,27 @@ What it cannot show:
 - **Dates.** Both hosts format with the device's locale; the preview writes
   English names rather than adding a localisation dependency.
 - **Launcher decoration.** Android tints and clips widgets in ways that change
-  between launchers and OS versions.
+  between launchers and OS versions. From Android 12 the launcher rounds every
+  widget at the system radius on top of whatever the theme asks for, so a
+  `borderRadius` under 16 looks squarer in the preview than on a device.
+
+### Previewing an older Android
+
+`GlanceModifier.cornerRadius` is refused below Android 12 -- Glance logs
+`Cannot set the rounded corner of views before Api 31` and moves on -- and
+rounded widget corners are an Android 12 feature in the first place, so a
+widget is square there whatever `borderRadius` says. The plugin supports back
+to 8.0, so the preview takes the SDK level it should imitate:
+
+```dart
+GlancePreview(
+  data: data,
+  platform: GlancePlatform.android,
+  androidApiLevel: 30, // Android 11: square corners
+)
+```
+
+It defaults to 31.
 
 ## Background Updates (Android)
 
