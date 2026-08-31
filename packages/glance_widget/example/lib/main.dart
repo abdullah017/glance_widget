@@ -8,6 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:glance_widget/glance_widget.dart';
 
+import 'package:glance_widget_example/preview_page.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -581,6 +583,15 @@ class _HomePageState extends State<HomePage>
         title: const Text('Glance Widget Demo'),
         backgroundColor: const Color(0xFF1A1A2E),
         elevation: 0,
+        actions: [
+          IconButton(
+            tooltip: 'Preview every template on both platforms',
+            icon: const Icon(Icons.phone_iphone),
+            onPressed: () => Navigator.of(context).push<void>(
+              MaterialPageRoute(builder: (_) => const PreviewPage()),
+            ),
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,

@@ -48,6 +48,7 @@ widgets.
 - **Lock Screen Widgets** - Android widgets on home screen and lock screen
 - **Real-time Data** - Debounced controller for high-frequency updates (crypto, stocks)
 - **Widget Configuration** - Handle widget setup flow when users add widgets
+- **In-App Preview** - `GlancePreview` draws the widget in the app, per platform, so you can iterate on hot reload
 
 ## Platform Comparison
 
@@ -569,6 +570,58 @@ await GlanceWidget.simple(
 ```
 
 ---
+
+## Previewing a widget in the app
+
+Seeing a change to widget data normally means a build, an install, a long-press
+on the home screen and a trip through the widget picker. `GlancePreview` draws
+the widget inside your app instead, so the loop closes at hot reload.
+
+```dart
+GlancePreview(
+  data: const SimpleWidgetData(title: 'Steps', value: '8,241'),
+  theme: GlanceTheme.dark(),
+  size: GlanceWidgetSize.medium,
+)
+```
+
+It renders **per platform**, not an average of the two, and defaults to the host
+the app is running on. Pass `platform:` to see the other one, or put both side
+by side:
+
+```dart
+Row(
+  spacing: 16,
+  children: [
+    GlancePreview(data: data, platform: GlancePlatform.android),
+    GlancePreview(data: data, platform: GlancePlatform.ios),
+  ],
+)
+```
+
+The two hosts genuinely differ, and the preview shows the differences rather
+than hiding them:
+
+| | Android (Jetpack Glance) | iOS (WidgetKit) |
+|---|---|---|
+| `SimpleWidgetData.iconName` | not drawn | drawn as an SF Symbol |
+| Radial gauge | first metric only, from a rasterised bitmap | one gauge per metric |
+| Charts | rasterised at 600x300 and stretched | laid out as views at the real size |
+| `GlanceTheme.borderRadius` | ignored; the launcher clips to the system radius | applied |
+| No theme set | falls back to the dark palette | follows the device colour scheme |
+| Calendar header | day and weekday inside an accent square | weekday above the day number |
+| Empty chart | "No chart data" | "No data" |
+
+What it cannot show:
+
+- **Pictures.** The plugin downloads and downsamples an image on the device, so
+  an image widget draws its placeholder.
+- **SF Symbols.** `iconName` only resolves on an Apple platform; the preview
+  holds the space with a plain shape.
+- **Dates.** Both hosts format with the device's locale; the preview writes
+  English names rather than adding a localisation dependency.
+- **Launcher decoration.** Android tints and clips widgets in ways that change
+  between launchers and OS versions.
 
 ## Background Updates (Android)
 
