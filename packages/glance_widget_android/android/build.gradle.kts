@@ -4,11 +4,26 @@
 // therefore fails in every consumer app with "Plugin [id: ...] was not found".
 // Bringing our own classpath here keeps the plugin self-contained.
 buildscript {
-    // The Compose compiler plugin version must equal the Kotlin version the host
-    // app resolved. Apps pinned to a different Kotlin version can override this
-    // with `glance.kotlinVersion` in their `gradle.properties`.
+    // The Compose compiler plugin must be built against the same Kotlin release
+    // as the host app's Kotlin Gradle Plugin, and that version is chosen by the
+    // app, not by us. `KotlinCompilerVersion` sits on the shared buildscript
+    // classloader once KGP has been resolved, so read the version from there and
+    // follow whatever the app picked instead of pinning one and drifting.
+    //
+    // Escape hatches, in order: `glance.kotlinVersion` for apps that need to
+    // override the detection, then the app's own `kotlin.version` property, then
+    // a pinned fallback for when KGP is not on the classloader at all.
+    val detectedKotlinVersion =
+        runCatching {
+            Class
+                .forName("org.jetbrains.kotlin.config.KotlinCompilerVersion")
+                .getField("VERSION")
+                .get(null) as String
+        }.getOrNull()
+
     val composeCompilerVersion =
         (project.findProperty("glance.kotlinVersion") as String?)
+            ?: detectedKotlinVersion
             ?: (project.findProperty("kotlin.version") as String?)
             ?: "2.4.0"
 
