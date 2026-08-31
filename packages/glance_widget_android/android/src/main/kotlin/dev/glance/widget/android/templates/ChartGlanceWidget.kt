@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
+import androidx.glance.LocalSize
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -29,6 +30,9 @@ import dev.glance.widget.android.CornerRadius
 import dev.glance.widget.android.GlanceWidgetManager
 import dev.glance.widget.android.widgetColors
 import dev.glance.widget.android.ReportActionCallback
+import dev.glance.widget.android.WidgetSizeClass
+import dev.glance.widget.android.WidgetSlots
+import dev.glance.widget.android.WidgetTypeScale
 
 /**
  * Chart Widget - displays a chart rendered as a bitmap.
@@ -40,6 +44,8 @@ class ChartGlanceWidget : GlanceAppWidget() {
 
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
+    override val sizeMode = WidgetSlots.resizable
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
             val prefs = currentState<Preferences>()
@@ -49,7 +55,7 @@ class ChartGlanceWidget : GlanceAppWidget() {
 }
 
 @Composable
-private fun ChartWidgetContent(prefs: Preferences) {
+internal fun ChartWidgetContent(prefs: Preferences) {
     val widgetId = prefs[GlanceWidgetManager.widgetIdKey] ?: "chart"
     val title = prefs[GlanceWidgetManager.titleKey] ?: ""
     val subtitle = prefs[GlanceWidgetManager.subtitleKey]
@@ -59,6 +65,8 @@ private fun ChartWidgetContent(prefs: Preferences) {
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
 
     val colors = widgetColors(prefs)
+
+    val sizeClass = WidgetSizeClass.of(LocalSize.current)
 
     Column(
         modifier = GlanceModifier
@@ -76,35 +84,45 @@ private fun ChartWidgetContent(prefs: Preferences) {
                     ReportActionCallback.tap(widgetId, "tap")
                 }
             )
-            .padding(16.dp)
+            .padding(WidgetTypeScale.padding(sizeClass))
     ) {
-        // Title header
-        if (title.isNotEmpty()) {
+        // The chart is the widget, and it is the only element here that has to
+        // be given room rather than take it: everything else is one line of
+        // text. At the 110dp slot chart_widget_info.xml allows, the header and
+        // subtitle together took 55dp of 110dp, leaving the plot 23dp after
+        // padding. So both give way, header first.
+        if (title.isNotEmpty() && sizeClass != WidgetSizeClass.COMPACT) {
             Row(
                 modifier = GlanceModifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
+                    .padding(bottom = WidgetTypeScale.gap(sizeClass)),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = title,
                     style = TextStyle(
                         color = colors.text,
-                        fontSize = 16.sp,
+                        fontSize = WidgetTypeScale.title(sizeClass),
                         fontWeight = FontWeight.Bold
-                    )
+                    ),
+                    maxLines = 1
                 )
 
                 Spacer(modifier = GlanceModifier.fillMaxWidth())
 
-                // Chart type label
-                Text(
-                    text = chartType.replaceFirstChar { it.uppercase() },
-                    style = TextStyle(
-                        color = colors.secondaryText,
-                        fontSize = 12.sp
+                // The chart type is a label for a picture that is about to be
+                // drawn. There is no room for it beside a title in a narrow
+                // slot, and it says least of anything on screen.
+                if (sizeClass == WidgetSizeClass.EXPANDED) {
+                    Text(
+                        text = chartType.replaceFirstChar { it.uppercase() },
+                        style = TextStyle(
+                            color = colors.secondaryText,
+                            fontSize = WidgetTypeScale.caption(sizeClass)
+                        ),
+                        maxLines = 1
                     )
-                )
+                }
             }
         }
 
@@ -162,18 +180,20 @@ private fun ChartWidgetContent(prefs: Preferences) {
         }
 
         // Subtitle (optional)
-        subtitle?.let {
-            if (it.isNotEmpty()) {
-                Spacer(modifier = GlanceModifier.height(8.dp))
-                Text(
-                    text = it,
-                    style = TextStyle(
-                        color = colors.secondaryText,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal
-                    ),
-                    maxLines = 1
-                )
+        if (sizeClass == WidgetSizeClass.EXPANDED) {
+            subtitle?.let {
+                if (it.isNotEmpty()) {
+                    Spacer(modifier = GlanceModifier.height(WidgetTypeScale.gap(sizeClass)))
+                    Text(
+                        text = it,
+                        style = TextStyle(
+                            color = colors.secondaryText,
+                            fontSize = WidgetTypeScale.caption(sizeClass),
+                            fontWeight = FontWeight.Normal
+                        ),
+                        maxLines = 1
+                    )
+                }
             }
         }
     }

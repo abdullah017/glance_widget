@@ -6,7 +6,6 @@ import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
 import androidx.glance.action.clickable
@@ -29,6 +28,7 @@ import dev.glance.widget.android.widgetColors
 import dev.glance.widget.android.ReportActionCallback
 import dev.glance.widget.android.WidgetSizeClass
 import dev.glance.widget.android.WidgetSlots
+import dev.glance.widget.android.WidgetTypeScale
 
 /**
  * Simple Widget - displays title, value, and optional subtitle.
@@ -78,7 +78,7 @@ internal fun SimpleWidgetContent(prefs: Preferences) {
                     ReportActionCallback.tap(widgetId, "tap")
                 }
             )
-            .padding(if (sizeClass == WidgetSizeClass.COMPACT) 8.dp else 16.dp),
+            .padding(WidgetTypeScale.padding(sizeClass)),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -86,31 +86,27 @@ internal fun SimpleWidgetContent(prefs: Preferences) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // The compact slot can be 40dp tall. A title, a spacer, a 28sp
-            // value and 32dp of padding is roughly 90dp, so something has to
-            // go -- and it is not the number the widget exists to show.
+            // The compact slot can be 40dp tall. WidgetTypeScale sizes the
+            // value alone to fit it, with nothing left over for a label above
+            // -- and the label is not what the widget exists to show.
             if (sizeClass != WidgetSizeClass.COMPACT) {
                 Text(
                     text = title,
                     style = TextStyle(
                         color = colors.secondaryText,
-                        fontSize = if (sizeClass == WidgetSizeClass.EXPANDED) 16.sp else 14.sp,
+                        fontSize = WidgetTypeScale.title(sizeClass),
                         fontWeight = FontWeight.Medium
                     )
                 )
 
-                Spacer(modifier = GlanceModifier.height(8.dp))
+                Spacer(modifier = GlanceModifier.height(WidgetTypeScale.gap(sizeClass)))
             }
 
             Text(
                 text = value,
                 style = TextStyle(
                     color = colors.text,
-                    fontSize = when (sizeClass) {
-                        WidgetSizeClass.COMPACT -> 20.sp
-                        WidgetSizeClass.MEDIUM -> 28.sp
-                        WidgetSizeClass.EXPANDED -> 36.sp
-                    },
+                    fontSize = WidgetTypeScale.value(sizeClass),
                     fontWeight = FontWeight.Bold
                 ),
                 maxLines = 1
@@ -118,14 +114,14 @@ internal fun SimpleWidgetContent(prefs: Preferences) {
 
             if (sizeClass == WidgetSizeClass.EXPANDED) {
                 subtitle?.let {
-                    Spacer(modifier = GlanceModifier.height(4.dp))
+                    Spacer(modifier = GlanceModifier.height(WidgetTypeScale.gap(sizeClass)))
                     Text(
                         text = it,
                         style = TextStyle(
                             color = subtitleColor?.let { c ->
                                 ColorProvider(Color(c.toInt()))
                             } ?: colors.secondaryText,
-                            fontSize = 14.sp,
+                            fontSize = WidgetTypeScale.caption(sizeClass),
                             fontWeight = FontWeight.Medium
                         )
                     )

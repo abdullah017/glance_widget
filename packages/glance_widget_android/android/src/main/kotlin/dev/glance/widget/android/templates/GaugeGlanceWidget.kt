@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
+import androidx.glance.LocalSize
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -31,6 +32,9 @@ import dev.glance.widget.android.CornerRadius
 import dev.glance.widget.android.GlanceWidgetManager
 import dev.glance.widget.android.widgetColors
 import dev.glance.widget.android.ReportActionCallback
+import dev.glance.widget.android.WidgetSizeClass
+import dev.glance.widget.android.WidgetSlots
+import dev.glance.widget.android.WidgetTypeScale
 
 /**
  * Gauge Widget - displays radial gauge or dashboard metric cards.
@@ -40,6 +44,8 @@ import dev.glance.widget.android.ReportActionCallback
 class GaugeGlanceWidget : GlanceAppWidget() {
 
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
+
+    override val sizeMode = WidgetSlots.resizable
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
@@ -60,7 +66,7 @@ data class GaugeMetric(
 )
 
 @Composable
-private fun GaugeWidgetContent(prefs: Preferences) {
+internal fun GaugeWidgetContent(prefs: Preferences) {
     val widgetId = prefs[GlanceWidgetManager.widgetIdKey] ?: "gauge"
     val title = prefs[GlanceWidgetManager.titleKey] ?: ""
     val gaugeType = prefs[GlanceWidgetManager.gaugeTypeKey] ?: "radial"
@@ -70,6 +76,8 @@ private fun GaugeWidgetContent(prefs: Preferences) {
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
 
     val colors = widgetColors(prefs)
+
+    val sizeClass = WidgetSizeClass.of(LocalSize.current)
 
     Column(
         modifier = GlanceModifier
@@ -87,19 +95,22 @@ private fun GaugeWidgetContent(prefs: Preferences) {
                     ReportActionCallback.tap(widgetId, "tap")
                 }
             )
-            .padding(16.dp)
+            .padding(WidgetTypeScale.padding(sizeClass))
     ) {
-        // Title
-        if (title.isNotEmpty()) {
+        // The readings are the widget. At the compact end the title goes, on
+        // the same reasoning as everywhere else here: a label with nothing
+        // under it reports nothing.
+        if (title.isNotEmpty() && sizeClass != WidgetSizeClass.COMPACT) {
             Text(
                 text = title,
                 style = TextStyle(
                     color = colors.text,
-                    fontSize = 16.sp,
+                    fontSize = WidgetTypeScale.title(sizeClass),
                     fontWeight = FontWeight.Bold
-                )
+                ),
+                maxLines = 1
             )
-            Spacer(modifier = GlanceModifier.height(8.dp))
+            Spacer(modifier = GlanceModifier.height(WidgetTypeScale.gap(sizeClass)))
         }
 
         when (gaugeType) {
@@ -107,6 +118,7 @@ private fun GaugeWidgetContent(prefs: Preferences) {
                 DashboardContent(
                     metricsJson = metricsJson,
                     widgetId = widgetId,
+                    sizeClass = sizeClass,
                     textColor = colors.text,
                     secondaryTextColor = colors.secondaryText,
                     accentColor = colors.accent,
@@ -171,6 +183,7 @@ private fun RadialGaugeContent(
 private fun DashboardContent(
     metricsJson: String,
     widgetId: String,
+    sizeClass: WidgetSizeClass,
     textColor: ColorProvider,
     secondaryTextColor: ColorProvider,
     accentColor: ColorProvider,
@@ -187,8 +200,20 @@ private fun DashboardContent(
         return
     }
 
-    // Arrange metrics in a 2-column grid
-    val rows = metrics.chunked(2)
+    // Arrange metrics in a 2-column grid, capped at what the slot can show.
+    //
+    // Every row was drawn before, whatever the height. A row is around 76dp,
+    // so six metrics is 228dp of grid; in the 110dp slot this template's own
+    // manifest allows, everything below the first row was cut off the bottom
+    // with nothing to say it had been. Drawing fewer is not less information
+    // than drawing some invisibly -- it is the same information, minus the
+    // false impression that the rest is not there.
+    val maxRows = when (sizeClass) {
+        WidgetSizeClass.COMPACT -> 1
+        WidgetSizeClass.MEDIUM -> 2
+        WidgetSizeClass.EXPANDED -> Int.MAX_VALUE
+    }
+    val rows = metrics.chunked(2).take(maxRows)
     Column(
         modifier = GlanceModifier.fillMaxWidth()
     ) {
@@ -196,7 +221,7 @@ private fun DashboardContent(
             Row(
                 modifier = GlanceModifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp),
+                    .padding(vertical = if (sizeClass == WidgetSizeClass.COMPACT) 0.dp else 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 rowMetrics.forEachIndexed { colIndex, metric ->
@@ -205,6 +230,7 @@ private fun DashboardContent(
                         metric = metric,
                         index = metricIndex,
                         widgetId = widgetId,
+                        sizeClass = sizeClass,
                         textColor = textColor,
                         secondaryTextColor = secondaryTextColor,
                         accentColor = accentColor,
@@ -231,6 +257,7 @@ private fun MetricCard(
     metric: GaugeMetric,
     index: Int,
     widgetId: String,
+    sizeClass: WidgetSizeClass,
     textColor: ColorProvider,
     secondaryTextColor: ColorProvider,
     accentColor: ColorProvider,
@@ -241,10 +268,14 @@ private fun MetricCard(
     )
     val metricColor = metric.color?.let { ColorProvider(Color(it)) } ?: accentColor
 
+    // 8dp outside and 8dp inside is 32dp of padding around two lines of text.
+    // That is affordable in a tall slot and is most of a short one.
+    val cardPadding = if (sizeClass == WidgetSizeClass.COMPACT) 2.dp else 8.dp
+
     Box(
         modifier = GlanceModifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(cardPadding)
             .background(cardBackground)
             .clickable(
                 ReportActionCallback.tapAt(
@@ -256,35 +287,41 @@ private fun MetricCard(
             )
     ) {
         Column(
-            modifier = GlanceModifier.padding(8.dp),
+            modifier = GlanceModifier.padding(cardPadding),
             horizontalAlignment = Alignment.Start
         ) {
-            // Label
+            // The label stays at every size. Unlike a widget title it is not a
+            // restatement of what is below it -- with several readings on
+            // screen, an unlabelled number does not say which reading it is.
             Text(
                 text = metric.label,
                 style = TextStyle(
                     color = secondaryTextColor,
-                    fontSize = 11.sp,
+                    fontSize = WidgetTypeScale.caption(sizeClass),
                     fontWeight = FontWeight.Medium
                 ),
                 maxLines = 1
             )
 
-            Spacer(modifier = GlanceModifier.height(4.dp))
+            if (sizeClass != WidgetSizeClass.COMPACT) {
+                Spacer(modifier = GlanceModifier.height(4.dp))
+            }
 
             // Value
             Text(
                 text = metric.value,
                 style = TextStyle(
                     color = textColor,
-                    fontSize = 20.sp,
+                    fontSize = WidgetTypeScale.value(sizeClass),
                     fontWeight = FontWeight.Bold
                 ),
                 maxLines = 1
             )
 
-            // Progress bar (optional)
-            metric.progress?.let { progress ->
+            // Progress bar (optional). Dropped at the compact end: a 4dp bar
+            // under a 20sp number is the first thing that stops fitting and
+            // the last thing that is read.
+            if (sizeClass != WidgetSizeClass.COMPACT) metric.progress?.let { progress ->
                 Spacer(modifier = GlanceModifier.height(6.dp))
                 Box(
                     modifier = GlanceModifier

@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
+import androidx.glance.LocalSize
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.CheckBox
 import androidx.glance.appwidget.GlanceAppWidget
@@ -33,6 +34,9 @@ import dev.glance.widget.android.widgetColors
 import dev.glance.widget.android.ListItems
 import dev.glance.widget.android.ReportActionCallback
 import dev.glance.widget.android.ToggleListItemAction
+import dev.glance.widget.android.WidgetSizeClass
+import dev.glance.widget.android.WidgetSlots
+import dev.glance.widget.android.WidgetTypeScale
 
 /**
  * List Widget - displays a list of items with optional checkboxes.
@@ -41,6 +45,11 @@ import dev.glance.widget.android.ToggleListItemAction
 class ListGlanceWidget : GlanceAppWidget() {
 
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
+
+    // Tall rather than fully resizable: list_widget_info.xml declares a 180dp
+    // minResizeHeight, so this template is never handed a compact slot through
+    // its own manifest.
+    override val sizeMode = WidgetSlots.tall
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
@@ -60,7 +69,7 @@ data class ListItem(
 )
 
 @Composable
-private fun ListWidgetContent(prefs: Preferences) {
+internal fun ListWidgetContent(prefs: Preferences) {
     val widgetId = prefs[GlanceWidgetManager.widgetIdKey] ?: "list"
     val title = prefs[GlanceWidgetManager.titleKey] ?: "List"
     val itemsString = prefs[GlanceWidgetManager.itemsKey] ?: ""
@@ -75,53 +84,63 @@ private fun ListWidgetContent(prefs: Preferences) {
 
     val colors = widgetColors(prefs)
 
+    val sizeClass = WidgetSizeClass.of(LocalSize.current)
+
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(colors.background)
             .cornerRadius(CornerRadius.dpFor(prefs[GlanceWidgetManager.borderRadiusKey]).dp)
-            .padding(16.dp)
+            .padding(WidgetTypeScale.padding(sizeClass))
     ) {
-        // Header
-        Row(
-            modifier = GlanceModifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
-            horizontalAlignment = Alignment.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = title,
-                style = TextStyle(
-                    color = colors.text,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+        // This template already scrolled its items, so unlike the other six it
+        // never cut content off the bottom. What it did do was spend the same
+        // 35dp of header and divider whatever room it had, and draw an 18sp
+        // title into a slot that could only show two items.
+        if (sizeClass != WidgetSizeClass.COMPACT) {
+            // Header
+            Row(
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .padding(bottom = WidgetTypeScale.gap(sizeClass)),
+                horizontalAlignment = Alignment.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title,
+                    style = TextStyle(
+                        color = colors.text,
+                        fontSize = if (sizeClass == WidgetSizeClass.EXPANDED) 18.sp else 16.sp,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    maxLines = 1
                 )
-            )
 
-            Spacer(modifier = GlanceModifier.fillMaxWidth())
+                Spacer(modifier = GlanceModifier.fillMaxWidth())
 
-            // Item count badge
-            Text(
-                text = "${items.size}",
-                style = TextStyle(
-                    color = colors.secondaryText,
-                    fontSize = 14.sp
+                // Item count badge
+                Text(
+                    text = "${items.size}",
+                    style = TextStyle(
+                        color = colors.secondaryText,
+                        fontSize = WidgetTypeScale.caption(sizeClass)
+                    ),
+                    maxLines = 1
                 )
-            )
+            }
+
+            // Divider
+            Box(
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(ColorProvider(
+                        Color(if (isDark) 0xFF3A3A4E.toInt() else 0xFFE0E0E0.toInt())
+                    ))
+            ) {}
+
+            Spacer(modifier = GlanceModifier.height(WidgetTypeScale.gap(sizeClass)))
         }
-
-        // Divider
-        Box(
-            modifier = GlanceModifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(ColorProvider(
-                    Color(if (isDark) 0xFF3A3A4E.toInt() else 0xFFE0E0E0.toInt())
-                ))
-        ) {}
-
-        Spacer(modifier = GlanceModifier.height(8.dp))
 
         // Items list
         if (items.isEmpty()) {
@@ -144,6 +163,7 @@ private fun ListWidgetContent(prefs: Preferences) {
                         item = item,
                         index = index,
                         widgetId = widgetId,
+                        sizeClass = sizeClass,
                         showCheckbox = showCheckboxes,
                         deepLinkUri = deepLinkUri,
                         textColor = colors.text,
@@ -162,6 +182,7 @@ private fun ListItemRow(
     item: ListItem,
     index: Int,
     widgetId: String,
+    sizeClass: WidgetSizeClass,
     showCheckbox: Boolean,
     deepLinkUri: String?,
     textColor: ColorProvider,
@@ -172,7 +193,7 @@ private fun ListItemRow(
     Row(
         modifier = GlanceModifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = if (sizeClass == WidgetSizeClass.EXPANDED) 8.dp else 6.dp)
             // Not a lambda action: that runs in a process the system may
             // have started purely to deliver this tap, with no Flutter engine
             // in it, so the event went to a null sink and vanished. A deep link
@@ -212,22 +233,26 @@ private fun ListItemRow(
                 text = item.text,
                 style = TextStyle(
                     color = if (item.checked && showCheckbox) secondaryTextColor else textColor,
-                    fontSize = 14.sp,
+                    fontSize = WidgetTypeScale.body(sizeClass),
                     fontWeight = FontWeight.Normal
                 ),
                 maxLines = 1
             )
 
-            item.secondaryText?.let { secondary ->
-                if (secondary.isNotEmpty()) {
-                    Text(
-                        text = secondary,
-                        style = TextStyle(
-                            color = secondaryTextColor,
-                            fontSize = 12.sp
-                        ),
-                        maxLines = 1
-                    )
+            // A second line per item halves how many items fit. Worth it when
+            // the slot is tall; not when it costs the reader half the list.
+            if (sizeClass == WidgetSizeClass.EXPANDED) {
+                item.secondaryText?.let { secondary ->
+                    if (secondary.isNotEmpty()) {
+                        Text(
+                            text = secondary,
+                            style = TextStyle(
+                                color = secondaryTextColor,
+                                fontSize = WidgetTypeScale.caption(sizeClass)
+                            ),
+                            maxLines = 1
+                        )
+                    }
                 }
             }
         }
