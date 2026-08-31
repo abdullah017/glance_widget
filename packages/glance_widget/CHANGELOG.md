@@ -1,5 +1,13 @@
 ## 2.0.0
 
+**Added:** iOS checkboxes are interactive in place. Ticking one in `ListWidget`
+no longer launches the app; the action reaches your existing `onAction` listener
+unchanged the next time the app runs. See the README for the two consequences --
+the widget's own copy of the state is flipped first, and the backlog is capped.
+
+**Fixed:** on iOS, a list widget with a `deepLinkUri` set never delivered
+`checkboxToggle` at all.
+
 **Added:** iOS lock screen and Smart Stack widgets. Six of the seven templates
 now render in the `.accessoryCircular`, `.accessoryRectangular` and
 `.accessoryInline` families. No API change: the same `updateSimpleWidget` call

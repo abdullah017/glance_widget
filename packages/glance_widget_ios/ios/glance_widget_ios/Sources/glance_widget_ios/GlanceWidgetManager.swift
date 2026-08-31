@@ -432,11 +432,60 @@ public class GlanceWidgetManager {
     }
 
     /// Sends a widget action event back to Flutter
-    public func sendActionEvent(widgetId: String, actionType: String, payload: [String: Any]? = nil) {
+    /// Emits a widget interaction to Dart.
+    ///
+    /// [occurredAt] defaults to now, which is right for an action arriving by
+    /// URL while the app is running. A queued action carries the time the
+    /// widget extension handled it, which can be hours earlier -- stamping
+    /// those with `Date()` would tell Dart every backlogged tap happened at
+    /// once, at launch.
+
+    // MARK: - Queued Actions
+
+    /// Replays the interactions the widget extension handled on its own.
+    ///
+    /// A widget button on iOS 17 runs its `AppIntent` inside the extension,
+    /// which may be the only part of the app alive. It writes what happened to
+    /// the App Group; this drains that queue into the event channel.
+    ///
+    /// Nothing is drained while Dart is not listening. The event sink drops
+    /// what it is handed when there is no listener, so clearing the queue then
+    /// would throw the backlog away in silence -- which is exactly the failure
+    /// the queue exists to prevent.
+    public func drainPendingActions() {
+        eventSinkLock.lock()
+        let listening = eventSink != nil
+        eventSinkLock.unlock()
+        guard listening, storage.isAvailable else { return }
+
+        let raw = storage.loadDataArray(forKey: GlanceStorageKeys.pendingActions) ?? []
+        guard !raw.isEmpty else { return }
+
+        // Cleared before emitting: an action that fails to decode is still
+        // consumed, so a single unreadable entry cannot make the queue
+        // un-drainable and grow forever behind it.
+        storage.remove(forKey: GlanceStorageKeys.pendingActions)
+
+        for action in GlanceActionQueue.decode(raw) {
+            sendActionEvent(
+                widgetId: action.widgetId,
+                actionType: action.type,
+                payload: GlanceActionQueue.eventPayload(for: action),
+                occurredAt: Date(timeIntervalSince1970: action.timestamp)
+            )
+        }
+    }
+
+    public func sendActionEvent(
+        widgetId: String,
+        actionType: String,
+        payload: [String: Any]? = nil,
+        occurredAt: Date = Date()
+    ) {
         var event: [String: Any] = [
             "widgetId": widgetId,
             "type": actionType,
-            "timestamp": Int(Date().timeIntervalSince1970 * 1000)
+            "timestamp": Int(occurredAt.timeIntervalSince1970 * 1000)
         ]
 
         if let payload = payload {

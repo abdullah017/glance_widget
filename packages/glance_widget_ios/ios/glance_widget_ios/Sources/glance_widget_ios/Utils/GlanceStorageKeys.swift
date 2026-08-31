@@ -27,6 +27,11 @@ public enum GlanceStorageKeys {
     /// Key under which the plugin records every id it has ever written.
     public static let activeWidgetIds = "activeWidgetIds"
 
+    /// Key under which the widget extension queues interactions it handled
+    /// while the app was not running. Drained by the plugin, never by the
+    /// extension. See `GlanceActionQueue`.
+    public static let pendingActions = "pendingWidgetActions"
+
     public static func prefix(for kind: GlanceWidgetKind) -> String {
         "\(kind.rawValue)WidgetData_"
     }

@@ -293,7 +293,10 @@ extension Color {
 class WidgetStorage {
     static let shared = WidgetStorage()
 
-    private let userDefaults: UserDefaults?
+    /// Not private: `GlanceInteractive.swift` extends this type to write a
+    /// toggled checkbox back, and an extension in another file cannot reach a
+    /// private member.
+    let userDefaults: UserDefaults?
     private let decoder = JSONDecoder()
 
     private init() {

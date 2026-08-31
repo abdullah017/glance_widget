@@ -15,6 +15,10 @@
 		A11CE0AA2F0000000000E007 /* GlanceAccessoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E008 /* GlanceAccessoryTests.swift */; };
 		A11CE0AA2F0000000000E009 /* GlanceFamily.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E00A /* GlanceFamily.swift */; };
 		A11CE0AA2F0000000000E00B /* AccessoryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E00C /* AccessoryViews.swift */; };
+		A11CE0AA2F0000000000E00D /* GlanceActionQueueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E00E /* GlanceActionQueueTests.swift */; };
+		A11CE0AA2F0000000000E00F /* GlanceInteractiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E010 /* GlanceInteractiveTests.swift */; };
+		A11CE0AA2F0000000000E011 /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E012 /* SharedModels.swift */; };
+		A11CE0AA2F0000000000E013 /* GlanceInteractive.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E014 /* GlanceInteractive.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */; };
@@ -61,6 +65,10 @@
 		A11CE0AA2F0000000000E008 /* GlanceAccessoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceAccessoryTests.swift; path = "GlanceAccessoryTests.swift"; sourceTree = "<group>"; };
 		A11CE0AA2F0000000000E00A /* GlanceFamily.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceFamily.swift; path = "../../../../glance_widget_ios/example/ios/GlanceWidgets/GlanceFamily.swift"; sourceTree = "<group>"; };
 		A11CE0AA2F0000000000E00C /* AccessoryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AccessoryViews.swift; path = "../../../../glance_widget_ios/example/ios/GlanceWidgets/AccessoryViews.swift"; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E00E /* GlanceActionQueueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceActionQueueTests.swift; path = "GlanceActionQueueTests.swift"; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E010 /* GlanceInteractiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceInteractiveTests.swift; path = "GlanceInteractiveTests.swift"; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E012 /* SharedModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SharedModels.swift; path = "../../../../glance_widget_ios/example/ios/GlanceWidgets/SharedModels.swift"; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E014 /* GlanceInteractive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceInteractive.swift; path = "../../../../glance_widget_ios/example/ios/GlanceWidgets/GlanceInteractive.swift"; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		51C85A0FF04414226244D042 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
@@ -114,6 +122,10 @@
 				A11CE0AA2F0000000000E008 /* GlanceAccessoryTests.swift */,
 				A11CE0AA2F0000000000E00A /* GlanceFamily.swift */,
 				A11CE0AA2F0000000000E00C /* AccessoryViews.swift */,
+				A11CE0AA2F0000000000E00E /* GlanceActionQueueTests.swift */,
+				A11CE0AA2F0000000000E010 /* GlanceInteractiveTests.swift */,
+				A11CE0AA2F0000000000E012 /* SharedModels.swift */,
+				A11CE0AA2F0000000000E014 /* GlanceInteractive.swift */,
 			);
 			path = RunnerTests;
 			sourceTree = "<group>";
@@ -389,6 +401,10 @@
 				A11CE0AA2F0000000000E007 /* GlanceAccessoryTests.swift in Sources */,
 				A11CE0AA2F0000000000E009 /* GlanceFamily.swift in Sources */,
 				A11CE0AA2F0000000000E00B /* AccessoryViews.swift in Sources */,
+				A11CE0AA2F0000000000E00D /* GlanceActionQueueTests.swift in Sources */,
+				A11CE0AA2F0000000000E00F /* GlanceInteractiveTests.swift in Sources */,
+				A11CE0AA2F0000000000E011 /* SharedModels.swift in Sources */,
+				A11CE0AA2F0000000000E013 /* GlanceInteractive.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

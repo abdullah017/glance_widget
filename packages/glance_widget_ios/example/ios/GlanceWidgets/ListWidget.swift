@@ -288,13 +288,21 @@ struct ListWidgetEntryView: View {
         accentColor: Color
     ) -> some View {
         HStack(spacing: 8) {
-            // Checkbox (if enabled) - tappable with checkboxToggle action
+            // The checkbox runs an App Intent rather than opening a URL, so
+            // ticking it does not launch the app. `GlanceToggleItemIntent`
+            // writes the new state and queues the action for Dart to pick up.
             if entry.data.showCheckboxes {
-                Link(destination: checkboxToggleURL(index: index, currentValue: item.checked)) {
+                Button(
+                    intent: GlanceToggleItemIntent(
+                        widgetId: entry.data.widgetId,
+                        itemIndex: index
+                    )
+                ) {
                     Image(systemName: item.checked ? "checkmark.circle.fill" : "circle")
                         .font(checkboxFont(for: size))
                         .foregroundColor(item.checked ? accentColor : secondaryTextColor)
                 }
+                .buttonStyle(.plain)
             }
 
             // Rest of the row is tappable with itemTap action
@@ -336,14 +344,6 @@ struct ListWidgetEntryView: View {
             return url
         }
         return URL(string: "glancewidget://action?widgetId=\(entry.data.widgetId)&type=itemTap&itemIndex=\(index)")!
-    }
-
-    private func checkboxToggleURL(index: Int, currentValue: Bool) -> URL {
-        if let deepLink = entry.data.deepLinkUri, let url = URL(string: deepLink) {
-            return url
-        }
-        let newValue = !currentValue
-        return URL(string: "glancewidget://action?widgetId=\(entry.data.widgetId)&type=checkboxToggle&itemIndex=\(index)&value=\(newValue)")!
     }
 
     // MARK: - Dynamic Sizing

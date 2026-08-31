@@ -353,6 +353,9 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
         self.eventSink = events
         widgetManager.setEventSink(events)
+        // Anything the widget extension handled while the app was closed has
+        // been waiting for a listener; this is the first moment it has one.
+        widgetManager.drainPendingActions()
         return nil
     }
 
@@ -366,6 +369,15 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
 // MARK: - URL Handling for Widget Actions
 
 extension GlanceWidgetIosPlugin {
+    /// Drains queued widget interactions each time the app comes forward.
+    ///
+    /// `onListen` covers the launch; this covers the app being backgrounded,
+    /// the user ticking a box on the lock screen, and the app being resumed
+    /// with the same Dart listener still attached.
+    public func applicationDidBecomeActive(_ application: UIApplication) {
+        widgetManager.drainPendingActions()
+    }
+
     public func application(
         _ application: UIApplication,
         open url: URL,
