@@ -89,3 +89,59 @@ class GlanceWidgetValidationException extends GlanceWidgetException {
     return buffer.toString();
   }
 }
+
+/// The outcome of one widget's update inside a batch that partly failed.
+class GlanceWidgetBatchFailure {
+  /// Records that [widgetId] could not be updated, and why.
+  const GlanceWidgetBatchFailure({
+    required this.widgetId,
+    required this.message,
+    this.code,
+  });
+
+  /// The widget that was not updated.
+  final String widgetId;
+
+  /// Why it was not updated, in the native side's words.
+  final String message;
+
+  /// The error code the native side reported, if any.
+  final String? code;
+
+  @override
+  String toString() => code == null
+      ? '$widgetId: $message'
+      : '$widgetId: $message (code: $code)';
+}
+
+/// Thrown when some widgets in a batch could not be updated.
+///
+/// A batch does not stop at the first failure. One widget missing from the
+/// home screen is not a reason to leave the other nineteen showing stale data,
+/// so every update is attempted and the ones that failed are reported together
+/// here. [failures] names them; every other widget in the batch was updated.
+class GlanceWidgetBatchException extends GlanceWidgetException {
+  /// Creates a batch failure carrying one entry per widget that failed.
+  GlanceWidgetBatchException(this.failures, {required this.attempted})
+    : super(
+        '${failures.length} of $attempted widget updates failed: '
+        '${failures.map((f) => f.widgetId).join(', ')}',
+        code: 'BATCH_PARTIAL_FAILURE',
+      );
+
+  /// One entry per widget that could not be updated.
+  final List<GlanceWidgetBatchFailure> failures;
+
+  /// How many updates the batch carried in total.
+  final int attempted;
+
+  @override
+  String toString() {
+    final buffer = StringBuffer('GlanceWidgetBatchException: $message')
+      ..writeln();
+    for (final failure in failures) {
+      buffer.writeln('  $failure');
+    }
+    return buffer.toString().trimRight();
+  }
+}

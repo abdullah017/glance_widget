@@ -1,4 +1,6 @@
 import 'package:glance_widget_platform_interface/src/method_channel_glance_widget.dart';
+import 'package:glance_widget_platform_interface/src/types/glance_exception.dart';
+import 'package:glance_widget_platform_interface/src/types/glance_widget_update.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_action.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_data.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_theme.dart';
@@ -32,6 +34,19 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   /// Releases resources held by this platform implementation.
   /// Subclasses should override to clean up streams and subscriptions.
   void dispose() {}
+
+  /// Updates many widgets, of any mix of templates, in one platform call.
+  ///
+  /// Every update is attempted. If some fail, the ones that succeeded stay
+  /// applied and a [GlanceWidgetBatchException] names the rest.
+  ///
+  /// [theme] applies to every update that does not carry its own.
+  Future<void> updateBatch(
+    List<GlanceWidgetUpdate> updates, {
+    GlanceTheme? theme,
+  }) {
+    throw UnimplementedError('updateBatch() has not been implemented.');
+  }
 
   /// Updates a Simple Widget with the given data.
   Future<void> updateSimpleWidget({

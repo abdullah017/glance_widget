@@ -115,6 +115,47 @@ class GlanceWidget {
     );
   }
 
+  /// Updates many widgets, of any mix of templates, in one platform call.
+  ///
+  /// The per-template helpers each cross the method channel once. Refreshing a
+  /// dashboard of twenty widgets that way costs twenty round trips and
+  /// serialises the shared theme twenty times; this costs one and sends the
+  /// theme once.
+  ///
+  /// ```dart
+  /// await GlanceWidget.batch(
+  ///   [
+  ///     GlanceWidgetUpdate(
+  ///       widgetId: 'btc',
+  ///       data: SimpleWidgetData(title: 'Bitcoin', value: r'$94,532'),
+  ///     ),
+  ///     GlanceWidgetUpdate(
+  ///       widgetId: 'goal',
+  ///       data: ProgressWidgetData(title: 'Steps', progress: 0.72),
+  ///     ),
+  ///   ],
+  ///   theme: GlanceTheme.dark(),
+  /// );
+  /// ```
+  ///
+  /// [theme] applies to every update that does not carry one of its own.
+  ///
+  /// Every update is attempted. If some fail -- a widget with no instance on
+  /// the home screen, say -- the ones that succeeded stay applied and a
+  /// [GlanceWidgetBatchException] names the rest. A [GlanceWidgetException] is
+  /// thrown if the call failed as a whole, and a
+  /// [GlanceWidgetValidationException] if any update is malformed, in which
+  /// case nothing is sent at all. Does nothing on platforms without home
+  /// screen widgets.
+  static Future<void> batch(
+    List<GlanceWidgetUpdate> updates, {
+    GlanceTheme? theme,
+  }) {
+    return PlatformGuard.guardVoid(
+      () => _platform.updateBatch(updates, theme: theme),
+    );
+  }
+
   /// Updates a Progress Widget with circular or linear progress indicator.
   ///
   /// Perfect for displaying progress like:

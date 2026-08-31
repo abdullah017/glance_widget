@@ -8,6 +8,22 @@ iOS widget templates need `AppIntentConfiguration`, which is the only widget
 configuration carrying a per-instance parameter and therefore the only way a
 placed widget can know which `widgetId` it shows.
 
+### Added
+
+* `GlanceWidget.batch` updates many widgets, of any mix of templates, in a
+  single platform call. The per-template helpers each cross the method channel
+  once, so refreshing a dashboard of twenty widgets cost twenty round trips and
+  serialised the shared theme twenty times over. Measured on the same twenty
+  updates: `roundTrips=20 payloadBytes=5700` became
+  `roundTrips=1 payloadBytes=2974`.
+
+  Every update is attempted rather than stopping at the first failure -- one
+  widget missing from the home screen is no reason to leave the other nineteen
+  showing stale data. The ones that succeeded stay applied and a
+  `GlanceWidgetBatchException` names the rest, one `GlanceWidgetBatchFailure`
+  per widget. A malformed update is refused before anything is sent, so a
+  mistake in the calling code cannot half-apply.
+
 ### Fixed
 
 * `widgetId` did not actually identify an instance on either platform. On

@@ -37,6 +37,8 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
+        case "updateBatch":
+            handleUpdateBatch(call, result: result)
         case "updateSimpleWidget":
             handleUpdateSimpleWidget(call, result: result)
         case "updateProgressWidget":
@@ -87,6 +89,100 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
             result(true)
         case .failure(let code, let message):
             result(FlutterError(code: code, message: message, details: nil))
+        }
+    }
+
+    // MARK: - Batch
+
+    /// Entries are applied one after another rather than at once. They all
+    /// write to the same App Group container, and the win a batch is after is
+    /// the single channel round trip, not parallelism.
+    private let batchQueue = DispatchQueue(label: "dev.glance.widget.batch")
+
+    private func handleUpdateBatch(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        switch GlanceBatchRequest.parse(call.arguments) {
+        case .invalid(let reason):
+            result(FlutterError(code: "INVALID_ARGS", message: reason, details: nil))
+        case .ok(let entries):
+            applyBatch(entries, from: 0, failures: [], result: result)
+        }
+    }
+
+    /// Applies [entries] from [index] on, collecting the ones that failed.
+    ///
+    /// A batch does not stop at the first failure. One widget missing from the
+    /// home screen is not a reason to leave the rest showing stale data, so
+    /// every entry is attempted and the failures travel back together; Dart
+    /// turns a non-empty list into a `GlanceWidgetBatchException`.
+    ///
+    /// Each step hops through `batchQueue` rather than calling the next one
+    /// directly. Six of the seven templates finish synchronously, so a direct
+    /// call would put the whole batch on one stack -- fine for twenty widgets
+    /// and not fine for a caller that sends thousands.
+    private func applyBatch(
+        _ entries: [GlanceBatchEntry],
+        from index: Int,
+        failures: [[String: Any]],
+        result: @escaping FlutterResult
+    ) {
+        guard index < entries.count else {
+            // A FlutterResult must be called on the main thread, and the image
+            // template answers from a background queue.
+            DispatchQueue.main.async { result(["failures": failures]) }
+            return
+        }
+
+        let entry = entries[index]
+        apply(entry) { outcome in
+            var collected = failures
+            if case .failure(let code, let message) = outcome {
+                collected.append([
+                    "widgetId": entry.widgetId,
+                    "message": message,
+                    "code": code,
+                ])
+            }
+            self.batchQueue.async {
+                self.applyBatch(entries, from: index + 1, failures: collected, result: result)
+            }
+        }
+    }
+
+    /// Applies one entry, choosing the template handler by name.
+    ///
+    /// A template this build does not know is that one widget's failure rather
+    /// than the batch's: a newer Dart side talking to an older plugin should
+    /// still get its other widgets updated.
+    private func apply(_ entry: GlanceBatchEntry, completion: @escaping (GlanceResult) -> Void) {
+        switch entry.template {
+        case "simple":
+            completion(widgetManager.updateSimpleWidgetWithResult(
+                widgetId: entry.widgetId, data: entry.data, theme: entry.theme))
+        case "progress":
+            completion(widgetManager.updateProgressWidgetWithResult(
+                widgetId: entry.widgetId, data: entry.data, theme: entry.theme))
+        case "list":
+            completion(widgetManager.updateListWidgetWithResult(
+                widgetId: entry.widgetId, data: entry.data, theme: entry.theme))
+        case "calendar":
+            completion(widgetManager.updateCalendarWidgetWithResult(
+                widgetId: entry.widgetId, data: entry.data, theme: entry.theme))
+        case "chart":
+            completion(widgetManager.updateChartWidgetWithResult(
+                widgetId: entry.widgetId, data: entry.data, theme: entry.theme))
+        case "gauge":
+            completion(widgetManager.updateGaugeWidgetWithResult(
+                widgetId: entry.widgetId, data: entry.data, theme: entry.theme))
+        case "image":
+            // The only template that needs the network, so the only one that
+            // cannot answer synchronously.
+            widgetManager.updateImageWidgetWithResult(
+                widgetId: entry.widgetId, data: entry.data, theme: entry.theme,
+                completion: completion)
+        default:
+            completion(.failure(
+                code: "UNKNOWN_TEMPLATE",
+                message: "This version of glance_widget_ios does not know the template '\(entry.template)'"))
         }
     }
 

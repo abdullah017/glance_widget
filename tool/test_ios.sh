@@ -23,6 +23,27 @@ flutter pub get >/dev/null
 echo "==> Generating the Xcode configuration"
 (cd "$example" && flutter build ios --config-only --simulator >/dev/null)
 
+# A Swift test file that is not referenced by the Xcode project is simply not
+# compiled: the suite passes, the new tests never run, and nothing says so.
+# Silence has to be distinguishable from success, so check the reference before
+# trusting the result.
+echo "==> Checking every test file is in the Xcode project"
+missing=""
+for file in "$example"/ios/RunnerTests/*.swift; do
+  name=$(basename "$file")
+  if ! grep -q "$name" "$example/ios/Runner.xcodeproj/project.pbxproj"; then
+    missing="$missing $name"
+  fi
+done
+if [ -n "$missing" ]; then
+  echo "error: these test files are not in the Runner.xcodeproj test target," >&2
+  echo "       so they would not be compiled and their tests would not run:" >&2
+  for name in $missing; do echo "         $name" >&2; done
+  echo "       Add each to the RunnerTests target (PBXBuildFile, PBXFileReference," >&2
+  echo "       the RunnerTests group, and the Sources build phase)." >&2
+  exit 1
+fi
+
 echo "==> Picking a simulator"
 udid=$(xcrun simctl list devices available --json | python3 -c '
 import json, sys

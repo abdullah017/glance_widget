@@ -5,6 +5,16 @@ return `Future<void>` and throw `GlanceWidgetException` on failure instead of
 returning `Future<bool>`. See the main package's
 [migration guide](https://pub.dev/packages/glance_widget) for details.
 
+### Added
+
+* `updateBatch` applies many widget updates, of any mix of templates, from one
+  method call. Entries are applied in order and every one is attempted; the
+  reply carries a `failures` list naming the widgets that could not be updated,
+  which Dart turns into a `GlanceWidgetBatchException`. A template this build
+  does not know is that one widget's failure rather than the batch's, so a
+  newer Dart side talking to an older plugin still gets its other widgets
+  updated.
+
 ### Fixed
 
 * Method channel handlers replied `success(true)` before knowing whether the

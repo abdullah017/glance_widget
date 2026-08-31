@@ -459,6 +459,62 @@ await GlanceWidget.gauge(
 );
 ```
 
+### Updating Many Widgets At Once
+
+Each per-template call crosses the platform channel once. A dashboard that
+refreshes twenty widgets that way pays twenty round trips and re-serialises the
+shared theme twenty times. `GlanceWidget.batch` sends them together:
+
+```dart
+await GlanceWidget.batch(
+  [
+    GlanceWidgetUpdate(
+      widgetId: 'btc',
+      data: SimpleWidgetData(title: 'Bitcoin', value: r'$94,532'),
+    ),
+    GlanceWidgetUpdate(
+      widgetId: 'steps',
+      data: ProgressWidgetData(title: 'Steps', progress: 0.72),
+    ),
+    GlanceWidgetUpdate(
+      widgetId: 'week',
+      data: ChartWidgetData(title: 'This week', dataPoints: [3, 5, 4, 8]),
+    ),
+  ],
+  theme: GlanceTheme.dark(),
+);
+```
+
+Measured on the same twenty updates:
+
+| | round trips | payload bytes |
+|---|---|---|
+| twenty `GlanceWidget.simple` calls | 20 | 5700 |
+| one `GlanceWidget.batch` call | 1 | 2974 |
+
+Templates can be mixed freely, and `theme` applies to every update that does
+not carry one of its own.
+
+**Partial failure.** A batch does not stop at the first failure: one widget
+missing from the home screen is no reason to leave the rest showing stale data.
+Every update is attempted, the ones that succeeded stay applied, and
+`GlanceWidgetBatchException` names the rest.
+
+```dart
+try {
+  await GlanceWidget.batch(updates);
+} on GlanceWidgetBatchException catch (e) {
+  for (final failure in e.failures) {
+    debugPrint('${failure.widgetId} was not updated: ${failure.message}');
+  }
+}
+```
+
+A malformed update is a different matter: it is refused before anything is
+sent, with a `GlanceWidgetValidationException`, so a mistake in your code
+cannot half-apply to the home screen. The same goes for sending the same
+`widgetId` twice in one batch, which would otherwise race.
+
 ### Theme Configuration
 
 ```dart

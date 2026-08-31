@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * GlanceWidgetPlugin - Flutter plugin for Jetpack Glance widgets.
@@ -84,8 +85,97 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
         }
     }
 
+    /**
+     * Applies one entry of a batch, choosing the template handler by name.
+     *
+     * A template this build does not know is reported as that one widget's
+     * failure rather than the batch's: a newer Dart side talking to an older
+     * plugin should still get its other nineteen widgets updated.
+     */
+    private suspend fun applyBatchEntry(entry: BatchEntry): UpdateResult =
+        when (entry.template) {
+            "simple" -> GlanceWidgetManager.updateSimpleWidgetWithResult(
+                context, entry.widgetId, entry.data, entry.theme
+            )
+            "progress" -> GlanceWidgetManager.updateProgressWidgetWithResult(
+                context, entry.widgetId, entry.data, entry.theme
+            )
+            "list" -> GlanceWidgetManager.updateListWidgetWithResult(
+                context, entry.widgetId, entry.data, entry.theme
+            )
+            "image" -> GlanceWidgetManager.updateImageWidgetWithResult(
+                context, entry.widgetId, entry.data, entry.theme
+            )
+            "chart" -> GlanceWidgetManager.updateChartWidgetWithResult(
+                context, entry.widgetId, entry.data, entry.theme
+            )
+            "calendar" -> GlanceWidgetManager.updateCalendarWidgetWithResult(
+                context, entry.widgetId, entry.data, entry.theme
+            )
+            "gauge" -> GlanceWidgetManager.updateGaugeWidgetWithResult(
+                context, entry.widgetId, entry.data, entry.theme
+            )
+            else -> UpdateResult.Error(
+                "UNKNOWN_TEMPLATE",
+                "This version of glance_widget_android does not know the template '${entry.template}'"
+            )
+        }
+
+    /**
+     * Applies every entry and answers with the ones that failed.
+     *
+     * A batch does not stop at the first failure. One widget missing from the
+     * home screen is not a reason to leave the rest showing stale data, so the
+     * reply carries a `failures` list and Dart turns a non-empty one into a
+     * `GlanceWidgetBatchException`.
+     */
+    private fun replyWithBatch(result: Result, entries: List<BatchEntry>) {
+        replyScope.launch {
+            // The loop runs off the main thread even though the work inside it
+            // suspends on its own. `replyScope` is `Dispatchers.Main.immediate`
+            // so that a reply lands on the platform thread, which a single
+            // update wants; a batch of twenty would otherwise resume on the
+            // main thread twenty times and build each payload there.
+            val failures = withContext(Dispatchers.Default) {
+                val collected = ArrayList<Map<String, Any?>>()
+                for (entry in entries) {
+                    val outcome = try {
+                        applyBatchEntry(entry)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Throwable) {
+                        UpdateResult.Error(
+                            UpdateResult.ERROR_UPDATE_FAILED,
+                            e.message ?: e.toString()
+                        )
+                    }
+                    if (outcome is UpdateResult.Error) {
+                        collected.add(
+                            mapOf(
+                                "widgetId" to entry.widgetId,
+                                "message" to outcome.message,
+                                "code" to outcome.code
+                            )
+                        )
+                    }
+                }
+                collected
+            }
+            // Back on the main thread: a MethodChannel reply has to be.
+            result.success(mapOf("failures" to failures))
+        }
+    }
+
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
+            "updateBatch" -> {
+                when (val parsed = BatchRequest.parse(call.arguments)) {
+                    is BatchParse.Invalid ->
+                        result.error("INVALID_ARGS", parsed.reason, null)
+                    is BatchParse.Ok -> replyWithBatch(result, parsed.entries)
+                }
+            }
+
             "updateSimpleWidget" -> {
                 val widgetId = call.argument<String>("widgetId")
                 val data = call.argument<Map<String, Any?>>("data")
