@@ -59,6 +59,8 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
             handleForceRefreshAll(result: result)
         case "getActiveWidgetIds":
             handleGetActiveWidgetIds(result: result)
+        case "forgetWidget":
+            handleForgetWidget(call, result: result)
         case "getWidgetPushToken":
             handleGetWidgetPushToken(result: result)
         case "isWidgetPushSupported":
@@ -309,6 +311,22 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
     private func handleGetActiveWidgetIds(result: @escaping FlutterResult) {
         let ids = widgetManager.getActiveWidgetIds()
         result(ids)
+    }
+
+    private func handleForgetWidget(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let widgetId = args["widgetId"] as? String,
+              !widgetId.isEmpty else {
+            result(FlutterError(
+                code: "INVALID_ARGUMENTS",
+                message: "forgetWidget requires a non-empty widgetId",
+                details: nil
+            ))
+            return
+        }
+
+        widgetManager.forgetWidget(widgetId)
+        result(true)
     }
 
     private func handleGetWidgetPushToken(result: @escaping FlutterResult) {

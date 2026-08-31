@@ -1,5 +1,22 @@
 ## 2.0.0
 
+**Fixed:** all seven templates now override `GlanceAppWidget.onDelete`, which
+Glance calls before it deletes an instance's own state -- the only moment at
+which the `widgetId` the instance carried is still readable. It drops the
+cached image and the tracked id, neither of which Glance knows about. The
+default `onDelete` is a no-op, so a template without one compiles, installs and
+leaks in silence; `TemplateDeleteHookTest` fails on an eighth template added
+without the override.
+
+**Fixed:** `removeWidgetId` had no callers. The intent was there and the
+`onDelete` that should have driven it was not, so the only way off the active
+list was to uninstall the app.
+
+**Changed:** `getActiveWidgetIds` is sorted. It returned `activeWidgetIds
+.toList()`, and a `LinkedHashSet` iterates in insertion order -- so the order
+was whichever sequence of updates the app happened to make, and different again
+after a reload from SharedPreferences.
+
 **Fixed:** every template overflowed the smallest slot a user can drag it to.
 Each `*_widget_info.xml` declares a `minResizeHeight` well under its
 `minHeight`, and the templates painted the same layout into both. At each

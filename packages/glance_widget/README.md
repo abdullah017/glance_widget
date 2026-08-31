@@ -917,6 +917,46 @@ if (await GlanceWidget.isWidgetPushSupported()) {
 
 ---
 
+## When a widget is removed
+
+A widget dragged off the home screen used to leave everything behind: its
+payload, its downsampled image on disk, and its id in `getActiveWidgetIds()`
+forever.
+
+On **Android** this is now automatic. Removing the last widget carrying an id
+runs `onDelete`, which deletes the cached image and forgets the id. Placing the
+same widget twice and removing one copy changes nothing -- the other is still
+rendering it.
+
+On **iOS** nothing observes it. WidgetKit does not tell an extension its widget
+was removed, and `WidgetCenter.getCurrentConfigurations` answers with
+configuration intents that only the app defining them can decode, so the plugin
+cannot reconcile on your behalf. Tell it when an id is finished:
+
+```dart
+await GlanceWidget.forgetWidget('parcel_4821');
+```
+
+That drops the payload for every template, the image file, and the id, on both
+platforms. It does not remove a widget from the home screen -- no API on either
+platform can. A widget still carrying the id renders its placeholder
+afterwards, because there is nothing left to read.
+
+### What `getActiveWidgetIds()` means
+
+The ids this app has **data stored for**, in ascending order. Not the ids on
+the home screen: neither platform will tell you that. An id appears as soon as
+you write to it, whether or not a widget has been placed, because the data is
+sitting there waiting for one.
+
+| | An id leaves the list when |
+|---|---|
+| Android | its last widget is removed, or you call `forgetWidget` |
+| iOS | you call `forgetWidget` |
+
+Before v2.0.0 it returned every id ever written, on both platforms, in an order
+that could differ between two calls.
+
 ## Errors and platform support
 
 Every update either applies or throws `GlanceWidgetException` carrying the

@@ -943,11 +943,21 @@ object GlanceWidgetManager {
     }
 
     /**
-     * Gets the list of active widget IDs.
+     * The widget ids this app has data stored for, in ascending order.
+     *
+     * "Active" means the app has written to the id and no widget carrying it
+     * has since been removed from the home screen -- not that one is currently
+     * placed. An id written before any widget is placed is active, because its
+     * data is there waiting; an id whose last widget the user dragged off is
+     * dropped by [WidgetRemoval], because nothing can reach that data again.
+     *
+     * Sorted because the backing store is a set. Returning it directly meant
+     * two calls could answer in different orders, and a caller rendering the
+     * list got it reshuffled at random. See #13.
      */
     fun getActiveWidgetIds(context: Context): List<String> {
         return synchronized(activeWidgetIds) {
-            activeWidgetIds.toList()
+            activeWidgetIds.sorted()
         }
     }
 
@@ -1040,7 +1050,26 @@ object GlanceWidgetManager {
     }
 
     /**
-     * Removes a widget ID from active tracking.
+     * Drops everything stored for [widgetId]: its cached image and its id.
+     *
+     * The payload itself is the placed instance's own Glance state, which
+     * Glance deletes when the widget goes; this is what it does not know
+     * about. Called from [WidgetRemoval] when the last widget carrying the id
+     * leaves the home screen, and from the `forgetWidget` channel method when
+     * an app wants the same thing on demand -- which is how iOS has to do it,
+     * WidgetKit having no removal signal at all.
+     */
+    fun forgetWidget(context: Context, widgetId: String) {
+        ImageStore.evict(context, widgetId)
+        removeWidgetId(context, widgetId)
+    }
+
+    /**
+     * Stops tracking [widgetId], because nothing can reach its data any more.
+     *
+     * Called from [WidgetRemoval] when the last widget carrying the id leaves
+     * the home screen. This existed with no callers at all until #13 -- the
+     * intent was there, the `onDelete` that should have driven it was not.
      */
     fun removeWidgetId(context: Context, widgetId: String) {
         synchronized(activeWidgetIds) {

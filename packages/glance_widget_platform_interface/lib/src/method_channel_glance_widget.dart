@@ -260,6 +260,13 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
   }
 
   @override
+  Future<void> forgetWidget(String widgetId) => _mutate(
+    'forgetWidget',
+    'Failed to forget widget',
+    <String, Object?>{'widgetId': widgetId},
+  );
+
+  @override
   Stream<GlanceWidgetAction> get onWidgetAction {
     _actionController ??= StreamController<GlanceWidgetAction>.broadcast(
       onListen: _startListening,

@@ -1,5 +1,24 @@
 ## 2.0.0
 
+**Fixed:** removing a widget from the home screen left everything behind --
+its payload, its downsampled image on disk, and its id in
+`getActiveWidgetIds()` forever. Neither platform had a deletion hook at all.
+Android now cleans up from `onDelete`, and an id whose second copy is still
+placed is kept.
+
+**Added:** `GlanceWidget.forgetWidget(id)` drops the payload, the image and the
+id on demand. It is the only way an id is ever dropped on iOS, where WidgetKit
+tells an extension nothing about its widget being removed and the configuration
+intents that would identify one are decodable only by the app that defined
+them.
+
+**Changed:** `getActiveWidgetIds()` is sorted and documented. Both platforms
+returned a `Set` directly, so two calls could answer in different orders and a
+caller rendering the list got it reshuffled at random. The doc said "currently
+displayed on the home screen"; what it returned was every id the app had ever
+written. Neither platform can answer the first question, so the contract is now
+the one it can keep: the ids there is data stored for.
+
 **Fixed:** `GlancePreview` drew Android corners at a hardcoded 16dp, so a
 widget themed with `borderRadius: 4` rendered with 4dp corners on a device and
 16dp ones in the preview. That reading was correct when it was written -- the

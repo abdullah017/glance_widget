@@ -1,5 +1,15 @@
 ## 2.0.0
 
+**Added:** `forgetWidget(_:)` drops every template's payload for an id, its
+downsampled image, and the id itself. WidgetKit gives an app no signal when a
+widget is removed -- an extension is not told, and
+`WidgetCenter.getCurrentConfigurations` answers with configuration intents
+whose type only the app that defined them can decode -- so unlike Android,
+where `onDelete` handles this, iOS needs the app to say.
+
+**Changed:** `getActiveWidgetIds()` is sorted. It returned
+`Array(activeWidgetIds)`, and a `Set` has no order to promise.
+
 **Fixed:** every widget update silently did nothing in any app whose App Group
 was not the example's. `GlanceWidgetManager.appGroupId` was a constant holding
 `group.com.example.glancewidget`, and nothing in the plugin ever assigned it --

@@ -437,15 +437,48 @@ class GlanceWidget {
     return PlatformGuard.guardVoid(() => _platform.forceRefreshAll());
   }
 
-  /// Gets the list of active widget IDs.
+  /// The widget ids this app has data stored for, in ascending order.
   ///
-  /// Returns a list of widget IDs that are currently displayed on the
-  /// home screen.
+  /// **Not** the ids currently on the home screen -- neither platform can
+  /// answer that. An id appears here as soon as the app writes to it, whether
+  /// or not a widget carrying it has been placed, because the data is there
+  /// waiting for one.
+  ///
+  /// What removes an id differs by platform, and it is worth knowing which you
+  /// are relying on:
+  ///
+  /// * **Android** drops it by itself. Removing the last widget carrying an id
+  ///   from the home screen runs `onDelete`, which deletes the cached image and
+  ///   forgets the id. A second widget with the same id keeps both alive.
+  /// * **iOS** never drops it on its own. WidgetKit does not tell an extension
+  ///   its widget was removed, so nothing observes it happening; call
+  ///   [forgetWidget] when your app knows an id is finished.
+  ///
+  /// Before v2.0.0 this returned every id the app had ever written, on both
+  /// platforms, in a nondeterministic order. See #13.
   static Future<List<String>> getActiveWidgetIds() {
     return PlatformGuard.guard(
       () => _platform.getActiveWidgetIds(),
       <String>[],
     );
+  }
+
+  /// Drops everything stored for [widgetId].
+  ///
+  /// The payload, the downsampled image on disk, and the id itself. Use it
+  /// when an id is finished -- a tracked parcel that arrived, a watchlist entry
+  /// the user deleted -- so its data does not sit in the App Group forever.
+  ///
+  /// This does not remove a widget from the home screen; no API on either
+  /// platform can. A placed widget still carrying [widgetId] will render its
+  /// placeholder afterwards, because there is nothing left for it to read.
+  ///
+  /// On Android this is also what a removed widget triggers by itself, so
+  /// calling it by hand is only needed for an id whose widget was never placed
+  /// or is deliberately being reset. On iOS it is the only way an id is ever
+  /// dropped.
+  static Future<void> forgetWidget(String widgetId) {
+    return PlatformGuard.guardVoid(() => _platform.forgetWidget(widgetId));
   }
 
   /// Stream of widget action events.
