@@ -35,6 +35,14 @@ struct GlanceWidgetsBundle: WidgetBundle {
         ImageWidget()
         ChartWidget()
         GaugeWidget()
+#if canImport(ActivityKit)
+        // `ActivityConfiguration` is iOS 16.2. The guard is what lets this
+        // bundle still build for an extension whose deployment target is lower
+        // -- everything else here is 17.0.
+        if #available(iOS 16.2, *) {
+            GlanceLiveActivityWidget()
+        }
+#endif
     }
 }
 

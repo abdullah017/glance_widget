@@ -66,6 +66,7 @@ widgets.
 | Rounded corners | `GlanceTheme.borderRadius`, Android 12+ only | `GlanceTheme.borderRadius` |
 | Wallpaper colours | `useDynamicColor`, Android 12+ only | Not available |
 | Adapts to slot size | All templates | All templates |
+| Live Activities | Not available (throws `UnsupportedError`) | iOS 16.2+, Lock Screen + Dynamic Island |
 
 ## Material You (Android 12+)
 
@@ -176,6 +177,91 @@ Two more things the lock screen changes, both deliberate:
 `GlancePreview` renders the home screen layouts. There is no preview for the
 accessory families yet -- the tint and vibrancy come from the lock screen
 compositor, so a faithful in-app copy is not currently possible.
+
+## Live Activities and the Dynamic Island (iOS)
+
+A Live Activity is not a home screen widget, so it is not another template. It
+is a card that shows something *in progress* -- a delivery, a match, a
+download -- on the Lock Screen and in the Dynamic Island, and it ends when the
+thing does.
+
+```dart
+if (await GlanceWidget.areLiveActivitiesEnabled()) {
+  await GlanceWidget.startLiveActivity(
+    activityId: 'delivery-42',
+    content: const LiveActivityContent(
+      title: '🛵 Order on its way',
+      status: '12 min away',
+      progress: 0.4,
+      stats: {'Driver': 'Sam', 'Items': '3'},
+    ),
+  );
+}
+
+// ... later
+await GlanceWidget.updateLiveActivity(
+  activityId: 'delivery-42',
+  content: const LiveActivityContent(title: '🛵 Order on its way', status: '3 min away', progress: 0.8),
+);
+
+await GlanceWidget.endLiveActivity(
+  activityId: 'delivery-42',
+  content: const LiveActivityContent(title: '🛵 Order delivered', status: 'Left at your door', progress: 1),
+);
+```
+
+`activityId` is your own name for the activity. ActivityKit assigns an id you
+never see, so this is what the update and the end find it by.
+
+**The first character of `title` is what the collapsed Dynamic Island shows**,
+which is why the example leads with an emoji. `status` is the other half of
+that collapsed view. `stats` appear only when there is room -- the Lock Screen
+card and the expanded island -- and are drawn in the order you wrote them.
+
+### An activity outlives your app
+
+It stays on the Lock Screen across a relaunch, and the user can dismiss it
+without your app hearing about it. So an app resuming with work still in
+flight asks rather than remembers:
+
+```dart
+if (await GlanceWidget.isLiveActivityRunning('delivery-42')) {
+  await GlanceWidget.updateLiveActivity(activityId: 'delivery-42', content: ...);
+} else {
+  await GlanceWidget.startLiveActivity(activityId: 'delivery-42', content: ...);
+}
+```
+
+`startLiveActivity` refuses an id that is already running rather than quietly
+placing a second card the first id no longer names.
+
+### One fixed shape
+
+A widget extension has to name a concrete `ActivityAttributes` type at compile
+time, and ActivityKit matches a running activity to the presentation that draws
+it by that type. So the plugin can offer exactly one shape --
+`LiveActivityContent` -- and a different one means editing your own copy of
+`GlanceLiveActivityWidget.swift`, which also means `LiveActivityContent` stops
+describing it. That is the cost, stated rather than hidden behind a `Map`.
+
+The match is by type **name and shape**, not by module, which is what lets the
+plugin own the type while your extension declares its own copy. That was
+measured, not assumed:
+[findings-live-activity-module-boundary.md](https://github.com/abdullahtas0/glance_widget/blob/master/packages/glance_widget_ios/example/ios/GlanceWidgets/docs/findings-live-activity-module-boundary.md).
+
+### What Android does
+
+`startLiveActivity`, `updateLiveActivity` and `endLiveActivity` throw
+`UnsupportedError` there. Android 16's Live Updates are the nearest thing and
+are a notification rather than a widget; a plugin that quietly did nothing
+would leave you believing something was on screen.
+
+`areLiveActivitiesEnabled()` and `isLiveActivityRunning()` answer `false`
+instead of throwing, so they are safe to branch on anywhere.
+
+Setup: `NSSupportsLiveActivities` in your app's `Info.plist`, and
+`GlanceLiveActivityWidget.swift` copied into your widget extension. See
+[WIDGET_SETUP.md](https://github.com/abdullahtas0/glance_widget/blob/master/packages/glance_widget_ios/example/ios/WIDGET_SETUP.md).
 
 ## Widget Templates
 

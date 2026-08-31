@@ -1,6 +1,7 @@
 import 'package:glance_widget_platform_interface/src/method_channel_glance_widget.dart';
 import 'package:glance_widget_platform_interface/src/types/glance_exception.dart';
 import 'package:glance_widget_platform_interface/src/types/glance_widget_update.dart';
+import 'package:glance_widget_platform_interface/src/types/live_activity.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_action.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_data.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_theme.dart';
@@ -133,6 +134,63 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   /// Drops everything stored for [widgetId].
   Future<void> forgetWidget(String widgetId) {
     throw UnimplementedError('forgetWidget() has not been implemented.');
+  }
+
+  /// Starts a Live Activity and shows it on the Lock Screen and, on a device
+  /// that has one, in the Dynamic Island.
+  ///
+  /// [activityId] is the caller's own name for the activity; ActivityKit
+  /// assigns an id of its own that the caller never sees, and this is what
+  /// [updateLiveActivity] and [endLiveActivity] use to find it again.
+  ///
+  /// iOS 16.2+ only. Android throws [UnsupportedError]: its nearest equivalent,
+  /// Android 16's Live Updates, is a notification rather than a widget and is
+  /// not something this plugin can stand in for.
+  Future<void> startLiveActivity({
+    required String activityId,
+    required LiveActivityContent content,
+  }) {
+    throw UnimplementedError('startLiveActivity() has not been implemented.');
+  }
+
+  /// Replaces the content of a running Live Activity.
+  Future<void> updateLiveActivity({
+    required String activityId,
+    required LiveActivityContent content,
+  }) {
+    throw UnimplementedError('updateLiveActivity() has not been implemented.');
+  }
+
+  /// Ends a running Live Activity, optionally showing [content] as its final
+  /// state.
+  Future<void> endLiveActivity({
+    required String activityId,
+    LiveActivityContent? content,
+    LiveActivityDismissal dismissal = LiveActivityDismissal.standard,
+  }) {
+    throw UnimplementedError('endLiveActivity() has not been implemented.');
+  }
+
+  /// Whether an activity started under [activityId] is still running.
+  ///
+  /// An activity outlives the process that requested it: the app can be killed
+  /// and relaunched while the card is still on the Lock Screen. Nothing the
+  /// app held in memory survives that, so this asks the system.
+  Future<bool> isLiveActivityRunning(String activityId) {
+    throw UnimplementedError(
+      'isLiveActivityRunning() has not been implemented.',
+    );
+  }
+
+  /// Whether Live Activities can be started right now.
+  ///
+  /// The user can turn them off for an app in Settings, and then a request
+  /// fails rather than returning nothing. Returns `false` on Android and on
+  /// iOS before 16.2.
+  Future<bool> areLiveActivitiesEnabled() {
+    throw UnimplementedError(
+      'areLiveActivitiesEnabled() has not been implemented.',
+    );
   }
 
   /// Stream of widget action events (taps, etc.)

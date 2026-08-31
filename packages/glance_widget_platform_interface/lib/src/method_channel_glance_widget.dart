@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:glance_widget_platform_interface/src/glance_widget_platform.dart';
 import 'package:glance_widget_platform_interface/src/types/glance_exception.dart';
 import 'package:glance_widget_platform_interface/src/types/glance_widget_update.dart';
+import 'package:glance_widget_platform_interface/src/types/live_activity.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_action.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_data.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_theme.dart';
@@ -265,6 +266,119 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
     'Failed to forget widget',
     <String, Object?>{'widgetId': widgetId},
   );
+
+  /// Runs a Live Activity call, turning "this platform has no such method"
+  /// into an [UnsupportedError].
+  ///
+  /// Android's plugin answers an unknown method with `notImplemented`, which
+  /// Flutter delivers as a [MissingPluginException] -- a bug-shaped exception
+  /// for what is here a permanent property of the platform. There is no
+  /// Android equivalent to implement: Android 16's Live Updates are a
+  /// notification, not a widget.
+  Future<T> _liveActivity<T>(
+    String method,
+    String context,
+    T Function(Object? result) parse, [
+    Object? arguments,
+  ]) async {
+    try {
+      final result = await _methodChannel.invokeMethod<Object?>(
+        method,
+        arguments,
+      );
+      return parse(result);
+    } on MissingPluginException {
+      throw UnsupportedError(
+        'Live Activities are an iOS 16.2+ feature; this platform has no '
+        'equivalent. Guard the call with areLiveActivitiesEnabled().',
+      );
+    } on PlatformException catch (e) {
+      throw GlanceWidgetException.fromPlatformException(e, context: context);
+    }
+  }
+
+  @override
+  Future<void> startLiveActivity({
+    required String activityId,
+    required LiveActivityContent content,
+  }) async {
+    WidgetData.checkNotEmpty(activityId, 'activityId');
+    content.validate();
+    await _liveActivity<void>(
+      'startLiveActivity',
+      'Failed to start Live Activity',
+      (_) {},
+      <String, Object?>{'activityId': activityId, 'content': content.toMap()},
+    );
+  }
+
+  @override
+  Future<void> updateLiveActivity({
+    required String activityId,
+    required LiveActivityContent content,
+  }) async {
+    WidgetData.checkNotEmpty(activityId, 'activityId');
+    content.validate();
+    await _liveActivity<void>(
+      'updateLiveActivity',
+      'Failed to update Live Activity',
+      (_) {},
+      <String, Object?>{'activityId': activityId, 'content': content.toMap()},
+    );
+  }
+
+  @override
+  Future<void> endLiveActivity({
+    required String activityId,
+    LiveActivityContent? content,
+    LiveActivityDismissal dismissal = LiveActivityDismissal.standard,
+  }) async {
+    WidgetData.checkNotEmpty(activityId, 'activityId');
+    content?.validate();
+    await _liveActivity<void>(
+      'endLiveActivity',
+      'Failed to end Live Activity',
+      (_) {},
+      <String, Object?>{
+        'activityId': activityId,
+        if (content != null) 'content': content.toMap(),
+        'dismissal': dismissal.wireName,
+      },
+    );
+  }
+
+  @override
+  Future<bool> isLiveActivityRunning(String activityId) async {
+    WidgetData.checkNotEmpty(activityId, 'activityId');
+    try {
+      return await _liveActivity<bool>(
+        'isLiveActivityRunning',
+        'Failed to check whether the Live Activity is running',
+        (result) => result as bool? ?? false,
+        <String, Object?>{'activityId': activityId},
+      );
+    } on UnsupportedError {
+      // Same reasoning as areLiveActivitiesEnabled: "is one running" has a
+      // correct answer on a platform that cannot run them, and it is no.
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> areLiveActivitiesEnabled() async {
+    // Unlike the three above, this one answers rather than throws on a
+    // platform that has no Live Activities: "can I start one" has a correct
+    // answer there, and it is no.
+    try {
+      return await _liveActivity<bool>(
+        'areLiveActivitiesEnabled',
+        'Failed to check Live Activity availability',
+        (result) => result as bool? ?? false,
+      );
+    } on UnsupportedError {
+      return false;
+    }
+  }
 
   @override
   Stream<GlanceWidgetAction> get onWidgetAction {

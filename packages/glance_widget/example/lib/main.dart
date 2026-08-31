@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:glance_widget/glance_widget.dart';
 
+import 'package:glance_widget_example/live_activity_page.dart';
 import 'package:glance_widget_example/preview_page.dart';
 
 void main() {
@@ -584,6 +585,13 @@ class _HomePageState extends State<HomePage>
         backgroundColor: const Color(0xFF1A1A2E),
         elevation: 0,
         actions: [
+          IconButton(
+            tooltip: 'Start a Live Activity (iOS 16.2+)',
+            icon: const Icon(Icons.notifications_active_outlined),
+            onPressed: () => Navigator.of(context).push<void>(
+              MaterialPageRoute(builder: (_) => const LiveActivityPage()),
+            ),
+          ),
           IconButton(
             tooltip: 'Preview every template on both platforms',
             icon: const Icon(Icons.phone_iphone),

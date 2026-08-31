@@ -1,5 +1,17 @@
 ## 2.0.0
 
+**Added:** Live Activities. `startLiveActivity`, `updateLiveActivity`,
+`endLiveActivity`, `isLiveActivityRunning` and `areLiveActivitiesEnabled` put a
+card on the iOS Lock Screen and in the Dynamic Island for something in
+progress. Content is one fixed shape, `LiveActivityContent`, because a widget
+extension has to name a concrete `ActivityAttributes` type at compile time and
+ActivityKit matches an activity to its presentation by that type.
+
+The three mutating calls throw `UnsupportedError` on Android rather than doing
+nothing: Android 16's Live Updates are a notification, not a widget, and a
+silent no-op would leave a caller believing something was on screen. The two
+queries answer `false` there instead, so they are safe to branch on anywhere.
+
 **Fixed:** removing a widget from the home screen left everything behind --
 its payload, its downsampled image on disk, and its id in
 `getActiveWidgetIds()` forever. Neither platform had a deletion hook at all.

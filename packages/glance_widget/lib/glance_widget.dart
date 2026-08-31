@@ -58,7 +58,9 @@ export 'package:glance_widget_platform_interface/glance_widget_platform_interfac
         GlanceActionType,
         GlanceWidgetException,
         GlanceWidgetTimeoutException,
-        GlanceWidgetValidationException;
+        GlanceWidgetValidationException,
+        LiveActivityContent,
+        LiveActivityDismissal;
 
 export 'src/controllers/calendar_widget_controller.dart';
 export 'src/controllers/chart_widget_controller.dart';
