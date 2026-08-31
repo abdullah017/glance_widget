@@ -1,3 +1,22 @@
+## 2.0.0
+
+**Breaking:** the platform interface now models failure as an exception rather
+than a boolean.
+
+### Changed
+
+* The 15 mutating members return `Future<void>` and throw
+  `GlanceWidgetException` on a platform failure. `isWidgetPushSupported` keeps
+  `Future<bool>` because it asks a real question.
+* `getWidgetPushToken`, `getActiveWidgetIds` and `getBackgroundUpdateStatus`
+  throw on a platform failure instead of answering a default that was
+  indistinguishable from a real result.
+
+### Removed
+
+* `MethodChannelGlanceWidget.throwOnError`. Failures always throw; the original
+  `PlatformException` is kept on `GlanceWidgetException.originalException`.
+
 # Changelog
 
 ## 1.0.0

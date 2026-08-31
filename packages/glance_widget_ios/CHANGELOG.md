@@ -1,3 +1,17 @@
+## 2.0.0
+
+**Breaking:** matches `glance_widget_platform_interface` 2.0.0. Update methods
+return `Future<void>` and throw `GlanceWidgetException` on failure instead of
+returning `Future<bool>`. See the main package's
+[migration guide](https://pub.dev/packages/glance_widget) for details.
+
+### Fixed
+
+* Method channel handlers replied `success(true)` before knowing whether the
+  update had been applied, so a rejected update was reported to Dart as a
+  success. Handlers now await the real outcome and answer with an error when the
+  platform refused.
+
 # Changelog
 
 ## 1.0.0

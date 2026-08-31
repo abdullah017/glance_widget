@@ -39,10 +39,9 @@ void main() {
             data: any(named: 'data'),
             theme: any(named: 'theme'),
           ),
-        ).thenAnswer((_) async => true);
+        ).thenAnswer((_) async {});
 
-        final result = await ctrl.update(data);
-        expect(result, true);
+        await ctrl.update(data);
         verify(
           () => mockPlatform.updateSimpleWidget(
             widgetId: 'test',
@@ -117,7 +116,7 @@ void main() {
       final theme = GlanceTheme.dark();
       when(
         () => mockPlatform.setGlobalTheme(any()),
-      ).thenAnswer((_) async => true);
+      ).thenAnswer((_) async {});
 
       await ctrl.setTheme(theme);
       verify(() => mockPlatform.setGlobalTheme(theme)).called(1);

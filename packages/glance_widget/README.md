@@ -30,7 +30,8 @@ widgets.
 | **Real-time Updates** | `DebouncedWidgetController` — 100ms coalescing, auto-flush on app background | Not available — build it yourself |
 | **Background Updates** | Built-in `GlanceBackground` (WorkManager + Timeline) | Requires external `flutter_workmanager` |
 | **iOS Push** | Built-in iOS 26+ APNs support | Not available |
-| **Platform Safety** | `GlanceConfig.strictMode` — graceful on Web/desktop | Crashes on unsupported platforms |
+| **Error Reporting** | Every call applies or throws with the reason | Silent `Future<bool>` you can forget to check |
+| **Platform Safety** | Silent no-op on Web/desktop, queryable via `GlanceWidget.isSupported` | Crashes on unsupported platforms |
 | **Native Code** | None on Android; copy-in extension on iOS | Required for every widget |
 
 ## Features
@@ -557,16 +558,34 @@ if (await GlanceWidget.isWidgetPushSupported()) {
 
 ---
 
-## Platform Safety
+## Errors and platform support
 
-`glance_widget` runs gracefully on unsupported platforms (Web, macOS, Windows, Linux):
+Every update either applies or throws `GlanceWidgetException` carrying the
+platform's reason. There is no success flag to forget to check:
 
 ```dart
-// Default: methods return false/empty and log a warning
-await GlanceWidget.simple(id: 'test', title: 'T', value: 'V'); // no-op on Web
+try {
+  await GlanceWidget.simple(id: 'btc', title: 'Bitcoin', value: r'$94,532');
+} on GlanceWidgetException catch (e) {
+  debugPrint('${e.code}: ${e.message}');
+}
+```
 
-// Opt-in to strict mode (recommended in debug):
-GlanceConfig.strictMode = kDebugMode; // throws UnsupportedError on Web/desktop
+Platforms without a home screen widget system (Web, macOS, Windows, Linux) are
+a separate case: there every call is a silent no-op, so shared code needs no
+platform branches. Branch only where the *user* would notice:
+
+```dart
+if (GlanceWidget.isSupported) const AddWidgetButton(),
+```
+
+`DebouncedWidgetController.scheduleUpdate` returns before its dispatch happens,
+so it cannot throw to you. Its timer-driven failures arrive on a stream
+instead:
+
+```dart
+controller.errors.listen((e) => debugPrint('widget update failed: $e'));
+await controller.flush(); // this one throws to you directly
 ```
 
 ---

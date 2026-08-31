@@ -22,7 +22,7 @@ class GlanceBackground {
   /// [intervalMinutes] minimum 15 (Android WorkManager constraint).
   /// [valuePath] JSONPath expression — e.g., `$.bitcoin.usd`
   /// [subtitlePath] optional JSONPath — e.g., `$.bitcoin.change_24h`
-  static Future<bool> configureUpdate({
+  static Future<void> configureUpdate({
     required String widgetId,
     required GlanceTemplate template,
     required String apiUrl,
@@ -34,13 +34,13 @@ class GlanceBackground {
     String? valuePrefix,
     String? valueSuffix,
   }) async {
-    return PlatformGuard.guard(() async {
+    return PlatformGuard.guardVoid(() async {
       JsonPathValidator.validate(valuePath);
       if (subtitlePath != null) JsonPathValidator.validate(subtitlePath);
 
       final clampedInterval = intervalMinutes < 15 ? 15 : intervalMinutes;
 
-      return GlanceWidgetPlatform.instance.configureBackgroundUpdate(
+      await GlanceWidgetPlatform.instance.configureBackgroundUpdate(
         widgetId: widgetId,
         template: template.name,
         apiUrl: apiUrl,
@@ -52,13 +52,12 @@ class GlanceBackground {
         valuePrefix: valuePrefix,
         valueSuffix: valueSuffix,
       );
-    }, false);
+    });
   }
 
   /// Cancels background updates for a widget.
-  static Future<bool> cancelUpdate(String widgetId) => PlatformGuard.guard(
+  static Future<void> cancelUpdate(String widgetId) => PlatformGuard.guardVoid(
     () => GlanceWidgetPlatform.instance.cancelBackgroundUpdate(widgetId),
-    false,
   );
 
   /// Gets the status of background updates for a widget.
@@ -69,30 +68,27 @@ class GlanceBackground {
       );
 
   /// Triggers a one-time background update immediately (for testing).
-  static Future<bool> testUpdate(String widgetId) => PlatformGuard.guard(
+  static Future<void> testUpdate(String widgetId) => PlatformGuard.guardVoid(
     () => GlanceWidgetPlatform.instance.testBackgroundUpdate(widgetId),
-    false,
   );
 
   /// Configures iOS timeline-based refresh for a widget.
   ///
   /// [intervalMinutes] is a suggestion — WidgetKit may delay refreshes
   /// to optimise battery life. Minimum 5 minutes.
-  static Future<bool> configureTimelineRefresh({
+  static Future<void> configureTimelineRefresh({
     required String widgetId,
     int intervalMinutes = 30,
-  }) => PlatformGuard.guard(
+  }) => PlatformGuard.guardVoid(
     () => GlanceWidgetPlatform.instance.configureTimelineRefresh(
       widgetId: widgetId,
       intervalMinutes: intervalMinutes < 5 ? 5 : intervalMinutes,
     ),
-    false,
   );
 
   /// Cancels iOS timeline-based refresh for a widget.
-  static Future<bool> cancelTimelineRefresh(String widgetId) =>
-      PlatformGuard.guard(
+  static Future<void> cancelTimelineRefresh(String widgetId) =>
+      PlatformGuard.guardVoid(
         () => GlanceWidgetPlatform.instance.cancelTimelineRefresh(widgetId),
-        false,
       );
 }

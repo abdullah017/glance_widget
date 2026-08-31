@@ -37,10 +37,38 @@ import 'package:glance_widget_platform_interface/glance_widget_platform_interfac
 ///   showCheckboxes: true,
 /// );
 /// ```
+///
+/// ## Error contract
+///
+/// Update methods return `Future<void>`: they either apply the change or throw
+/// [GlanceWidgetException] describing why the platform refused. There is no
+/// success flag to forget to check.
+///
+/// ```dart
+/// try {
+///   await GlanceWidget.simple(id: 'btc', title: 'Bitcoin', value: r'$94,532');
+/// } on GlanceWidgetException catch (e) {
+///   debugPrint('widget update failed: ${e.message}');
+/// }
+/// ```
+///
+/// On platforms without home screen widgets every call is a silent no-op --
+/// see [isSupported].
 class GlanceWidget {
   GlanceWidget._();
 
   static GlanceWidgetPlatform get _platform => GlanceWidgetPlatform.instance;
+
+  /// Whether the current platform has a home screen widget system.
+  ///
+  /// `true` on Android and iOS. Everywhere else every call below is a no-op
+  /// that completes normally, so shared code does not need `if (Platform.isX)`
+  /// branches -- but a UI that offers "add a widget" should hide itself:
+  ///
+  /// ```dart
+  /// if (GlanceWidget.isSupported) AddWidgetButton(),
+  /// ```
+  static bool get isSupported => GlanceConfig.isSupported;
 
   /// Updates a Simple Widget with title, value, and optional subtitle.
   ///
@@ -59,8 +87,9 @@ class GlanceWidget {
   /// - [iconName]: Optional predefined icon name
   /// - [theme]: Optional theme override for this widget
   ///
-  /// Returns `true` if the widget was updated successfully.
-  static Future<bool> simple({
+  /// Throws [GlanceWidgetException] if the platform could not apply the
+  /// update. Does nothing on platforms without home screen widgets.
+  static Future<void> simple({
     required String id,
     required String title,
     required String value,
@@ -70,7 +99,7 @@ class GlanceWidget {
     String? deepLinkUri,
     GlanceTheme? theme,
   }) {
-    return PlatformGuard.guard(
+    return PlatformGuard.guardVoid(
       () => _platform.updateSimpleWidget(
         widgetId: id,
         data: SimpleWidgetData(
@@ -83,7 +112,6 @@ class GlanceWidget {
         ),
         theme: theme,
       ),
-      false,
     );
   }
 
@@ -105,8 +133,9 @@ class GlanceWidget {
   /// - [trackColor]: Optional color for the progress track
   /// - [theme]: Optional theme override for this widget
   ///
-  /// Returns `true` if the widget was updated successfully.
-  static Future<bool> progress({
+  /// Throws [GlanceWidgetException] if the platform could not apply the
+  /// update. Does nothing on platforms without home screen widgets.
+  static Future<void> progress({
     required String id,
     required String title,
     required double progress,
@@ -117,7 +146,7 @@ class GlanceWidget {
     String? deepLinkUri,
     GlanceTheme? theme,
   }) {
-    return PlatformGuard.guard(
+    return PlatformGuard.guardVoid(
       () => _platform.updateProgressWidget(
         widgetId: id,
         data: ProgressWidgetData(
@@ -131,7 +160,6 @@ class GlanceWidget {
         ),
         theme: theme,
       ),
-      false,
     );
   }
 
@@ -151,8 +179,9 @@ class GlanceWidget {
   /// - [maxItems]: Maximum number of items to display (default: 5)
   /// - [theme]: Optional theme override for this widget
   ///
-  /// Returns `true` if the widget was updated successfully.
-  static Future<bool> list({
+  /// Throws [GlanceWidgetException] if the platform could not apply the
+  /// update. Does nothing on platforms without home screen widgets.
+  static Future<void> list({
     required String id,
     required String title,
     required List<GlanceListItem> items,
@@ -161,7 +190,7 @@ class GlanceWidget {
     String? deepLinkUri,
     GlanceTheme? theme,
   }) {
-    return PlatformGuard.guard(
+    return PlatformGuard.guardVoid(
       () => _platform.updateListWidget(
         widgetId: id,
         data: ListWidgetData(
@@ -173,7 +202,6 @@ class GlanceWidget {
         ),
         theme: theme,
       ),
-      false,
     );
   }
 
@@ -194,8 +222,9 @@ class GlanceWidget {
   /// - [fit]: How the image should be fitted (default: cover)
   /// - [theme]: Optional theme override for this widget
   ///
-  /// Returns `true` if the widget was updated successfully.
-  static Future<bool> image({
+  /// Throws [GlanceWidgetException] if the platform could not apply the
+  /// update. Does nothing on platforms without home screen widgets.
+  static Future<void> image({
     required String id,
     required String title,
     String? imageUrl,
@@ -205,7 +234,7 @@ class GlanceWidget {
     String? deepLinkUri,
     GlanceTheme? theme,
   }) {
-    return PlatformGuard.guard(
+    return PlatformGuard.guardVoid(
       () => _platform.updateImageWidget(
         widgetId: id,
         data: ImageWidgetData(
@@ -218,7 +247,6 @@ class GlanceWidget {
         ),
         theme: theme,
       ),
-      false,
     );
   }
 
@@ -239,8 +267,9 @@ class GlanceWidget {
   /// - [subtitle]: Optional secondary text
   /// - [theme]: Optional theme override for this widget
   ///
-  /// Returns `true` if the widget was updated successfully.
-  static Future<bool> chart({
+  /// Throws [GlanceWidgetException] if the platform could not apply the
+  /// update. Does nothing on platforms without home screen widgets.
+  static Future<void> chart({
     required String id,
     required String title,
     required List<double> dataPoints,
@@ -250,7 +279,7 @@ class GlanceWidget {
     String? deepLinkUri,
     GlanceTheme? theme,
   }) {
-    return PlatformGuard.guard(
+    return PlatformGuard.guardVoid(
       () => _platform.updateChartWidget(
         widgetId: id,
         data: ChartWidgetData(
@@ -263,7 +292,6 @@ class GlanceWidget {
         ),
         theme: theme,
       ),
-      false,
     );
   }
 
@@ -283,8 +311,9 @@ class GlanceWidget {
   /// - [maxEvents]: Maximum events to show (default: 5, range: 1-10)
   /// - [theme]: Optional theme override for this widget
   ///
-  /// Returns `true` if the widget was updated successfully.
-  static Future<bool> calendar({
+  /// Throws [GlanceWidgetException] if the platform could not apply the
+  /// update. Does nothing on platforms without home screen widgets.
+  static Future<void> calendar({
     required String id,
     required String title,
     required DateTime date,
@@ -293,7 +322,7 @@ class GlanceWidget {
     String? deepLinkUri,
     GlanceTheme? theme,
   }) {
-    return PlatformGuard.guard(
+    return PlatformGuard.guardVoid(
       () => _platform.updateCalendarWidget(
         widgetId: id,
         data: CalendarWidgetData(
@@ -305,7 +334,6 @@ class GlanceWidget {
         ),
         theme: theme,
       ),
-      false,
     );
   }
 
@@ -324,8 +352,9 @@ class GlanceWidget {
   /// - [gaugeType]: Radial or dashboard display (default: radial)
   /// - [theme]: Optional theme override for this widget
   ///
-  /// Returns `true` if the widget was updated successfully.
-  static Future<bool> gauge({
+  /// Throws [GlanceWidgetException] if the platform could not apply the
+  /// update. Does nothing on platforms without home screen widgets.
+  static Future<void> gauge({
     required String id,
     required String title,
     required List<GaugeMetric> metrics,
@@ -333,7 +362,7 @@ class GlanceWidget {
     String? deepLinkUri,
     GlanceTheme? theme,
   }) {
-    return PlatformGuard.guard(
+    return PlatformGuard.guardVoid(
       () => _platform.updateGaugeWidget(
         widgetId: id,
         data: GaugeWidgetData(
@@ -344,7 +373,6 @@ class GlanceWidget {
         ),
         theme: theme,
       ),
-      false,
     );
   }
 
@@ -357,15 +385,15 @@ class GlanceWidget {
   /// ```dart
   /// await GlanceWidget.setTheme(GlanceTheme.dark());
   /// ```
-  static Future<bool> setTheme(GlanceTheme theme) {
-    return PlatformGuard.guard(() => _platform.setGlobalTheme(theme), false);
+  static Future<void> setTheme(GlanceTheme theme) {
+    return PlatformGuard.guardVoid(() => _platform.setGlobalTheme(theme));
   }
 
   /// Forces a refresh of all widgets.
   ///
   /// Useful when you need to ensure all widgets are updated immediately.
-  static Future<bool> refreshAll() {
-    return PlatformGuard.guard(() => _platform.forceRefreshAll(), false);
+  static Future<void> refreshAll() {
+    return PlatformGuard.guardVoid(() => _platform.forceRefreshAll());
   }
 
   /// Gets the list of active widget IDs.
@@ -390,7 +418,8 @@ class GlanceWidget {
   ///   print('Widget ${action.widgetId} was ${action.type}');
   /// });
   /// ```
-  static Stream<GlanceWidgetAction> get onAction => _platform.onWidgetAction;
+  static Stream<GlanceWidgetAction> get onAction =>
+      PlatformGuard.guardStream(() => _platform.onWidgetAction);
 
   /// Gets the Widget Push Token for server-triggered updates (iOS 26+).
   ///
@@ -449,10 +478,9 @@ class GlanceWidget {
   ///   }
   /// });
   /// ```
-  static Future<bool> completeWidgetConfiguration(String widgetId) {
-    return PlatformGuard.guard(
+  static Future<void> completeWidgetConfiguration(String widgetId) {
+    return PlatformGuard.guardVoid(
       () => _platform.completeWidgetConfiguration(widgetId),
-      false,
     );
   }
 }

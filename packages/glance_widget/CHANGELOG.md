@@ -1,3 +1,52 @@
+## 2.0.0
+
+**Breaking:** widget updates now report failures instead of hiding them. See
+[doc/migration_v2.md](doc/migration_v2.md) for the full migration.
+
+### Fixed
+
+* A failed widget update was reported as a success. The native plugins answer a
+  failed update with a platform error, never with `false`, so the `Future<bool>`
+  every method returned was `true` on success and `true` again for any caller
+  who did not inspect it after the Dart layer had swallowed the error.
+  `DebouncedWidgetController` counted those failures as completed updates, so
+  `updateCount`, `timeSinceLastUpdate` and `isStale` all lied.
+* `DebouncedWidgetController` failures triggered by the debounce timer, the max
+  wait timer, or the app going to the background reached nobody at all.
+* Concurrent debounced dispatches could land out of order; they are now
+  serialised.
+* `GlanceWidgetController` bypassed the platform guard, so `update`, `setTheme`
+  and `onAction` threw `MissingPluginException` on Web and desktop instead of
+  no-opping like the rest of the API.
+* `GlanceConfig.strictMode = true` rejected valid JSONPath expressions such as
+  `$..author` and `$.book[?(@.price < 10)]`, which the native parser accepts.
+
+### Changed
+
+* All update, theme, configuration and background methods return `Future<void>`
+  and throw `GlanceWidgetException` — carrying the platform's `code`, `message`
+  and the original `PlatformException` — instead of returning `Future<bool>`.
+* `getWidgetPushToken`, `getActiveWidgetIds` and `getBackgroundUpdateStatus`
+  throw on a platform failure rather than answering `null`, `[]` or
+  `{isConfigured: false}`. `isWidgetPushSupported` still returns `bool`: it asks
+  a real question about the platform.
+* Unsupported platforms are always a silent no-op, never an exception.
+  `GlanceWidget.onAction` yields an empty stream there.
+* JSONPath validation rejects only what no parser accepts (empty, or not
+  starting with `$`); unrecognised expressions are logged and passed through.
+
+### Added
+
+* `GlanceWidget.isSupported` — ask whether the platform has home screen widgets
+  instead of configuring what failure should look like.
+* `DebouncedWidgetController.errors`, `.failedCount` and `.lastError`.
+
+### Removed
+
+* `MethodChannelGlanceWidget.throwOnError` — failures always throw.
+* `GlanceConfig.strictMode` — it conflated platform support with JSONPath
+  strictness; both are now explicit.
+
 ## 1.0.1
 
 * Updated sub-package dependencies to v1.0.0 (platform_interface, android, ios)

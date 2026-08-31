@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:glance_widget/src/glance_config.dart';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
 
 /// Generic controller for managing a single Glance widget instance.
@@ -42,9 +43,13 @@ class GlanceWidgetController<T extends WidgetData> {
   /// final ctrl = SimpleWidgetController(widgetId: 'test');
   /// ctrl.update(ProgressWidgetData(...)); // Won't compile!
   /// ```
-  Future<bool> update(T data) async {
+  ///
+  /// Completes once the platform has applied the update, and throws
+  /// [GlanceWidgetException] when it could not. On a platform without home
+  /// screen widgets this is a no-op.
+  Future<void> update(T data) async {
     _assertNotDisposed();
-    return _dispatchUpdate(data);
+    return PlatformGuard.guardVoid(() => _dispatchUpdate(data));
   }
 
   /// Stream of action events for this specific widget.
@@ -53,17 +58,21 @@ class GlanceWidgetController<T extends WidgetData> {
   /// Multiple controllers share a single native EventChannel subscription.
   Stream<GlanceWidgetAction> get onAction {
     _assertNotDisposed();
-    _subscription ??= GlanceWidgetPlatform.instance.onWidgetAction
+    _subscription ??= PlatformGuard.guardStream(
+      () => GlanceWidgetPlatform.instance.onWidgetAction,
+    )
         .where((action) => action.widgetId == widgetId)
         .listen(_actionController.add, onError: _actionController.addError);
     return _actionController.stream;
   }
 
   /// Updates the global theme and stores it locally for future updates.
-  Future<bool> setTheme(GlanceTheme newTheme) async {
+  Future<void> setTheme(GlanceTheme newTheme) async {
     _assertNotDisposed();
     theme = newTheme;
-    return GlanceWidgetPlatform.instance.setGlobalTheme(newTheme);
+    return PlatformGuard.guardVoid(
+      () => GlanceWidgetPlatform.instance.setGlobalTheme(newTheme),
+    );
   }
 
   /// Disposes of the controller and releases resources.
@@ -79,7 +88,7 @@ class GlanceWidgetController<T extends WidgetData> {
 
   /// Dispatches the update to the correct platform method using
   /// sealed class pattern matching.
-  Future<bool> _dispatchUpdate(WidgetData data) {
+  Future<void> _dispatchUpdate(WidgetData data) {
     final platform = GlanceWidgetPlatform.instance;
     return switch (data) {
       SimpleWidgetData() => platform.updateSimpleWidget(

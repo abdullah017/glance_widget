@@ -1,4 +1,3 @@
-import 'package:glance_widget/src/glance_config.dart';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
 import 'package:logging/logging.dart';
 
@@ -14,12 +13,15 @@ class JsonPathValidator {
     r'^\$(\.[a-zA-Z_][a-zA-Z0-9_]*|\[\d+\]|\[\*\]|\.\*)*$',
   );
 
-  /// Validates a JSONPath expression.
+  /// Validates a JSONPath expression, throwing
+  /// [GlanceWidgetValidationException] when it cannot be one.
   ///
-  /// - Empty path always throws [GlanceWidgetValidationException].
-  /// - Path not starting with `$` always throws.
-  /// - Non-standard expressions: throw if [GlanceConfig.strictMode] is true,
-  ///   otherwise log a warning and proceed (native parser may support them).
+  /// An empty path, or one that does not start with `$`, is rejected outright:
+  /// no JSONPath parser accepts either. Anything else is only *checked against
+  /// a heuristic* -- [_basicPattern] covers the common shapes, not the whole
+  /// grammar, so an expression it does not recognise is logged as a warning and
+  /// passed through. The native parser is the authority on what it accepts, and
+  /// rejecting here would break valid expressions this pattern never learned.
   static void validate(String path) {
     if (path.isEmpty) {
       throw GlanceWidgetValidationException(
@@ -38,17 +40,10 @@ class JsonPathValidator {
     }
 
     if (!_basicPattern.hasMatch(path)) {
-      if (GlanceConfig.strictMode) {
-        throw GlanceWidgetValidationException(
-          'JSONPath expression may not be valid: $path. '
-          r'Supported: $.field, $.field[0], $.a.b.c, $.field[*]',
-          field: 'valuePath',
-          invalidValue: path,
-        );
-      }
       _log.warning(
-        'JSONPath validation: expression may not be valid: $path. '
-        'Proceeding because strictMode is disabled.',
+        'JSONPath "$path" is not one of the shapes this package recognises '
+        r'($.field, $.field[0], $.a.b.c, $.field[*]); passing it to the '
+        'native parser unchanged.',
       );
     }
   }
