@@ -78,8 +78,12 @@ android {
     }
 
     testOptions {
-        unitTests.all {
-            it.useJUnitPlatform()
+        unitTests {
+            // Robolectric needs the merged resources to inflate anything.
+            isIncludeAndroidResources = true
+            all {
+                it.useJUnitPlatform()
+            }
         }
     }
 }
@@ -115,4 +119,15 @@ dependencies {
     // types on purpose, so these run without Robolectric or a device.
     testImplementation("org.junit.jupiter:junit-jupiter:5.14.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.14.2")
+
+    // Composes a Glance widget at a chosen slot size and lets the test assert
+    // on the resulting tree. The templates' layout decisions cannot be checked
+    // any other way without an emulator.
+    testImplementation("androidx.glance:glance-appwidget-testing:1.2.0")
+    testImplementation("org.robolectric:robolectric:4.16")
+    testImplementation("androidx.test:core:1.7.0")
+    testImplementation("junit:junit:4.13.2")
+    // Glance's test harness and Robolectric are JUnit 4; the rest of this
+    // module's tests are JUnit 5, so the platform needs both engines.
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.14.2")
 }

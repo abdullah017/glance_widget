@@ -80,11 +80,7 @@ private fun CalendarWidgetContent(prefs: Preferences) {
     val allEvents = parseEvents(eventsJson)
     val events = if (allEvents.size > maxEvents) allEvents.take(maxEvents) else allEvents
 
-    // Theme colors
     val colors = widgetColors(prefs)
-
-
-
 
     Column(
         modifier = GlanceModifier

@@ -55,10 +55,7 @@ private fun ImageWidgetContent(prefs: Preferences) {
     val deepLinkUri = prefs[GlanceWidgetManager.deepLinkUriKey]
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
 
-    // Theme colors
     val colors = widgetColors(prefs)
-
-
 
     // Determine content scale from imageFit
     val contentScale = when (imageFit) {

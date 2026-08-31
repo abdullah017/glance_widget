@@ -69,11 +69,7 @@ private fun GaugeWidgetContent(prefs: Preferences) {
     val deepLinkUri = prefs[GlanceWidgetManager.deepLinkUriKey]
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
 
-    // Theme colors
     val colors = widgetColors(prefs)
-
-
-
 
     Column(
         modifier = GlanceModifier

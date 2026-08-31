@@ -65,6 +65,7 @@ widgets.
 | Min Version | Android 8.0 (API 26) | iOS 17.0 |
 | Rounded corners | `GlanceTheme.borderRadius`, Android 12+ only | `GlanceTheme.borderRadius` |
 | Wallpaper colours | `useDynamicColor`, Android 12+ only | Not available |
+| Adapts to slot size | `SimpleWidget` (see #28 for the rest) | All templates |
 
 ## Material You (Android 12+)
 
