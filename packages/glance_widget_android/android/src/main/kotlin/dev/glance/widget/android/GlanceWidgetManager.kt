@@ -127,10 +127,109 @@ object GlanceWidgetManager {
         Log.d(TAG, "GlanceWidgetManager initialized")
     }
 
-    fun setEventSink(sink: EventChannel.EventSink?) {
+    /**
+     * Attaches or detaches the Dart listener.
+     *
+     * Attaching one is the first moment a queued interaction can be delivered,
+     * so the backlog is drained here. [context] is what reaches the shared
+     * preferences the widget process wrote to; without it the queue is left
+     * alone rather than discarded.
+     */
+    fun setEventSink(sink: EventChannel.EventSink?, context: Context? = null) {
         synchronized(eventSinkLock) {
             eventSink = sink
             Log.d(TAG, "EventSink ${if (sink != null) "set" else "cleared"}")
+        }
+        if (sink != null && context != null) {
+            drainPendingActions(context)
+        }
+    }
+
+    /**
+     * Replays the interactions the widget process handled on its own.
+     *
+     * A Glance `ActionCallback` runs in the app's process, which the system
+     * starts for the broadcast if it is not already up -- with no Flutter
+     * engine in it. Events sent from there had nowhere to go and were dropped,
+     * so a checkbox ticked from the home screen while the app was closed did
+     * nothing at all. `ToggleListItemAction` queues them instead; this empties
+     * the queue.
+     *
+     * Nothing is drained while no listener is attached: the event sink discards
+     * what it is handed then, so clearing the queue would throw the backlog
+     * away in exactly the situation the queue exists for.
+     */
+    fun drainPendingActions(context: Context) {
+        val listening = synchronized(eventSinkLock) { eventSink != null }
+        if (!listening) return
+
+        scope.launch {
+            try {
+                val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                val stored = ActionQueue.read(prefs.getString(ActionQueue.STORAGE_KEY, null))
+                if (stored.isEmpty()) return@launch
+
+                // Cleared before replaying: an entry that fails to decode is
+                // still consumed, so one unreadable action cannot make the
+                // queue un-drainable and let it grow behind it forever.
+                prefs.edit().remove(ActionQueue.STORAGE_KEY).apply()
+
+                val events = ActionQueue.decode(stored).map { ActionQueue.eventFor(it) }
+                withContext(Dispatchers.Main) {
+                    synchronized(eventSinkLock) {
+                        events.forEach { event -> eventSink?.success(event) }
+                    }
+                }
+                Log.d(TAG, "Replayed ${events.size} queued widget actions")
+            } catch (e: CancellationException) {
+                // Cancellation is not a delivery failure. Swallowing it would
+                // break structured concurrency for every caller upstream.
+                throw e
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to replay queued widget actions", e)
+            }
+        }
+    }
+
+    /**
+     * Reports [actionType] to Dart, or queues it when nobody is listening.
+     *
+     * This is what an `ActionCallback` calls. It cannot assume a Flutter engine
+     * exists: its own process may have been started by the system purely to
+     * deliver the tap.
+     */
+    fun recordActionEvent(
+        context: Context,
+        widgetId: String,
+        actionType: String,
+        payload: Map<String, Any?>? = null
+    ) {
+        val listening = synchronized(eventSinkLock) { eventSink != null }
+        if (listening) {
+            sendActionEvent(widgetId, actionType, payload)
+            return
+        }
+
+        scope.launch {
+            try {
+                val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                val queue = ActionQueue.read(prefs.getString(ActionQueue.STORAGE_KEY, null))
+                val appended = ActionQueue.appending(
+                    PendingAction(
+                        widgetId = widgetId,
+                        type = actionType,
+                        payload = ActionQueue.payloadOf(payload),
+                        timestamp = System.currentTimeMillis()
+                    ),
+                    queue
+                )
+                prefs.edit().putString(ActionQueue.STORAGE_KEY, ActionQueue.write(appended)).apply()
+                Log.d(TAG, "Queued $actionType for $widgetId; no Dart listener attached")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to queue widget action", e)
+            }
         }
     }
 

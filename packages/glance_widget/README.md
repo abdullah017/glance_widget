@@ -41,8 +41,9 @@ widgets.
 - **7 Widget Templates** - Simple, Progress, List, Image, Chart, Calendar, and Gauge
 - **Theme Support** - Light/Dark themes with full customization
 - **Deep Links** - All widgets support custom deep link URIs
-- **Interactive Actions** - Tap, checkbox toggle, item tap handling. On iOS the
-  checkbox runs an App Intent, so ticking it never launches the app
+- **Interactive Actions** - Tap, checkbox toggle, item tap handling. Ticking a
+  checkbox never launches the app on either platform, and taps survive being
+  delivered to a process with no Flutter engine in it
 - **Background Updates** - Android widgets update even when app is closed (WorkManager)
 - **Timeline Refresh** - iOS widgets refresh periodically via WidgetKit timeline policy
 - **iOS 26+ Push Updates** - Server-triggered widget updates via APNs
@@ -59,21 +60,22 @@ widgets.
 | Background Updates | WorkManager (15 min+) | Timeline-based (.after policy) |
 | Server Push | N/A | iOS 26+ (APNs) |
 | Lock Screen | Supported (keyguard) | Accessory families (all templates except Image) |
-| Interactive Actions | ActionCallback | App Intents (checkbox), URL (taps) |
+| Interactive Actions | `ActionCallback` (checkbox + taps) | App Intents (checkbox), URL (taps) |
 | Min Version | Android 8.0 (API 26) | iOS 17.0 |
 | Rounded corners | `GlanceTheme.borderRadius`, Android 12+ only | `GlanceTheme.borderRadius` |
 
-## Interactive checkboxes (iOS)
+## Interactive checkboxes
 
 Ticking a checkbox in `ListWidget` used to open a URL, which launched the app
 to change one boolean -- on the lock screen, a full unlock and a cold start.
 It now runs an App Intent inside the widget extension instead: the box changes
-immediately, the app stays closed, and the widget reloads in place.
+immediately, the app stays closed, and the widget reloads in place. Android
+does the same thing with an `ActionCallback`.
 
-Your action handler does not change. The interaction is queued in the App
-Group and replayed into the same `onAction` stream the next time Dart is
-listening, carrying the time it actually happened rather than the time the app
-opened:
+Your action handler does not change. The interaction is queued -- in the App
+Group on iOS, in `SharedPreferences` on Android -- and replayed into the same
+`onAction` stream the next time Dart is listening, carrying the time it
+actually happened rather than the time the app opened:
 
 ```dart
 GlanceWidget.onAction.listen((action) {
@@ -95,8 +97,17 @@ Two consequences worth knowing:
   otherwise grow the queue without limit in storage the user cannot see. Past
   100, the oldest are dropped.
 
-Item taps -- as opposed to checkbox taps -- still open the app, because opening
-the app is what a deep link is for.
+Item taps -- as opposed to checkbox taps -- still open the app when the widget
+has a `deepLinkUri`, because opening the app is what a deep link is for. Without
+one they are reported through the same queue.
+
+The Android half of this matters more than it looks. A widget tap is delivered
+to your app's process, and the system is entitled to start that process from
+cold purely to deliver it -- with no Flutter engine in it, and therefore no
+`onAction` stream to receive anything. The previous lambda-based actions ran in
+exactly that process and wrote to a null listener, so an unlucky tap was simply
+lost, with nothing in the logs to say so. Queueing to disk first removes the
+race: the handler no longer has to be alive at the moment of the tap.
 
 ## Lock Screen and Smart Stack (iOS)
 

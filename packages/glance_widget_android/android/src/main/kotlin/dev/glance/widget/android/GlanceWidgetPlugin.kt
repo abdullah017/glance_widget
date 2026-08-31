@@ -379,7 +379,7 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
         eventSink = events
-        GlanceWidgetManager.setEventSink(events)
+        GlanceWidgetManager.setEventSink(events, context)
     }
 
     override fun onCancel(arguments: Any?) {

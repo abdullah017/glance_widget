@@ -5,10 +5,21 @@ square corners however the theme was configured, while iOS rounded as asked
 (#20). Rounded corners need Android 12 or newer; see the platform comparison in
 the README.
 
-**Added:** iOS checkboxes are interactive in place. Ticking one in `ListWidget`
-no longer launches the app; the action reaches your existing `onAction` listener
-unchanged the next time the app runs. See the README for the two consequences --
-the widget's own copy of the state is flipped first, and the backlog is capped.
+**Added:** checkboxes are interactive in place on both platforms. Ticking one in
+`ListWidget` no longer launches the app; the action reaches your existing
+`onAction` listener unchanged the next time the app runs. See the README for the
+two consequences -- the widget's own copy of the state is flipped first, and the
+backlog is capped.
+
+**Fixed:** on Android, widget taps could be lost outright. They were delivered
+to a process the system may have started from cold with no Flutter engine in it,
+so the event went nowhere and left no trace. Taps are now queued to disk before
+Dart is involved.
+
+**Fixed:** on Android, background updates stopped working after an app update in
+release builds. The saved configuration's field names were being renamed by R8,
+which made the stored JSON unreadable by the next version -- and the failure was
+silent.
 
 **Fixed:** on iOS, a list widget with a `deepLinkUri` set never delivered
 `checkboxToggle` at all.

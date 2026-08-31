@@ -28,6 +28,17 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")
+            // Minified on purpose. The plugin ships consumer ProGuard rules,
+            // and the things they protect -- Glance action callbacks resolved
+            // by name, Gson field names in the queued-action model -- fail only
+            // in a shrunk build, silently. CI builds this release APK, so a
+            // missing keep rule is a red build instead of a bug report.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }

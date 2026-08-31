@@ -14,6 +14,7 @@ import androidx.glance.action.clickable
 import androidx.glance.appwidget.CheckBox
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
@@ -26,10 +27,11 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import dev.glance.widget.android.CornerRadius
 import dev.glance.widget.android.GlanceWidgetManager
+import dev.glance.widget.android.ListItems
+import dev.glance.widget.android.ReportActionCallback
+import dev.glance.widget.android.ToggleListItemAction
 
 /**
  * List Widget - displays a list of items with optional checkboxes.
@@ -66,7 +68,9 @@ private fun ListWidgetContent(prefs: Preferences) {
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
 
     // Parse items
-    val items = parseItems(itemsString)
+    val items = ListItems.parse(itemsString) {
+        Log.e("ListGlanceWidget", "Failed to read the list's items", it)
+    }
 
     // Theme colors
     val backgroundColor = prefs[GlanceWidgetManager.backgroundColorKey]
@@ -183,32 +187,30 @@ private fun ListItemRow(
         modifier = GlanceModifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable {
+            // Not a lambda action: that runs in a process the system may
+            // have started purely to deliver this tap, with no Flutter engine
+            // in it, so the event went to a null sink and vanished. A deep link
+            // still starts the activity -- the launch is the notification.
+            .clickable(
                 if (deepLinkUri != null) {
                     actionStartActivity(Intent(Intent.ACTION_VIEW, Uri.parse(deepLinkUri)))
                 } else {
-                    GlanceWidgetManager.sendActionEvent(
-                        widgetId,
-                        "itemTap",
-                        mapOf("index" to index)
-                    )
+                    ReportActionCallback.tapAt(widgetId, "itemTap", index)
                 }
-            },
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (showCheckbox) {
             CheckBox(
                 checked = item.checked,
-                onCheckedChange = {
-                    GlanceWidgetManager.sendActionEvent(
-                        widgetId,
-                        "checkboxToggle",
-                        mapOf(
-                            "itemIndex" to index,
-                            "value" to !item.checked
-                        )
-                    )
-                },
+                // An ActionCallback rather than a lambda action: this runs in
+                // a process the system may have started purely to deliver the
+                // tap, with no Flutter engine in it. `ToggleListItemAction`
+                // writes the new state and queues the event for Dart, so the
+                // box stays ticked and the app hears about it later.
+                onCheckedChange = actionRunCallback<ToggleListItemAction>(
+                    ToggleListItemAction.parametersFor(widgetId, index)
+                ),
                 modifier = GlanceModifier.padding(end = 12.dp),
                 colors = androidx.glance.appwidget.CheckboxDefaults.colors(
                     checkedColor = accentColor,
@@ -243,56 +245,6 @@ private fun ListItemRow(
                 }
             }
         }
-    }
-}
-
-/**
- * Parses the serialized items string back to ListItem objects.
- * Uses JSON parsing for robust handling of special characters.
- * Falls back to legacy delimiter parsing for backward compatibility.
- */
-private fun parseItems(itemsString: String): List<ListItem> {
-    if (itemsString.isEmpty()) return emptyList()
-
-    // Try JSON parsing first (new format)
-    if (itemsString.startsWith("[")) {
-        return try {
-            val gson = Gson()
-            val type = object : TypeToken<List<Map<String, Any?>>>() {}.type
-            val items: List<Map<String, Any?>> = gson.fromJson(itemsString, type)
-
-            items.map { itemMap ->
-                ListItem(
-                    text = itemMap["text"] as? String ?: "",
-                    checked = itemMap["checked"] as? Boolean ?: false,
-                    secondaryText = (itemMap["secondaryText"] as? String)?.takeIf { it.isNotEmpty() }
-                )
-            }
-        } catch (e: Exception) {
-            Log.e("ListGlanceWidget", "Failed to parse items as JSON, falling back to legacy format", e)
-            parseLegacyItems(itemsString)
-        }
-    }
-
-    // Legacy delimiter-based parsing for backward compatibility
-    return parseLegacyItems(itemsString)
-}
-
-/**
- * Legacy parsing using delimiter-based format.
- * Kept for backward compatibility with older widget data.
- * @deprecated Use JSON format for new implementations.
- */
-private fun parseLegacyItems(itemsString: String): List<ListItem> {
-    return itemsString.split("|||").mapNotNull { itemStr ->
-        val parts = itemStr.split("::")
-        if (parts.isNotEmpty()) {
-            ListItem(
-                text = parts.getOrNull(0) ?: "",
-                checked = parts.getOrNull(1)?.toBoolean() ?: false,
-                secondaryText = parts.getOrNull(2)?.takeIf { it.isNotEmpty() }
-            )
-        } else null
     }
 }
 

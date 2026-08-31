@@ -1,5 +1,29 @@
 ## 2.0.0
 
+**Fixed:** widget taps could be lost. Every template handled its taps with a
+Glance lambda action, which runs in the app's own process -- and the system is
+free to start that process from cold just to deliver the tap, with no Flutter
+engine in it. The event went to a null listener and vanished, with nothing in
+the logs. Taps are now handled by `ActionCallback`s that write to a queue on
+disk first, so the Dart handler no longer has to be alive at the moment of the
+tap; the backlog is capped at 100 and replays with the time the tap actually
+happened.
+
+**Added:** checkboxes in `ListWidget` toggle in place, via
+`actionRunCallback<ToggleListItemAction>`. Ticking one no longer launches the
+app. The stored state is flipped before the event is queued, so the box does
+not spring back when the widget next redraws.
+
+**Fixed:** `BackgroundUpdateConfig` was saved to `SharedPreferences` as Gson
+JSON with no ProGuard rule protecting its field names. In a minified build R8
+renamed them to `a`, `b`, `c` -- and the letters are not stable across builds,
+so an app update made every previously saved config unreadable. `load()`
+swallows the parse failure and returns `null`, so the symptom was background
+updates silently stopping after an update, release builds only.
+`consumer-rules.pro` now keeps the field names of both serialized models, and
+CI builds a minified APK and asserts against the R8 mapping file that they
+survived.
+
 **Fixed:** `GlanceTheme.borderRadius` had no effect. Three of the seven
 templates read the value into a local and never used it; the other four did not
 read it at all, so every Android widget had square corners whatever the theme
