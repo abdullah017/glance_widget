@@ -1,5 +1,19 @@
 ## 2.0.0
 
+**Fixed:** `SimpleWidget` overflowed the smallest slot a user can drag it to.
+`simple_widget_info.xml` declares `minResizeHeight="40dp"` alongside
+`minHeight="110dp"`, and the template painted the same layout into both -- a
+14sp title, an 8dp spacer, a 28sp value and 32dp of padding, roughly 90dp of
+content in a 40dp slot. What got clipped was the bottom, where the value is.
+It now drops the title and subtitle and shrinks the value when the slot is one
+cell tall, and grows the value on a tall one.
+
+**Added:** JVM layout tests. `glance-appwidget-testing` composes a template at a
+chosen slot size and lets the test assert on the result, so what a widget shows
+at 110x40 is now covered without an emulator. Robolectric is pinned to SDK 34 in
+`src/test/resources/robolectric.properties`: it otherwise simulates the
+compileSdk, 36, which it will only run on Java 21 while this module stays on 17.
+
 **Added:** `GlanceTheme.useDynamicColor` paints the widget from the wallpaper
 palette on Android 12 and above. Off by default.
 

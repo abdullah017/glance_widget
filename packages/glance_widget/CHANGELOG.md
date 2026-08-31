@@ -1,5 +1,9 @@
 ## 2.0.0
 
+**Fixed:** on Android, `SimpleWidget` clipped its own value when resized to the
+smallest slot the launcher allows. It now adapts what it shows to the room it
+has, as the iOS templates already did.
+
 **Added:** `GlanceTheme.useDynamicColor` opts a widget into Material You on
 Android 12 and above. Off by default; your theme's colours remain the fallback
 everywhere else, iOS included. See the README for why this is gated rather than

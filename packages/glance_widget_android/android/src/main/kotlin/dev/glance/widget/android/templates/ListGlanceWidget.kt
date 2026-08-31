@@ -73,11 +73,7 @@ private fun ListWidgetContent(prefs: Preferences) {
         Log.e("ListGlanceWidget", "Failed to read the list's items", it)
     }
 
-    // Theme colors
     val colors = widgetColors(prefs)
-
-
-
 
     Column(
         modifier = GlanceModifier

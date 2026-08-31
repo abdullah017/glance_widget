@@ -56,11 +56,7 @@ private fun ProgressWidgetContent(prefs: Preferences) {
     val deepLinkUri = prefs[GlanceWidgetManager.deepLinkUriKey]
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
 
-    // Theme colors
     val colors = widgetColors(prefs)
-
-
-
 
     val progressColor = progressColorInt?.let { ColorProvider(Color(it.toInt())) } ?: colors.accent
     val trackColor = trackColorInt?.let { ColorProvider(Color(it.toInt())) }
