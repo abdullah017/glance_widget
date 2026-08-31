@@ -34,7 +34,7 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   void dispose() {}
 
   /// Updates a Simple Widget with the given data.
-  Future<bool> updateSimpleWidget({
+  Future<void> updateSimpleWidget({
     required String widgetId,
     required SimpleWidgetData data,
     GlanceTheme? theme,
@@ -43,7 +43,7 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   }
 
   /// Updates a Progress Widget with the given data.
-  Future<bool> updateProgressWidget({
+  Future<void> updateProgressWidget({
     required String widgetId,
     required ProgressWidgetData data,
     GlanceTheme? theme,
@@ -54,7 +54,7 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   }
 
   /// Updates a List Widget with the given data.
-  Future<bool> updateListWidget({
+  Future<void> updateListWidget({
     required String widgetId,
     required ListWidgetData data,
     GlanceTheme? theme,
@@ -63,7 +63,7 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   }
 
   /// Updates an Image Widget with the given data.
-  Future<bool> updateImageWidget({
+  Future<void> updateImageWidget({
     required String widgetId,
     required ImageWidgetData data,
     GlanceTheme? theme,
@@ -72,7 +72,7 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   }
 
   /// Updates a Chart Widget with the given data.
-  Future<bool> updateChartWidget({
+  Future<void> updateChartWidget({
     required String widgetId,
     required ChartWidgetData data,
     GlanceTheme? theme,
@@ -81,7 +81,7 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   }
 
   /// Updates a Calendar Widget with the given data.
-  Future<bool> updateCalendarWidget({
+  Future<void> updateCalendarWidget({
     required String widgetId,
     required CalendarWidgetData data,
     GlanceTheme? theme,
@@ -92,7 +92,7 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   }
 
   /// Updates a Gauge Widget with the given data.
-  Future<bool> updateGaugeWidget({
+  Future<void> updateGaugeWidget({
     required String widgetId,
     required GaugeWidgetData data,
     GlanceTheme? theme,
@@ -101,12 +101,12 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   }
 
   /// Sets the global theme for all widgets.
-  Future<bool> setGlobalTheme(GlanceTheme theme) {
+  Future<void> setGlobalTheme(GlanceTheme theme) {
     throw UnimplementedError('setGlobalTheme() has not been implemented.');
   }
 
   /// Forces refresh of all widgets.
-  Future<bool> forceRefreshAll() {
+  Future<void> forceRefreshAll() {
     throw UnimplementedError('forceRefreshAll() has not been implemented.');
   }
 
@@ -199,7 +199,7 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   ///   valuePrefix: r'$',
   /// );
   /// ```
-  Future<bool> configureBackgroundUpdate({
+  Future<void> configureBackgroundUpdate({
     required String widgetId,
     required String template,
     required String apiUrl,
@@ -224,7 +224,7 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   /// ```dart
   /// await GlanceWidget.cancelBackgroundUpdate('crypto_btc');
   /// ```
-  Future<bool> cancelBackgroundUpdate(String widgetId) {
+  Future<void> cancelBackgroundUpdate(String widgetId) {
     throw UnimplementedError(
       'cancelBackgroundUpdate() has not been implemented.',
     );
@@ -273,7 +273,7 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   ///   intervalMinutes: 30,
   /// );
   /// ```
-  Future<bool> configureTimelineRefresh({
+  Future<void> configureTimelineRefresh({
     required String widgetId,
     int intervalMinutes = 30,
   }) {
@@ -288,7 +288,7 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   /// update when the app explicitly triggers a reload.
   ///
   /// On Android, this is a no-op.
-  Future<bool> cancelTimelineRefresh(String widgetId) {
+  Future<void> cancelTimelineRefresh(String widgetId) {
     throw UnimplementedError(
       'cancelTimelineRefresh() has not been implemented.',
     );
@@ -302,7 +302,7 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   ///
   /// On Android, this completes the configuration activity result.
   /// On iOS, this is a no-op as configuration is handled by the system.
-  Future<bool> completeWidgetConfiguration(String widgetId) {
+  Future<void> completeWidgetConfiguration(String widgetId) {
     throw UnimplementedError(
       'completeWidgetConfiguration() has not been implemented.',
     );
@@ -323,7 +323,7 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   /// // Then test immediately
   /// await GlanceWidget.testBackgroundUpdate('crypto_btc');
   /// ```
-  Future<bool> testBackgroundUpdate(String widgetId) {
+  Future<void> testBackgroundUpdate(String widgetId) {
     throw UnimplementedError(
       'testBackgroundUpdate() has not been implemented.',
     );

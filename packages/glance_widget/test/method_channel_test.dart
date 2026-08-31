@@ -53,12 +53,11 @@ void main() {
   group('MethodChannelGlanceWidget', () {
     group('updateSimpleWidget', () {
       test('sends correct method call', () async {
-        final result = await platform.updateSimpleWidget(
+        await platform.updateSimpleWidget(
           widgetId: 'test_widget',
           data: const SimpleWidgetData(title: 'Test', value: '100'),
         );
 
-        expect(result, true);
         expect(log.length, 1);
         expect(log[0].method, 'updateSimpleWidget');
 
@@ -95,12 +94,11 @@ void main() {
 
     group('updateProgressWidget', () {
       test('sends correct method call', () async {
-        final result = await platform.updateProgressWidget(
+        await platform.updateProgressWidget(
           widgetId: 'progress_widget',
           data: const ProgressWidgetData(title: 'Loading', progress: 0.5),
         );
 
-        expect(result, true);
         expect(log.length, 1);
         expect(log[0].method, 'updateProgressWidget');
 
@@ -128,7 +126,7 @@ void main() {
 
     group('updateListWidget', () {
       test('sends correct method call', () async {
-        final result = await platform.updateListWidget(
+        await platform.updateListWidget(
           widgetId: 'list_widget',
           data: const ListWidgetData(
             title: 'Tasks',
@@ -139,7 +137,6 @@ void main() {
           ),
         );
 
-        expect(result, true);
         expect(log.length, 1);
         expect(log[0].method, 'updateListWidget');
 
@@ -168,7 +165,7 @@ void main() {
 
     group('updateImageWidget', () {
       test('sends correct method call', () async {
-        final result = await platform.updateImageWidget(
+        await platform.updateImageWidget(
           widgetId: 'image_widget',
           data: const ImageWidgetData(
             title: 'Photo',
@@ -176,7 +173,6 @@ void main() {
           ),
         );
 
-        expect(result, true);
         expect(log.length, 1);
         expect(log[0].method, 'updateImageWidget');
 
@@ -238,12 +234,14 @@ void main() {
 
     group('updateChartWidget', () {
       test('sends correct method call', () async {
-        final result = await platform.updateChartWidget(
+        await platform.updateChartWidget(
           widgetId: 'chart_widget',
-          data: ChartWidgetData(title: 'Sales', dataPoints: [10.0, 20.0, 30.0]),
+          data: const ChartWidgetData(
+            title: 'Sales',
+            dataPoints: [10.0, 20.0, 30.0],
+          ),
         );
 
-        expect(result, true);
         expect(log.length, 1);
         expect(log[0].method, 'updateChartWidget');
 
@@ -256,7 +254,7 @@ void main() {
       test('sends chart type', () async {
         await platform.updateChartWidget(
           widgetId: 'chart_widget',
-          data: ChartWidgetData(
+          data: const ChartWidgetData(
             title: 'Sales',
             dataPoints: [10.0, 20.0],
             chartType: ChartType.bar,
@@ -271,7 +269,7 @@ void main() {
       test('sends theme when provided', () async {
         await platform.updateChartWidget(
           widgetId: 'chart_widget',
-          data: ChartWidgetData(title: 'Sales', dataPoints: [10.0]),
+          data: const ChartWidgetData(title: 'Sales', dataPoints: [10.0]),
           theme: GlanceTheme.light(),
         );
 
@@ -284,11 +282,11 @@ void main() {
       test('sends subtitle and color', () async {
         await platform.updateChartWidget(
           widgetId: 'chart_widget',
-          data: ChartWidgetData(
+          data: const ChartWidgetData(
             title: 'Sales',
             dataPoints: [10.0],
             subtitle: 'Monthly',
-            color: const Color(0xFFFF0000),
+            color: Color(0xFFFF0000),
           ),
         );
 
@@ -302,7 +300,7 @@ void main() {
     group('updateCalendarWidget', () {
       test('sends correct method call', () async {
         final date = DateTime(2026, 3, 10);
-        final result = await platform.updateCalendarWidget(
+        await platform.updateCalendarWidget(
           widgetId: 'calendar_widget',
           data: CalendarWidgetData(
             title: 'Today',
@@ -311,7 +309,6 @@ void main() {
           ),
         );
 
-        expect(result, true);
         expect(log.length, 1);
         expect(log[0].method, 'updateCalendarWidget');
 
@@ -379,17 +376,14 @@ void main() {
 
     group('updateGaugeWidget', () {
       test('sends correct method call', () async {
-        final result = await platform.updateGaugeWidget(
+        await platform.updateGaugeWidget(
           widgetId: 'gauge_widget',
-          data: GaugeWidgetData(
+          data: const GaugeWidgetData(
             title: 'Performance',
-            metrics: [
-              const GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
-            ],
+            metrics: [GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0)],
           ),
         );
 
-        expect(result, true);
         expect(log.length, 1);
         expect(log[0].method, 'updateGaugeWidget');
 
@@ -401,21 +395,16 @@ void main() {
       test('sends metrics', () async {
         await platform.updateGaugeWidget(
           widgetId: 'gauge_widget',
-          data: GaugeWidgetData(
+          data: const GaugeWidgetData(
             title: 'System',
             metrics: [
-              const GaugeMetric(
+              GaugeMetric(
                 label: 'CPU',
                 value: 75.0,
                 maxValue: 100.0,
                 unit: '%',
               ),
-              const GaugeMetric(
-                label: 'RAM',
-                value: 8.0,
-                maxValue: 16.0,
-                unit: 'GB',
-              ),
+              GaugeMetric(label: 'RAM', value: 8.0, maxValue: 16.0, unit: 'GB'),
             ],
           ),
         );
@@ -434,11 +423,9 @@ void main() {
       test('sends theme when provided', () async {
         await platform.updateGaugeWidget(
           widgetId: 'gauge_widget',
-          data: GaugeWidgetData(
+          data: const GaugeWidgetData(
             title: 'Test',
-            metrics: [
-              const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0),
-            ],
+            metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
           ),
           theme: GlanceTheme.light(),
         );
@@ -452,11 +439,9 @@ void main() {
       test('sends gauge type', () async {
         await platform.updateGaugeWidget(
           widgetId: 'gauge_widget',
-          data: GaugeWidgetData(
+          data: const GaugeWidgetData(
             title: 'Dashboard',
-            metrics: [
-              const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0),
-            ],
+            metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
             gaugeType: GaugeType.dashboard,
           ),
         );
@@ -469,10 +454,10 @@ void main() {
       test('sends metric color', () async {
         await platform.updateGaugeWidget(
           widgetId: 'gauge_widget',
-          data: GaugeWidgetData(
+          data: const GaugeWidgetData(
             title: 'Test',
             metrics: [
-              const GaugeMetric(
+              GaugeMetric(
                 label: 'X',
                 value: 1.0,
                 maxValue: 10.0,
@@ -491,9 +476,8 @@ void main() {
 
     group('setGlobalTheme', () {
       test('sends correct method call', () async {
-        final result = await platform.setGlobalTheme(GlanceTheme.dark());
+        await platform.setGlobalTheme(GlanceTheme.dark());
 
-        expect(result, true);
         expect(log.length, 1);
         expect(log[0].method, 'setGlobalTheme');
 
@@ -512,9 +496,8 @@ void main() {
 
     group('forceRefreshAll', () {
       test('sends correct method call', () async {
-        final result = await platform.forceRefreshAll();
+        await platform.forceRefreshAll();
 
-        expect(result, true);
         expect(log.length, 1);
         expect(log[0].method, 'forceRefreshAll');
       });
@@ -539,50 +522,41 @@ void main() {
         expect(log[0].method, 'getWidgetPushToken');
       });
 
-      test('returns null on error', () async {
+      test('answers null when the platform has no token yet', () async {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(methodChannel, (
-              MethodCall methodCall,
-            ) async {
-              throw PlatformException(code: 'ERROR', message: 'Test error');
-            });
+            .setMockMethodCallHandler(
+              methodChannel,
+              (MethodCall methodCall) async => null,
+            );
 
-        final result = await platform.getWidgetPushToken();
-
-        expect(result, isNull);
+        expect(await platform.getWidgetPushToken(), isNull);
       });
     });
 
     group('isWidgetPushSupported', () {
-      test('returns true when supported', () async {
+      test('sends correct method call', () async {
         final result = await platform.isWidgetPushSupported();
 
-        expect(result, true);
+        expect(result, isTrue);
         expect(log.length, 1);
         expect(log[0].method, 'isWidgetPushSupported');
       });
 
-      test('returns false on error', () async {
+      test('answers false when the platform returns null', () async {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(methodChannel, (
-              MethodCall methodCall,
-            ) async {
-              throw PlatformException(code: 'ERROR', message: 'Test error');
-            });
+            .setMockMethodCallHandler(
+              methodChannel,
+              (MethodCall methodCall) async => null,
+            );
 
-        final result = await platform.isWidgetPushSupported();
-
-        expect(result, false);
+        expect(await platform.isWidgetPushSupported(), isFalse);
       });
     });
 
     group('completeWidgetConfiguration', () {
       test('sends correct method call', () async {
-        final result = await platform.completeWidgetConfiguration(
-          'test_widget',
-        );
+        await platform.completeWidgetConfiguration('test_widget');
 
-        expect(result, true);
         expect(log.length, 1);
         expect(log[0].method, 'completeWidgetConfiguration');
 
@@ -590,7 +564,7 @@ void main() {
         expect(args['widgetId'], 'test_widget');
       });
 
-      test('returns false on error', () async {
+      test('throws when the platform refuses', () async {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(methodChannel, (
               MethodCall methodCall,
@@ -598,11 +572,10 @@ void main() {
               throw PlatformException(code: 'ERROR', message: 'Test error');
             });
 
-        final result = await platform.completeWidgetConfiguration(
-          'test_widget',
+        await expectLater(
+          platform.completeWidgetConfiguration('test_widget'),
+          throwsA(isA<GlanceWidgetException>()),
         );
-
-        expect(result, false);
       });
     });
 
@@ -692,55 +665,134 @@ void main() {
     });
 
     group('error handling', () {
-      test('returns false on PlatformException by default', () async {
+      /// Fails every call the way an absent widget instance does.
+      void failEveryCall() {
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
             .setMockMethodCallHandler(methodChannel, (
               MethodCall methodCall,
             ) async {
-              throw PlatformException(code: 'ERROR', message: 'Test error');
+              throw PlatformException(
+                code: 'UNAVAILABLE',
+                message: 'Test error',
+              );
             });
+      }
 
-        final result = await platform.updateSimpleWidget(
-          widgetId: 'test',
-          data: const SimpleWidgetData(title: 'Test', value: '100'),
-        );
-
-        expect(result, false);
-      });
-
-      test('throws GlanceWidgetException when throwOnError is true', () async {
-        MethodChannelGlanceWidget.throwOnError = true;
-
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(methodChannel, (
-              MethodCall methodCall,
-            ) async {
-              throw PlatformException(code: 'ERROR', message: 'Test error');
-            });
+      test('a rejected update throws instead of answering false', () async {
+        failEveryCall();
 
         await expectLater(
           platform.updateSimpleWidget(
             widgetId: 'test',
             data: const SimpleWidgetData(title: 'Test', value: '100'),
           ),
-          throwsA(isA<GlanceWidgetException>()),
+          throwsA(
+            isA<GlanceWidgetException>()
+                .having((e) => e.code, 'code', 'UNAVAILABLE')
+                .having(
+                  (e) => e.message,
+                  'message',
+                  contains('Failed to update simple widget'),
+                ),
+          ),
         );
-
-        // Reset for other tests
-        MethodChannelGlanceWidget.throwOnError = false;
       });
 
-      test('returns empty list on getActiveWidgetIds error', () async {
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(methodChannel, (
-              MethodCall methodCall,
-            ) async {
-              throw PlatformException(code: 'ERROR', message: 'Test error');
-            });
+      test('every mutation throws on a platform failure', () async {
+        failEveryCall();
 
-        final result = await platform.getActiveWidgetIds();
+        final calls = <String, Future<void> Function()>{
+          'updateSimpleWidget': () => platform.updateSimpleWidget(
+            widgetId: 'w',
+            data: const SimpleWidgetData(title: 'T', value: 'V'),
+          ),
+          'updateProgressWidget': () => platform.updateProgressWidget(
+            widgetId: 'w',
+            data: const ProgressWidgetData(title: 'T', progress: 0.5),
+          ),
+          'updateListWidget': () => platform.updateListWidget(
+            widgetId: 'w',
+            data: const ListWidgetData(title: 'T', items: []),
+          ),
+          'updateImageWidget': () => platform.updateImageWidget(
+            widgetId: 'w',
+            data: const ImageWidgetData(title: 'T'),
+          ),
+          'updateChartWidget': () => platform.updateChartWidget(
+            widgetId: 'w',
+            data: const ChartWidgetData(title: 'T', dataPoints: [1, 2]),
+          ),
+          'updateCalendarWidget': () => platform.updateCalendarWidget(
+            widgetId: 'w',
+            data: CalendarWidgetData(
+              title: 'T',
+              date: DateTime(2026),
+              events: const [],
+            ),
+          ),
+          'updateGaugeWidget': () => platform.updateGaugeWidget(
+            widgetId: 'w',
+            data: const GaugeWidgetData(
+              title: 'T',
+              metrics: [GaugeMetric(label: 'L', value: 1, maxValue: 2)],
+            ),
+          ),
+          'setGlobalTheme': () => platform.setGlobalTheme(GlanceTheme.dark()),
+          'forceRefreshAll': () => platform.forceRefreshAll(),
+          'configureBackgroundUpdate': () => platform.configureBackgroundUpdate(
+            widgetId: 'w',
+            template: 'simple',
+            apiUrl: 'https://example.com',
+            title: 'T',
+            valuePath: r'$.v',
+          ),
+          'cancelBackgroundUpdate': () => platform.cancelBackgroundUpdate('w'),
+          'configureTimelineRefresh': () =>
+              platform.configureTimelineRefresh(widgetId: 'w'),
+          'cancelTimelineRefresh': () => platform.cancelTimelineRefresh('w'),
+          'completeWidgetConfiguration': () =>
+              platform.completeWidgetConfiguration('w'),
+          'testBackgroundUpdate': () => platform.testBackgroundUpdate('w'),
+        };
 
-        expect(result, isEmpty);
+        for (final entry in calls.entries) {
+          await expectLater(
+            entry.value(),
+            throwsA(isA<GlanceWidgetException>()),
+            reason: entry.key,
+          );
+        }
+      });
+
+      test('every query throws on a platform failure', () async {
+        failEveryCall();
+
+        final calls = <String, Future<Object?> Function()>{
+          'getActiveWidgetIds': () => platform.getActiveWidgetIds(),
+          'getWidgetPushToken': () => platform.getWidgetPushToken(),
+          'isWidgetPushSupported': () => platform.isWidgetPushSupported(),
+          'getBackgroundUpdateStatus': () =>
+              platform.getBackgroundUpdateStatus('w'),
+        };
+
+        for (final entry in calls.entries) {
+          await expectLater(
+            entry.value(),
+            throwsA(isA<GlanceWidgetException>()),
+            reason: entry.key,
+          );
+        }
+      });
+
+      test('the original PlatformException is kept for diagnosis', () async {
+        failEveryCall();
+
+        try {
+          await platform.forceRefreshAll();
+          fail('expected a GlanceWidgetException');
+        } on GlanceWidgetException catch (e) {
+          expect(e.originalException, isA<PlatformException>());
+        }
       });
     });
   });

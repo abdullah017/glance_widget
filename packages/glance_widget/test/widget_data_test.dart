@@ -44,7 +44,7 @@ void main() {
       );
       expect(const ImageWidgetData(title: 't').template, GlanceTemplate.image);
       expect(
-        ChartWidgetData(title: 't', dataPoints: [1.0]).template,
+        const ChartWidgetData(title: 't', dataPoints: [1.0]).template,
         GlanceTemplate.chart,
       );
       expect(
@@ -56,9 +56,9 @@ void main() {
         GlanceTemplate.calendar,
       );
       expect(
-        GaugeWidgetData(
+        const GaugeWidgetData(
           title: 't',
-          metrics: [const GaugeMetric(label: 'x', value: 1, maxValue: 10)],
+          metrics: [GaugeMetric(label: 'x', value: 1, maxValue: 10)],
         ).template,
         GlanceTemplate.gauge,
       );
@@ -88,11 +88,11 @@ void main() {
         const ProgressWidgetData(title: 't', progress: 0.5),
         const ListWidgetData(title: 't', items: []),
         const ImageWidgetData(title: 't'),
-        ChartWidgetData(title: 't', dataPoints: [1.0]),
+        const ChartWidgetData(title: 't', dataPoints: [1.0]),
         CalendarWidgetData(title: 't', date: DateTime(2026), events: []),
-        GaugeWidgetData(
+        const GaugeWidgetData(
           title: 't',
-          metrics: [const GaugeMetric(label: 'x', value: 1, maxValue: 10)],
+          metrics: [GaugeMetric(label: 'x', value: 1, maxValue: 10)],
         ),
       ];
       for (final data in allTypes) {

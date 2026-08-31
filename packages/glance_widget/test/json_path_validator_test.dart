@@ -1,13 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:glance_widget/src/glance_config.dart';
 import 'package:glance_widget/src/json_path_validator.dart';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
 
 void main() {
-  tearDown(() {
-    GlanceConfig.strictMode = false;
-  });
-
   group('JsonPathValidator', () {
     test('empty path always throws', () {
       expect(
@@ -34,23 +29,15 @@ void main() {
       expect(() => JsonPathValidator.validate(r'$.items[*]'), returnsNormally);
     });
 
-    test(
-      'non-standard path with strictMode=false logs warning but does not throw',
-      () {
-        GlanceConfig.strictMode = false;
-        expect(
-          () => JsonPathValidator.validate(r'$.store.book[?(@.price < 10)]'),
-          returnsNormally,
-        );
-      },
-    );
-
-    test('non-standard path with strictMode=true throws', () {
-      GlanceConfig.strictMode = true;
+    test('an expression the heuristic does not know is passed through', () {
+      // A filter expression is valid JSONPath that `_basicPattern` does not
+      // cover; rejecting it here would break a caller the native parser
+      // would have served.
       expect(
         () => JsonPathValidator.validate(r'$.store.book[?(@.price < 10)]'),
-        throwsA(isA<GlanceWidgetValidationException>()),
+        returnsNormally,
       );
+      expect(() => JsonPathValidator.validate(r'$..author'), returnsNormally);
     });
   });
 }

@@ -117,9 +117,6 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
-    // Enable strict mode in debug builds — throws on unsupported platforms
-    GlanceConfig.strictMode = kDebugMode;
-
     _tabController = TabController(length: 4, vsync: this);
     _setupWidgetActions();
     _setDarkTheme();
@@ -491,24 +488,29 @@ class _HomePageState extends State<HomePage>
         _backgroundUpdateStatus = 'Cancelled';
       });
     } else {
-      // v1.0: GlanceBackground.configureUpdate replaces GlanceWidget.configureBackgroundUpdate
-      final success = await GlanceBackground.configureUpdate(
-        widgetId: 'crypto_btc',
-        template: GlanceTemplate.simple,
-        apiUrl:
-            'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true',
-        intervalMinutes: 15,
-        title: 'Bitcoin',
-        valuePath: r'$.bitcoin.usd',
-        subtitlePath: r'$.bitcoin.usd_24h_change',
-        valuePrefix: r'$',
-      );
-      setState(() {
-        _isBackgroundUpdateEnabled = success;
-        _backgroundUpdateStatus = success
-            ? 'Enabled (15 min interval)'
-            : 'Failed to configure';
-      });
+      // v2.0: configuration either applies or throws with the reason.
+      try {
+        await GlanceBackground.configureUpdate(
+          widgetId: 'crypto_btc',
+          template: GlanceTemplate.simple,
+          apiUrl:
+              'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true',
+          intervalMinutes: 15,
+          title: 'Bitcoin',
+          valuePath: r'$.bitcoin.usd',
+          subtitlePath: r'$.bitcoin.usd_24h_change',
+          valuePrefix: r'$',
+        );
+        setState(() {
+          _isBackgroundUpdateEnabled = true;
+          _backgroundUpdateStatus = 'Enabled (15 min interval)';
+        });
+      } on GlanceWidgetException catch (e) {
+        setState(() {
+          _isBackgroundUpdateEnabled = false;
+          _backgroundUpdateStatus = 'Failed: ${e.message}';
+        });
+      }
     }
   }
 
@@ -529,13 +531,15 @@ class _HomePageState extends State<HomePage>
       _showSnackBar('Please enable background updates first', Colors.orange);
       return;
     }
-    final success = await GlanceBackground.testUpdate('crypto_btc');
-    _showSnackBar(
-      success
-          ? 'Test triggered! Check widget in a few seconds...'
-          : 'Failed to trigger test',
-      success ? Colors.green : Colors.red,
-    );
+    try {
+      await GlanceBackground.testUpdate('crypto_btc');
+      _showSnackBar(
+        'Test triggered! Check widget in a few seconds...',
+        Colors.green,
+      );
+    } on GlanceWidgetException catch (e) {
+      _showSnackBar('Failed to trigger test: ${e.message}', Colors.red);
+    }
   }
 
   // ── Timeline Refresh (iOS) ──
@@ -547,15 +551,17 @@ class _HomePageState extends State<HomePage>
       setState(() => _isTimelineRefreshEnabled = false);
       _showSnackBar('Timeline refresh disabled', Colors.orange);
     } else {
-      final success = await GlanceBackground.configureTimelineRefresh(
-        widgetId: 'calendar_demo',
-        intervalMinutes: 30,
-      );
-      setState(() => _isTimelineRefreshEnabled = success);
-      _showSnackBar(
-        success ? 'Timeline refresh enabled (30 min)' : 'Failed to configure',
-        success ? Colors.green : Colors.red,
-      );
+      try {
+        await GlanceBackground.configureTimelineRefresh(
+          widgetId: 'calendar_demo',
+          intervalMinutes: 30,
+        );
+        setState(() => _isTimelineRefreshEnabled = true);
+        _showSnackBar('Timeline refresh enabled (30 min)', Colors.green);
+      } on GlanceWidgetException catch (e) {
+        setState(() => _isTimelineRefreshEnabled = false);
+        _showSnackBar('Failed to configure: ${e.message}', Colors.red);
+      }
     }
   }
 

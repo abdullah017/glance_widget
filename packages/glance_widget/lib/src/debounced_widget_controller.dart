@@ -20,6 +20,19 @@ import 'package:logging/logging.dart';
 /// // Call as often as needed — updates are coalesced
 /// ctrl.scheduleUpdate(SimpleWidgetData(title: 'BTC', value: '\$94k'));
 /// ```
+///
+/// ## Where failures surface
+///
+/// [scheduleUpdate] returns before the dispatch happens, so it cannot report a
+/// failure to its caller. Dispatches triggered by the debounce timer, the max
+/// wait timer, or the app going to the background therefore report through
+/// [errors] instead; a dispatch you asked for with [flush] throws to you
+/// directly. Either way a failed dispatch is never counted in [updateCount]
+/// and never advances [timeSinceLastUpdate].
+///
+/// ```dart
+/// ctrl.errors.listen((e) => debugPrint('widget update failed: $e'));
+/// ```
 class DebouncedWidgetController<T extends WidgetData> {
   /// Creates a debouncing controller for the widget identified by
   /// [widgetId], optionally pinned to [theme].
@@ -63,6 +76,15 @@ class DebouncedWidgetController<T extends WidgetData> {
   DateTime? _lastUpdateTime;
   int _updateCount = 0;
   int _skippedCount = 0;
+  int _failedCount = 0;
+  Object? _lastError;
+  bool _disposed = false;
+
+  /// Serialises dispatches: a timer may fire while an earlier dispatch is
+  /// still in flight, and two concurrent writes could land out of order.
+  Future<void> _inFlight = Future<void>.value();
+
+  final _errorController = StreamController<Object>.broadcast();
 
   /// The widget ID this controller manages.
   String get widgetId => _innerController.widgetId;
@@ -72,6 +94,20 @@ class DebouncedWidgetController<T extends WidgetData> {
 
   /// Number of updates that were coalesced (skipped).
   int get skippedCount => _skippedCount;
+
+  /// Number of dispatches the platform rejected.
+  int get failedCount => _failedCount;
+
+  /// The most recent dispatch failure, or `null` if none has occurred.
+  Object? get lastError => _lastError;
+
+  /// Failures from dispatches nobody is awaiting -- debounce timer, max wait
+  /// timer, or the app-backgrounded flush.
+  ///
+  /// A broadcast stream: it is safe to listen late or not at all, though not
+  /// listening means those failures are only visible through [failedCount] and
+  /// [lastError].
+  Stream<Object> get errors => _errorController.stream;
 
   /// Whether an update is waiting to be dispatched.
   bool get hasPendingUpdate => _pendingData != null;
@@ -99,19 +135,26 @@ class DebouncedWidgetController<T extends WidgetData> {
     _pendingData = data;
 
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(debounceInterval, _flush);
+    _debounceTimer = Timer(debounceInterval, _flushFromTimer);
 
-    _maxWaitTimer ??= Timer(maxWaitTime, _flush);
+    _maxWaitTimer ??= Timer(maxWaitTime, _flushFromTimer);
   }
 
+  void _flushFromTimer() => unawaited(_flush(reportToStream: true));
+
   /// Forces immediate dispatch of any pending update.
-  Future<void> flush() async => _flush();
+  ///
+  /// Throws [GlanceWidgetException] if the platform rejects the dispatch --
+  /// the failure goes to you, not to [errors], because you are awaiting it.
+  Future<void> flush() => _flush(reportToStream: false);
 
   /// Updates the global theme and flushes any pending data.
-  Future<bool> setTheme(GlanceTheme theme) async {
-    final result = await _innerController.setTheme(theme);
-    if (_pendingData != null) await _flush();
-    return result;
+  ///
+  /// Throws [GlanceWidgetException] if either the theme change or the flushed
+  /// update is rejected.
+  Future<void> setTheme(GlanceTheme theme) async {
+    await _innerController.setTheme(theme);
+    if (_pendingData != null) await _flush(reportToStream: false);
   }
 
   /// Stream of action events for this widget.
@@ -119,13 +162,16 @@ class DebouncedWidgetController<T extends WidgetData> {
 
   /// Disposes all resources: timers, lifecycle listener, inner controller.
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     _debounceTimer?.cancel();
     _maxWaitTimer?.cancel();
     _lifecycleListener.dispose();
     _innerController.dispose();
+    _errorController.close();
     _log.fine(
       'DebouncedWidgetController[$widgetId] disposed. '
-      'Updates: $_updateCount, Skipped: $_skippedCount',
+      'Updates: $_updateCount, Skipped: $_skippedCount, Failed: $_failedCount',
     );
   }
 
@@ -134,22 +180,45 @@ class DebouncedWidgetController<T extends WidgetData> {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       if (_pendingData != null) {
-        _flush();
+        unawaited(_flush(reportToStream: true));
       }
     }
   }
 
-  Future<void> _flush() async {
+  /// Dispatches the pending update, if any.
+  ///
+  /// [reportToStream] decides where a failure goes: `true` for dispatches
+  /// nobody awaits (timers, lifecycle), `false` when a caller is awaiting the
+  /// returned future and should see the exception itself. Rethrowing from a
+  /// timer callback would surface as an unhandled zone error instead.
+  Future<void> _flush({required bool reportToStream}) {
     _debounceTimer?.cancel();
     _maxWaitTimer?.cancel();
     _maxWaitTimer = null;
 
     final data = _pendingData;
-    if (data != null) {
-      _pendingData = null;
+    if (data == null) return _inFlight;
+    _pendingData = null;
+
+    final dispatch = _inFlight.then((_) => _dispatch(data, reportToStream));
+    // Keep the chain alive for the next dispatch even if this one fails, but
+    // do not let that bookkeeping future look unhandled to the zone.
+    _inFlight = dispatch.then((_) {}, onError: (Object _) {});
+    return dispatch;
+  }
+
+  Future<void> _dispatch(T data, bool reportToStream) async {
+    try {
       await _innerController.update(data);
-      _lastUpdateTime = DateTime.now();
-      _updateCount++;
+    } catch (error) {
+      _failedCount++;
+      _lastError = error;
+      _log.warning('DebouncedWidgetController[$widgetId] update failed', error);
+      if (!reportToStream) rethrow;
+      if (!_errorController.isClosed) _errorController.add(error);
+      return;
     }
+    _lastUpdateTime = DateTime.now();
+    _updateCount++;
   }
 }

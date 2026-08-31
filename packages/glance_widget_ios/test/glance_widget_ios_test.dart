@@ -19,7 +19,6 @@ void main() {
     log = <MethodCall>[];
     respond = null;
     ios = GlanceWidgetIos();
-    MethodChannelGlanceWidget.throwOnError = false;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(_channel, (MethodCall call) async {
           log.add(call);
@@ -35,7 +34,6 @@ void main() {
   });
 
   tearDown(() {
-    MethodChannelGlanceWidget.throwOnError = false;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(_channel, null);
   });
@@ -130,29 +128,29 @@ void main() {
           throw PlatformException(code: 'UNAVAILABLE', message: 'no widget');
     });
 
-    test('a failed update reports false by default', () async {
-      expect(
-        await ios.updateSimpleWidget(
+    test('a failed update surfaces the reason', () async {
+      await expectLater(
+        ios.updateSimpleWidget(
           widgetId: 'w1',
           data: const SimpleWidgetData(title: 'T', value: 'V'),
         ),
-        isFalse,
+        throwsA(
+          isA<GlanceWidgetException>()
+              .having((e) => e.code, 'code', 'UNAVAILABLE')
+              .having((e) => e.message, 'message', contains('no widget')),
+        ),
       );
     });
 
-    test(
-      'throwOnError surfaces the failure instead of swallowing it',
-      () async {
-        MethodChannelGlanceWidget.throwOnError = true;
-
-        await expectLater(
-          ios.updateSimpleWidget(
-            widgetId: 'w1',
-            data: const SimpleWidgetData(title: 'T', value: 'V'),
-          ),
-          throwsA(isA<GlanceWidgetException>()),
-        );
-      },
-    );
+    test('a failed query throws rather than answering a default', () async {
+      await expectLater(
+        ios.getWidgetPushToken(),
+        throwsA(isA<GlanceWidgetException>()),
+      );
+      await expectLater(
+        ios.getActiveWidgetIds(),
+        throwsA(isA<GlanceWidgetException>()),
+      );
+    });
   });
 }

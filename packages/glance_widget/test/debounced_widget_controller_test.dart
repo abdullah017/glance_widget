@@ -32,13 +32,11 @@ void main() {
         data: any(named: 'data'),
         theme: any(named: 'theme'),
       ),
-    ).thenAnswer((_) async => true);
+    ).thenAnswer((_) async {});
     when(
       () => mockPlatform.onWidgetAction,
     ).thenAnswer((_) => const Stream.empty());
-    when(
-      () => mockPlatform.setGlobalTheme(any()),
-    ).thenAnswer((_) async => true);
+    when(() => mockPlatform.setGlobalTheme(any())).thenAnswer((_) async {});
   });
 
   group('DebouncedWidgetController', () {

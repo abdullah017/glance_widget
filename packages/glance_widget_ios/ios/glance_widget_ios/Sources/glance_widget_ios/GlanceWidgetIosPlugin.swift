@@ -75,6 +75,21 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
 
     // MARK: - Method Handlers
 
+    /// Answers the Dart caller with what the manager actually returned.
+    ///
+    /// The fire-and-forget `updateXWidget` helpers discard their `GlanceResult`,
+    /// so every update used to report success even when App Group storage was
+    /// unreachable and nothing was written. Everything routed through here
+    /// reports the real outcome instead.
+    private func reply(_ result: @escaping FlutterResult, _ outcome: GlanceResult) {
+        switch outcome {
+        case .success:
+            result(true)
+        case .failure(let code, let message):
+            result(FlutterError(code: code, message: message, details: nil))
+        }
+    }
+
     private func handleUpdateSimpleWidget(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let args = call.arguments as? [String: Any],
               let widgetId = args["widgetId"] as? String,
@@ -84,8 +99,9 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
         }
 
         let theme = args["theme"] as? [String: Any]
-        widgetManager.updateSimpleWidget(widgetId: widgetId, data: data, theme: theme)
-        result(true)
+        reply(result, widgetManager.updateSimpleWidgetWithResult(
+            widgetId: widgetId, data: data, theme: theme
+        ))
     }
 
     private func handleUpdateProgressWidget(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -97,8 +113,9 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
         }
 
         let theme = args["theme"] as? [String: Any]
-        widgetManager.updateProgressWidget(widgetId: widgetId, data: data, theme: theme)
-        result(true)
+        reply(result, widgetManager.updateProgressWidgetWithResult(
+            widgetId: widgetId, data: data, theme: theme
+        ))
     }
 
     private func handleUpdateListWidget(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -110,8 +127,9 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
         }
 
         let theme = args["theme"] as? [String: Any]
-        widgetManager.updateListWidget(widgetId: widgetId, data: data, theme: theme)
-        result(true)
+        reply(result, widgetManager.updateListWidgetWithResult(
+            widgetId: widgetId, data: data, theme: theme
+        ))
     }
 
     private func handleUpdateCalendarWidget(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -123,8 +141,9 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
         }
 
         let theme = args["theme"] as? [String: Any]
-        widgetManager.updateCalendarWidget(widgetId: widgetId, data: data, theme: theme)
-        result(true)
+        reply(result, widgetManager.updateCalendarWidgetWithResult(
+            widgetId: widgetId, data: data, theme: theme
+        ))
     }
 
     private func handleUpdateImageWidget(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -136,8 +155,9 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
         }
 
         let theme = args["theme"] as? [String: Any]
-        widgetManager.updateImageWidget(widgetId: widgetId, data: data, theme: theme)
-        result(true)
+        reply(result, widgetManager.updateImageWidgetWithResult(
+            widgetId: widgetId, data: data, theme: theme
+        ))
     }
 
     private func handleUpdateChartWidget(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -149,8 +169,9 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
         }
 
         let theme = args["theme"] as? [String: Any]
-        widgetManager.updateChartWidget(widgetId: widgetId, data: data, theme: theme)
-        result(true)
+        reply(result, widgetManager.updateChartWidgetWithResult(
+            widgetId: widgetId, data: data, theme: theme
+        ))
     }
 
     private func handleUpdateGaugeWidget(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -162,8 +183,9 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
         }
 
         let theme = args["theme"] as? [String: Any]
-        widgetManager.updateGaugeWidget(widgetId: widgetId, data: data, theme: theme)
-        result(true)
+        reply(result, widgetManager.updateGaugeWidgetWithResult(
+            widgetId: widgetId, data: data, theme: theme
+        ))
     }
 
     private func handleSetGlobalTheme(_ call: FlutterMethodCall, result: @escaping FlutterResult) {

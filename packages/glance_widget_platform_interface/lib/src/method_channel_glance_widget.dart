@@ -9,20 +9,18 @@ import 'package:glance_widget_platform_interface/src/types/widget_theme.dart';
 import 'package:logging/logging.dart';
 
 /// An implementation of [GlanceWidgetPlatform] that uses method channels.
+///
+/// ## Error contract
+///
+/// Every operation either completes or throws [GlanceWidgetException]. There is
+/// no success flag to inspect: the native plugins answer with an error whenever
+/// a widget could not be updated -- no widget instance on the home screen,
+/// unreachable App Group storage, a failed write -- and those arrive here as
+/// exceptions. Data that could not render at all is rejected before the call is
+/// made, with a [GlanceWidgetValidationException] naming the offending field.
 class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
   /// Logger for this class.
   static final _log = Logger('GlanceWidget');
-
-  /// Whether to throw exceptions on errors instead of returning false.
-  ///
-  /// When set to `true`, methods will throw [GlanceWidgetException] on failure.
-  /// When set to `false` (default), methods will log the error and return false.
-  ///
-  /// Set this to `true` in debug mode for better error visibility:
-  /// ```dart
-  /// MethodChannelGlanceWidget.throwOnError = kDebugMode;
-  /// ```
-  static bool throwOnError = false;
 
   /// The method channel used to interact with the native platform.
   static const MethodChannel _methodChannel = MethodChannel(
@@ -38,228 +36,162 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
   StreamController<GlanceWidgetAction>? _actionController;
   StreamSubscription<Object?>? _eventSubscription;
 
+  /// Invokes [method] and translates a platform failure into a
+  /// [GlanceWidgetException] carrying [context].
+  Future<T?> _invoke<T>(
+    String method,
+    String context, [
+    Object? arguments,
+  ]) async {
+    try {
+      return await _methodChannel.invokeMethod<T>(method, arguments);
+    } on PlatformException catch (e) {
+      throw GlanceWidgetException.fromPlatformException(e, context: context);
+    }
+  }
+
+  /// Invokes a mutating [method]; completing normally means the platform
+  /// applied the change.
+  Future<void> _mutate(
+    String method,
+    String context, [
+    Object? arguments,
+  ]) async {
+    await _invoke<bool>(method, context, arguments);
+  }
+
+  /// Validates and dispatches a template update.
+  ///
+  /// `async` on purpose: [WidgetData.validate] throws, and a rejection from an
+  /// `async` method arrives as a failed future rather than an exception raised
+  /// before the future exists. A caller writing `update(...).catchError(...)`
+  /// would never see a synchronous throw.
+  Future<void> _updateWidget(
+    String method,
+    String context,
+    String widgetId,
+    WidgetData data,
+    GlanceTheme? theme,
+  ) async {
+    // Validated here rather than in the constructors because this is the last
+    // point before the data leaves Dart, it runs in release builds, and it
+    // covers data assembled at runtime from a server response as much as a
+    // literal written by hand.
+    WidgetData.checkNotEmpty(widgetId, 'widgetId');
+    data.validate();
+    await _mutate(method, context, <String, Object?>{
+      'widgetId': widgetId,
+      'data': data.toMap(),
+      'theme': theme?.toMap(),
+    });
+  }
+
   @override
-  Future<bool> updateSimpleWidget({
+  Future<void> updateSimpleWidget({
     required String widgetId,
     required SimpleWidgetData data,
     GlanceTheme? theme,
-  }) async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'updateSimpleWidget',
-        {'widgetId': widgetId, 'data': data.toMap(), 'theme': theme?.toMap()},
-      );
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to update simple widget: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to update simple widget',
-        );
-      }
-      return false;
-    }
-  }
+  }) => _updateWidget(
+    'updateSimpleWidget',
+    'Failed to update simple widget',
+    widgetId,
+    data,
+    theme,
+  );
 
   @override
-  Future<bool> updateProgressWidget({
+  Future<void> updateProgressWidget({
     required String widgetId,
     required ProgressWidgetData data,
     GlanceTheme? theme,
-  }) async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'updateProgressWidget',
-        {'widgetId': widgetId, 'data': data.toMap(), 'theme': theme?.toMap()},
-      );
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to update progress widget: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to update progress widget',
-        );
-      }
-      return false;
-    }
-  }
+  }) => _updateWidget(
+    'updateProgressWidget',
+    'Failed to update progress widget',
+    widgetId,
+    data,
+    theme,
+  );
 
   @override
-  Future<bool> updateListWidget({
+  Future<void> updateListWidget({
     required String widgetId,
     required ListWidgetData data,
     GlanceTheme? theme,
-  }) async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'updateListWidget',
-        {'widgetId': widgetId, 'data': data.toMap(), 'theme': theme?.toMap()},
-      );
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to update list widget: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to update list widget',
-        );
-      }
-      return false;
-    }
-  }
+  }) => _updateWidget(
+    'updateListWidget',
+    'Failed to update list widget',
+    widgetId,
+    data,
+    theme,
+  );
 
   @override
-  Future<bool> updateImageWidget({
+  Future<void> updateImageWidget({
     required String widgetId,
     required ImageWidgetData data,
     GlanceTheme? theme,
-  }) async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'updateImageWidget',
-        {'widgetId': widgetId, 'data': data.toMap(), 'theme': theme?.toMap()},
-      );
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to update image widget: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to update image widget',
-        );
-      }
-      return false;
-    }
-  }
+  }) => _updateWidget(
+    'updateImageWidget',
+    'Failed to update image widget',
+    widgetId,
+    data,
+    theme,
+  );
 
   @override
-  Future<bool> updateChartWidget({
+  Future<void> updateChartWidget({
     required String widgetId,
     required ChartWidgetData data,
     GlanceTheme? theme,
-  }) async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'updateChartWidget',
-        {'widgetId': widgetId, 'data': data.toMap(), 'theme': theme?.toMap()},
-      );
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to update chart widget: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to update chart widget',
-        );
-      }
-      return false;
-    }
-  }
+  }) => _updateWidget(
+    'updateChartWidget',
+    'Failed to update chart widget',
+    widgetId,
+    data,
+    theme,
+  );
 
   @override
-  Future<bool> updateCalendarWidget({
+  Future<void> updateCalendarWidget({
     required String widgetId,
     required CalendarWidgetData data,
     GlanceTheme? theme,
-  }) async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'updateCalendarWidget',
-        {'widgetId': widgetId, 'data': data.toMap(), 'theme': theme?.toMap()},
-      );
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to update calendar widget: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to update calendar widget',
-        );
-      }
-      return false;
-    }
-  }
+  }) => _updateWidget(
+    'updateCalendarWidget',
+    'Failed to update calendar widget',
+    widgetId,
+    data,
+    theme,
+  );
 
   @override
-  Future<bool> updateGaugeWidget({
+  Future<void> updateGaugeWidget({
     required String widgetId,
     required GaugeWidgetData data,
     GlanceTheme? theme,
-  }) async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'updateGaugeWidget',
-        {'widgetId': widgetId, 'data': data.toMap(), 'theme': theme?.toMap()},
-      );
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to update gauge widget: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to update gauge widget',
-        );
-      }
-      return false;
-    }
-  }
+  }) => _updateWidget(
+    'updateGaugeWidget',
+    'Failed to update gauge widget',
+    widgetId,
+    data,
+    theme,
+  );
 
   @override
-  Future<bool> setGlobalTheme(GlanceTheme theme) async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'setGlobalTheme',
-        theme.toMap(),
-      );
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to set global theme: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to set global theme',
-        );
-      }
-      return false;
-    }
-  }
+  Future<void> setGlobalTheme(GlanceTheme theme) =>
+      _mutate('setGlobalTheme', 'Failed to set global theme', theme.toMap());
 
   @override
-  Future<bool> forceRefreshAll() async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>('forceRefreshAll');
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to force refresh: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to force refresh all widgets',
-        );
-      }
-      return false;
-    }
-  }
+  Future<void> forceRefreshAll() =>
+      _mutate('forceRefreshAll', 'Failed to force refresh all widgets');
 
   @override
   Future<List<String>> getActiveWidgetIds() async {
-    try {
-      final result = await _methodChannel.invokeMethod<List<dynamic>>(
-        'getActiveWidgetIds',
-      );
-      return result?.cast<String>() ?? [];
-    } on PlatformException catch (e) {
-      _log.warning('Failed to get active widget IDs: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to get active widget IDs',
-        );
-      }
-      return [];
-    }
+    final result = await _invoke<List<Object?>>(
+      'getActiveWidgetIds',
+      'Failed to get active widget IDs',
+    );
+    return result?.cast<String>() ?? <String>[];
   }
 
   @override
@@ -273,7 +205,7 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
 
   void _startListening() {
     _eventSubscription = _eventChannel.receiveBroadcastStream().listen(
-      (event) {
+      (Object? event) {
         if (event is Map) {
           final action = GlanceWidgetAction.fromMap(
             Map<String, dynamic>.from(event),
@@ -304,211 +236,100 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
   /// Gets the Widget Push Token for server-triggered updates (iOS 26+).
   ///
   /// This token can be sent to your server to trigger widget updates via APNs.
-  /// Returns `null` on unsupported platforms or if the token is not available.
+  /// Returns `null` when the platform has no token yet.
   @override
-  Future<String?> getWidgetPushToken() async {
-    try {
-      final result = await _methodChannel.invokeMethod<String?>(
-        'getWidgetPushToken',
-      );
-      return result;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to get widget push token: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to get widget push token',
-        );
-      }
-      return null;
-    }
-  }
+  Future<String?> getWidgetPushToken() =>
+      _invoke<String>('getWidgetPushToken', 'Failed to get widget push token');
 
   @override
   Future<bool> isWidgetPushSupported() async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'isWidgetPushSupported',
-      );
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to check widget push support: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to check widget push support',
-        );
-      }
-      return false;
-    }
+    final result = await _invoke<bool>(
+      'isWidgetPushSupported',
+      'Failed to check widget push support',
+    );
+    return result ?? false;
   }
 
   @override
-  Future<bool> configureBackgroundUpdate({
+  Future<void> configureBackgroundUpdate({
     required String widgetId,
     required String template,
     required String apiUrl,
-    Map<String, String> headers = const {},
-    int intervalMinutes = 15,
     required String title,
     required String valuePath,
+    Map<String, String> headers = const <String, String>{},
+    int intervalMinutes = 15,
     String? subtitlePath,
     String? valuePrefix,
     String? valueSuffix,
-  }) async {
-    try {
-      final result = await _methodChannel
-          .invokeMethod<bool>('configureBackgroundUpdate', {
-            'widgetId': widgetId,
-            'template': template,
-            'apiUrl': apiUrl,
-            'headers': headers,
-            'intervalMinutes': intervalMinutes,
-            'title': title,
-            'valuePath': valuePath,
-            'subtitlePath': subtitlePath,
-            'valuePrefix': valuePrefix,
-            'valueSuffix': valueSuffix,
-            'enabled': true,
-          });
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to configure background update: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to configure background update',
-        );
-      }
-      return false;
-    }
-  }
+  }) => _mutate(
+    'configureBackgroundUpdate',
+    'Failed to configure background update',
+    <String, Object?>{
+      'widgetId': widgetId,
+      'template': template,
+      'apiUrl': apiUrl,
+      'headers': headers,
+      'intervalMinutes': intervalMinutes,
+      'title': title,
+      'valuePath': valuePath,
+      'subtitlePath': subtitlePath,
+      'valuePrefix': valuePrefix,
+      'valueSuffix': valueSuffix,
+      'enabled': true,
+    },
+  );
 
   @override
-  Future<bool> cancelBackgroundUpdate(String widgetId) async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'cancelBackgroundUpdate',
-        {'widgetId': widgetId},
-      );
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to cancel background update: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to cancel background update',
-        );
-      }
-      return false;
-    }
-  }
+  Future<void> cancelBackgroundUpdate(String widgetId) => _mutate(
+    'cancelBackgroundUpdate',
+    'Failed to cancel background update',
+    <String, Object?>{'widgetId': widgetId},
+  );
 
   @override
   Future<Map<String, dynamic>> getBackgroundUpdateStatus(
     String widgetId,
   ) async {
-    try {
-      final result = await _methodChannel.invokeMethod<Map<Object?, Object?>>(
-        'getBackgroundUpdateStatus',
-        {'widgetId': widgetId},
-      );
-      if (result == null) {
-        return {'widgetId': widgetId, 'isConfigured': false};
-      }
-      return Map<String, dynamic>.from(result);
-    } on PlatformException catch (e) {
-      _log.warning('Failed to get background update status: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to get background update status',
-        );
-      }
-      return {'widgetId': widgetId, 'isConfigured': false, 'error': e.message};
+    final result = await _invoke<Map<Object?, Object?>>(
+      'getBackgroundUpdateStatus',
+      'Failed to get background update status',
+      <String, Object?>{'widgetId': widgetId},
+    );
+    if (result == null) {
+      return <String, dynamic>{'widgetId': widgetId, 'isConfigured': false};
     }
+    return Map<String, dynamic>.from(result);
   }
 
   @override
-  Future<bool> configureTimelineRefresh({
+  Future<void> configureTimelineRefresh({
     required String widgetId,
     int intervalMinutes = 30,
-  }) async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'configureTimelineRefresh',
-        {'widgetId': widgetId, 'intervalMinutes': intervalMinutes},
-      );
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to configure timeline refresh: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to configure timeline refresh',
-        );
-      }
-      return false;
-    }
-  }
+  }) => _mutate(
+    'configureTimelineRefresh',
+    'Failed to configure timeline refresh',
+    <String, Object?>{'widgetId': widgetId, 'intervalMinutes': intervalMinutes},
+  );
 
   @override
-  Future<bool> cancelTimelineRefresh(String widgetId) async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'cancelTimelineRefresh',
-        {'widgetId': widgetId},
-      );
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to cancel timeline refresh: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to cancel timeline refresh',
-        );
-      }
-      return false;
-    }
-  }
+  Future<void> cancelTimelineRefresh(String widgetId) => _mutate(
+    'cancelTimelineRefresh',
+    'Failed to cancel timeline refresh',
+    <String, Object?>{'widgetId': widgetId},
+  );
 
   @override
-  Future<bool> completeWidgetConfiguration(String widgetId) async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'completeWidgetConfiguration',
-        {'widgetId': widgetId},
-      );
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to complete widget configuration: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to complete widget configuration',
-        );
-      }
-      return false;
-    }
-  }
+  Future<void> completeWidgetConfiguration(String widgetId) => _mutate(
+    'completeWidgetConfiguration',
+    'Failed to complete widget configuration',
+    <String, Object?>{'widgetId': widgetId},
+  );
 
   @override
-  Future<bool> testBackgroundUpdate(String widgetId) async {
-    try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'testBackgroundUpdate',
-        {'widgetId': widgetId},
-      );
-      return result ?? false;
-    } on PlatformException catch (e) {
-      _log.warning('Failed to test background update: ${e.message}', e);
-      if (throwOnError) {
-        throw GlanceWidgetException.fromPlatformException(
-          e,
-          context: 'Failed to test background update',
-        );
-      }
-      return false;
-    }
-  }
+  Future<void> testBackgroundUpdate(String widgetId) => _mutate(
+    'testBackgroundUpdate',
+    'Failed to test background update',
+    <String, Object?>{'widgetId': widgetId},
+  );
 }

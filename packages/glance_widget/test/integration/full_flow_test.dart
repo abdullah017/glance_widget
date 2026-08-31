@@ -35,13 +35,10 @@ void main() {
           data: any(named: 'data'),
           theme: any(named: 'theme'),
         ),
-      ).thenAnswer((_) async => true);
+      ).thenAnswer((_) async {});
 
       final ctrl = SimpleWidgetController(widgetId: 'test');
-      final result = await ctrl.update(
-        const SimpleWidgetData(title: 'Test', value: '100'),
-      );
-      expect(result, true);
+      await ctrl.update(const SimpleWidgetData(title: 'Test', value: '100'));
 
       ctrl.dispose();
       expect(
@@ -113,13 +110,10 @@ void main() {
             data: any(named: 'data'),
             theme: any(named: 'theme'),
           ),
-        ).thenAnswer((_) async => true);
+        ).thenAnswer((_) async {});
 
         final ctrl = SimpleWidgetController(widgetId: 'test');
-        final result = await ctrl.update(
-          const SimpleWidgetData(title: 'T', value: 'V'),
-        );
-        expect(result, true);
+        await ctrl.update(const SimpleWidgetData(title: 'T', value: 'V'));
         ctrl.dispose();
       },
     );

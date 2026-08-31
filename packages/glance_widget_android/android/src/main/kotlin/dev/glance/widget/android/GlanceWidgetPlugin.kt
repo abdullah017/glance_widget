@@ -7,6 +7,12 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 /**
  * GlanceWidgetPlugin - Flutter plugin for Jetpack Glance widgets.
@@ -16,6 +22,13 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
     private lateinit var eventChannel: EventChannel
     private lateinit var context: Context
     private var eventSink: EventChannel.EventSink? = null
+
+    /**
+     * Method channel replies must be delivered on the main thread, so this scope
+     * is deliberately main-dispatched even though the work it awaits is not.
+     * A [SupervisorJob] keeps one failed reply from cancelling the rest.
+     */
+    private val replyScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         context = binding.applicationContext
@@ -37,10 +50,38 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        replyScope.cancel()
         methodChannel.setMethodCallHandler(null)
         eventChannel.setStreamHandler(null)
         eventSink = null
         GlanceWidgetManager.cleanup()
+    }
+
+    /**
+     * Runs [update] and answers the Dart caller with what it actually returned.
+     *
+     * The fire-and-forget `GlanceWidgetManager.updateXWidget` helpers compute an
+     * [UpdateResult] and drop it on the floor, so every update used to report
+     * success even when no widget instance existed to update. Everything routed
+     * through here reports the real outcome instead.
+     */
+    private fun replyWith(result: Result, update: suspend () -> UpdateResult) {
+        replyScope.launch {
+            val outcome = try {
+                update()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                UpdateResult.Error(
+                    UpdateResult.ERROR_UPDATE_FAILED,
+                    e.message ?: e.toString()
+                )
+            }
+            when (outcome) {
+                is UpdateResult.Success -> result.success(true)
+                is UpdateResult.Error -> result.error(outcome.code, outcome.message, null)
+            }
+        }
     }
 
     override fun onMethodCall(call: MethodCall, result: Result) {
@@ -51,8 +92,11 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
                 val theme = call.argument<Map<String, Any?>>("theme")
 
                 if (widgetId != null && data != null) {
-                    GlanceWidgetManager.updateSimpleWidget(context, widgetId, data, theme)
-                    result.success(true)
+                    replyWith(result) {
+                        GlanceWidgetManager.updateSimpleWidgetWithResult(
+                            context, widgetId, data, theme
+                        )
+                    }
                 } else {
                     result.error("INVALID_ARGS", "Missing widgetId or data", null)
                 }
@@ -64,8 +108,11 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
                 val theme = call.argument<Map<String, Any?>>("theme")
 
                 if (widgetId != null && data != null) {
-                    GlanceWidgetManager.updateProgressWidget(context, widgetId, data, theme)
-                    result.success(true)
+                    replyWith(result) {
+                        GlanceWidgetManager.updateProgressWidgetWithResult(
+                            context, widgetId, data, theme
+                        )
+                    }
                 } else {
                     result.error("INVALID_ARGS", "Missing widgetId or data", null)
                 }
@@ -77,8 +124,11 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
                 val theme = call.argument<Map<String, Any?>>("theme")
 
                 if (widgetId != null && data != null) {
-                    GlanceWidgetManager.updateListWidget(context, widgetId, data, theme)
-                    result.success(true)
+                    replyWith(result) {
+                        GlanceWidgetManager.updateListWidgetWithResult(
+                            context, widgetId, data, theme
+                        )
+                    }
                 } else {
                     result.error("INVALID_ARGS", "Missing widgetId or data", null)
                 }
@@ -90,8 +140,11 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
                 val theme = call.argument<Map<String, Any?>>("theme")
 
                 if (widgetId != null && data != null) {
-                    GlanceWidgetManager.updateCalendarWidget(context, widgetId, data, theme)
-                    result.success(true)
+                    replyWith(result) {
+                        GlanceWidgetManager.updateCalendarWidgetWithResult(
+                            context, widgetId, data, theme
+                        )
+                    }
                 } else {
                     result.error("INVALID_ARGS", "Missing widgetId or data", null)
                 }
@@ -103,8 +156,11 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
                 val theme = call.argument<Map<String, Any?>>("theme")
 
                 if (widgetId != null && data != null) {
-                    GlanceWidgetManager.updateImageWidget(context, widgetId, data, theme)
-                    result.success(true)
+                    replyWith(result) {
+                        GlanceWidgetManager.updateImageWidgetWithResult(
+                            context, widgetId, data, theme
+                        )
+                    }
                 } else {
                     result.error("INVALID_ARGS", "Missing widgetId or data", null)
                 }
@@ -116,8 +172,11 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
                 val theme = call.argument<Map<String, Any?>>("theme")
 
                 if (widgetId != null && data != null) {
-                    GlanceWidgetManager.updateChartWidget(context, widgetId, data, theme)
-                    result.success(true)
+                    replyWith(result) {
+                        GlanceWidgetManager.updateChartWidgetWithResult(
+                            context, widgetId, data, theme
+                        )
+                    }
                 } else {
                     result.error("INVALID_ARGS", "Missing widgetId or data", null)
                 }
@@ -129,8 +188,11 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
                 val theme = call.argument<Map<String, Any?>>("theme")
 
                 if (widgetId != null && data != null) {
-                    GlanceWidgetManager.updateGaugeWidget(context, widgetId, data, theme)
-                    result.success(true)
+                    replyWith(result) {
+                        GlanceWidgetManager.updateGaugeWidgetWithResult(
+                            context, widgetId, data, theme
+                        )
+                    }
                 } else {
                     result.error("INVALID_ARGS", "Missing widgetId or data", null)
                 }
