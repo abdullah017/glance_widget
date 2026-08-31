@@ -78,6 +78,7 @@ GlanceWidgets/
 ├── GaugeWidget.swift        # Gauge widget template
 ├── GlanceFamily.swift       # Widget family classification (shared)
 ├── AccessoryViews.swift     # Lock screen building blocks (shared)
+├── GlanceInteractive.swift  # App Intents for in-place taps (shared)
 ├── Info.plist               # Extension info
 └── GlanceWidgets.entitlements
 ```

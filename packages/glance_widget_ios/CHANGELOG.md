@@ -1,5 +1,20 @@
 ## 2.0.0
 
+**Added:** the `ListWidget` checkbox now runs an App Intent instead of opening
+a URL, so ticking it no longer launches the app. The new state is written by
+the widget extension and the interaction is queued in the App Group; the plugin
+drains that queue into `dev.glance.widget/events` when Dart is next listening,
+carrying the time the tap actually happened. The queue holds 100 actions and
+drops the oldest past that.
+
+**Fixed:** a `ListWidget` with a `deepLinkUri` set never reported a checkbox
+toggle at all. The checkbox built its URL from the deep link when one was
+present, which discarded the widget id, the action type and the item index, so
+the app opened and heard nothing. The checkbox no longer builds a URL.
+
+`GlanceInteractive.swift` is new and shared by the templates -- copy it into
+your widget extension along with the rest; `WIDGET_SETUP.md` lists the full set.
+
 **Added:** the widget templates now support the iOS accessory families --
 `.accessoryCircular`, `.accessoryRectangular` and `.accessoryInline` -- so six
 of the seven render on the lock screen and in the Smart Stack. Each template

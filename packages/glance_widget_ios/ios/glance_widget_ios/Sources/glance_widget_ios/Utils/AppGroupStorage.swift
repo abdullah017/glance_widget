@@ -138,6 +138,17 @@ public class AppGroupStorage {
     }
 
     /// Loads raw data from storage
+    /// Loads a list of `Data` blobs, such as the queued widget actions.
+    ///
+    /// Anything in the stored array that is not `Data` is dropped rather than
+    /// failing the read: the queue is written by the widget extension, which
+    /// ships as a copy in the developer's own project and can be an older
+    /// build than the plugin.
+    public func loadDataArray(forKey key: String) -> [Data]? {
+        guard let stored = userDefaults?.array(forKey: key) else { return nil }
+        return stored.compactMap { $0 as? Data }
+    }
+
     public func loadData(forKey key: String) -> Data? {
         return userDefaults?.data(forKey: key)
     }
