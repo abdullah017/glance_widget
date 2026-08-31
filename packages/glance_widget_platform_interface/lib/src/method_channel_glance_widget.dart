@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:glance_widget_platform_interface/src/glance_widget_platform.dart';
 import 'package:glance_widget_platform_interface/src/types/glance_exception.dart';
+import 'package:glance_widget_platform_interface/src/types/glance_widget_update.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_action.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_data.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_theme.dart';
@@ -84,6 +85,70 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
       'data': data.toMap(),
       'theme': theme?.toMap(),
     });
+  }
+
+  @override
+  Future<void> updateBatch(
+    List<GlanceWidgetUpdate> updates, {
+    GlanceTheme? theme,
+  }) async {
+    if (updates.isEmpty) {
+      return;
+    }
+
+    // Validated before anything crosses, so a batch with one bad entry is
+    // rejected whole rather than applying nineteen widgets and then throwing.
+    // A validation error is a mistake in the calling code; a partial apply
+    // would leave the home screen in a state the caller never asked for.
+    final seen = <String>{};
+    for (final update in updates) {
+      update.validate();
+      if (!seen.add(update.widgetId)) {
+        throw GlanceWidgetValidationException(
+          'widgetId "${update.widgetId}" appears more than once in the batch',
+          field: 'widgetId',
+          invalidValue: update.widgetId,
+        );
+      }
+    }
+
+    // The theme is sent once for the whole batch rather than repeated per
+    // widget. Updating twenty widgets with a shared theme used to serialise it
+    // twenty times, which was most of the payload.
+    final response = await _invoke<Map<Object?, Object?>>(
+      'updateBatch',
+      'Failed to update widgets',
+      <String, Object?>{
+        'theme': theme?.toMap(),
+        'updates': updates.map((update) => update.toMap()).toList(),
+      },
+    );
+
+    final failures = _batchFailures(response);
+    if (failures.isNotEmpty) {
+      throw GlanceWidgetBatchException(failures, attempted: updates.length);
+    }
+  }
+
+  /// Reads the per-widget failures out of a batch reply.
+  ///
+  /// An older plugin that does not report them answers with null or without
+  /// the key, which reads as "nothing failed" -- the same thing an empty list
+  /// means, and the same thing the pre-batch methods conveyed by not throwing.
+  static List<GlanceWidgetBatchFailure> _batchFailures(
+    Map<Object?, Object?>? response,
+  ) {
+    final reported = response?['failures'];
+    if (reported is! List) {
+      return const <GlanceWidgetBatchFailure>[];
+    }
+    return reported.whereType<Map<Object?, Object?>>().map((failure) {
+      return GlanceWidgetBatchFailure(
+        widgetId: failure['widgetId']?.toString() ?? '<unknown>',
+        message: failure['message']?.toString() ?? 'Unknown platform error',
+        code: failure['code']?.toString(),
+      );
+    }).toList();
   }
 
   @override

@@ -3,6 +3,14 @@
 **Breaking:** the platform interface now models failure as an exception rather
 than a boolean.
 
+### Added
+
+* `updateBatch` sends many widget updates in one call, with `GlanceWidgetUpdate`
+  carrying each widget's id, data and optional theme override. The batch theme
+  travels once rather than once per widget.
+* `GlanceWidgetBatchException` and `GlanceWidgetBatchFailure` report the widgets
+  a batch could not update, leaving the ones that succeeded applied.
+
 ### Changed
 
 * The 15 mutating members return `Future<void>` and throw

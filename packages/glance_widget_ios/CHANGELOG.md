@@ -16,6 +16,16 @@ per-instance parameter, and so the only way a placed widget can know which
 the new versions: the change is mechanical, and a `StaticConfiguration` widget
 cannot be pointed at a `widgetId`.
 
+### Added
+
+* `updateBatch` applies many widget updates, of any mix of templates, from one
+  method call. Entries are applied in order -- they all write to the same App
+  Group container, and the win a batch is after is the single round trip, not
+  parallelism -- and every one is attempted; the reply carries a `failures`
+  list naming the widgets that could not be updated. The image template is the
+  only one that needs the network, so it is the only one that cannot answer
+  synchronously; the batch waits for it before moving on.
+
 ### Fixed
 
 * Every placed instance of a template rendered the same data. `widgetId` was
