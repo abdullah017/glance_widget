@@ -4,15 +4,17 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
-import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.LinearProgressIndicator
+import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.layout.*
 import androidx.glance.state.GlanceStateDefinition
@@ -21,7 +23,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import androidx.compose.ui.graphics.Color
+import dev.glance.widget.android.CornerRadius
 import dev.glance.widget.android.GlanceWidgetManager
 
 /**
@@ -73,12 +75,11 @@ private fun ProgressWidgetContent(prefs: Preferences) {
     val trackColor = trackColorInt?.let { ColorProvider(Color(it.toInt())) }
         ?: ColorProvider(Color(if (isDark) 0xFF3A3A4E.toInt() else 0xFFE0E0E0.toInt()))
 
-    val borderRadius = prefs[GlanceWidgetManager.borderRadiusKey]?.toInt() ?: 16
-
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(backgroundColor)
+            .cornerRadius(CornerRadius.dpFor(prefs[GlanceWidgetManager.borderRadiusKey]).dp)
             .clickable {
                 if (deepLinkUri != null) {
                     actionStartActivity(Intent(Intent.ACTION_VIEW, Uri.parse(deepLinkUri)))

@@ -1,5 +1,17 @@
 ## 2.0.0
 
+**Fixed:** `GlanceTheme.borderRadius` had no effect. Three of the seven
+templates read the value into a local and never used it; the other four did not
+read it at all, so every Android widget had square corners whatever the theme
+said, while iOS rounded exactly as asked (#20). All seven now round by it.
+
+Two notes on the fix. The radius is no longer put through `Int` on the way --
+`?.toInt() ?: 16` floored a 12.5dp radius to 12dp before discarding it. And
+Glance's `cornerRadius(Dp)` is honoured on **Android 12 (API 31) and above**;
+below that the platform offers no way to round a widget by a value chosen at
+runtime, so those devices keep square corners. That is a platform limit, not a
+default -- it is stated here rather than left to be discovered.
+
 **Breaking:** matches `glance_widget_platform_interface` 2.0.0. Update methods
 return `Future<void>` and throw `GlanceWidgetException` on failure instead of
 returning `Future<bool>`. See the main package's

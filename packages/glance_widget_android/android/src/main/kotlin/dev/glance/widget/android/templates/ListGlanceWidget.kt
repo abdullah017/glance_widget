@@ -5,15 +5,17 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.*
-import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.CheckBox
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
+import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.itemsIndexed
 import androidx.glance.appwidget.provideContent
@@ -24,10 +26,10 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
-import androidx.compose.ui.graphics.Color
-import dev.glance.widget.android.GlanceWidgetManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import dev.glance.widget.android.CornerRadius
+import dev.glance.widget.android.GlanceWidgetManager
 
 /**
  * List Widget - displays a list of items with optional checkboxes.
@@ -83,12 +85,11 @@ private fun ListWidgetContent(prefs: Preferences) {
         ?.let { ColorProvider(Color(it.toInt())) }
         ?: ColorProvider(Color(0xFF2196F3.toInt()))
 
-    val borderRadius = prefs[GlanceWidgetManager.borderRadiusKey]?.toInt() ?: 16
-
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
             .background(backgroundColor)
+            .cornerRadius(CornerRadius.dpFor(prefs[GlanceWidgetManager.borderRadiusKey]).dp)
             .padding(16.dp)
     ) {
         // Header

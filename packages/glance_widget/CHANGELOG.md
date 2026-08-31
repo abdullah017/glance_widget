@@ -1,5 +1,10 @@
 ## 2.0.0
 
+**Fixed:** `GlanceTheme.borderRadius` did nothing on Android -- every widget had
+square corners however the theme was configured, while iOS rounded as asked
+(#20). Rounded corners need Android 12 or newer; see the platform comparison in
+the README.
+
 **Added:** iOS checkboxes are interactive in place. Ticking one in `ListWidget`
 no longer launches the app; the action reaches your existing `onAction` listener
 unchanged the next time the app runs. See the README for the two consequences --

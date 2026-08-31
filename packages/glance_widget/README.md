@@ -61,6 +61,7 @@ widgets.
 | Lock Screen | Supported (keyguard) | Accessory families (all templates except Image) |
 | Interactive Actions | ActionCallback | App Intents (checkbox), URL (taps) |
 | Min Version | Android 8.0 (API 26) | iOS 17.0 |
+| Rounded corners | `GlanceTheme.borderRadius`, Android 12+ only | `GlanceTheme.borderRadius` |
 
 ## Interactive checkboxes (iOS)
 
