@@ -58,9 +58,27 @@ internal object ImageStore {
         widgetId: String,
         imageBase64: String?,
         imageUrl: String?
+    ): Result = store(cacheDir(context), widgetId, imageBase64, imageUrl)
+
+    /**
+     * The same work against an explicit cache directory, so the rules about what
+     * happens to the file on disk can be tested without an Android runtime.
+     */
+    internal suspend fun store(
+        cacheDir: File,
+        widgetId: String,
+        imageBase64: String?,
+        imageUrl: String?
     ): Result = withContext(Dispatchers.IO) {
         val bytes = when (val source = ImageResolver.sourceOf(imageBase64, imageUrl)) {
-            is ImageSource.None -> return@withContext Result.Empty
+            is ImageSource.None -> {
+                // No picture means no file. Done here rather than at the call
+                // site because this object owns the files: a caller that forgets
+                // leaves one on disk that nothing can ever reach again, which is
+                // exactly what happened until now.
+                evict(cacheDir, widgetId)
+                return@withContext Result.Empty
+            }
             is ImageSource.Invalid -> return@withContext Result.Failed(source.reason)
             is ImageSource.Inline ->
                 runCatching { Base64.decode(source.base64, Base64.DEFAULT) }
@@ -75,24 +93,29 @@ internal object ImageStore {
         val bitmap = decodeDownsampled(bytes)
             ?: return@withContext Result.Failed("image data could not be decoded")
 
-        writeToCache(context, widgetId, bitmap)
+        writeToCache(cacheDir, widgetId, bitmap)
     }
 
     /** Drops the cached picture for [widgetId], if any. */
-    fun evict(context: Context, widgetId: String) {
-        runCatching { cacheFile(context, widgetId).delete() }
+    fun evict(context: Context, widgetId: String) = evict(cacheDir(context), widgetId)
+
+    internal fun evict(cacheDir: File, widgetId: String) {
+        runCatching { cacheFile(cacheDir, widgetId).delete() }
     }
 
-    private fun cacheFile(context: Context, widgetId: String): File {
-        val dir = File(context.cacheDir, CACHE_DIR).apply { mkdirs() }
+    private fun cacheDir(context: Context): File =
+        File(context.cacheDir, CACHE_DIR).apply { mkdirs() }
+
+    internal fun cacheFile(cacheDir: File, widgetId: String): File {
+        cacheDir.mkdirs()
         // Widget ids come from the app and may contain anything, so they are not
         // used as path segments directly.
-        return File(dir, "${widgetId.hashCode().toUInt().toString(16)}.png")
+        return File(cacheDir, "${widgetId.hashCode().toUInt().toString(16)}.png")
     }
 
-    private fun writeToCache(context: Context, widgetId: String, bitmap: Bitmap): Result {
+    private fun writeToCache(cacheDir: File, widgetId: String, bitmap: Bitmap): Result {
         return try {
-            val file = cacheFile(context, widgetId)
+            val file = cacheFile(cacheDir, widgetId)
             // Written beside the target and renamed, so a reader never sees a
             // half-written file if the process dies mid-write.
             val temp = File(file.parentFile, "${file.name}.tmp")
