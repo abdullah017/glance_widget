@@ -52,10 +52,14 @@ jobs:
         working-directory: ${{ matrix.package }}
         run: flutter analyze --fatal-infos --fatal-warnings
 
+      # Golden tests are excluded here and run in `goldens` instead. Flutter
+      # rasterises the same widget tree slightly differently on different host
+      # platforms, so one set of reference images can only be compared against
+      # on the platform that produced them.
       - name: Test
         if: matrix.has_tests
         working-directory: ${{ matrix.package }}
-        run: flutter test --reporter=expanded
+        run: flutter test --reporter=expanded --exclude-tags golden
 
   publishable:
     name: Publish dry-run (${{ matrix.package }})
@@ -156,6 +160,31 @@ jobs:
       - name: Build without codesigning
         working-directory: packages/glance_widget/example
         run: flutter build ios --debug --no-codesign
+
+  goldens:
+    name: Golden tests (packages/glance_widget)
+    # macOS, because that is where the checked-in reference images were
+    # rendered. Comparing them on Linux would fail on antialiasing rather than
+    # on anything a developer changed.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Resolve workspace
+        run: flutter pub get
+      - name: Compare against the reference images
+        working-directory: packages/glance_widget
+        run: flutter test --reporter=expanded --tags golden
+      - name: Upload the images that differed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-failures
+          path: packages/glance_widget/test/preview/failures/
 
   ios-unit-tests:
     name: Swift unit tests (glance_widget_ios)

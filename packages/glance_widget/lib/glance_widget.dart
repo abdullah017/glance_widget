@@ -74,3 +74,6 @@ export 'src/glance_config.dart';
 export 'src/glance_widget.dart';
 // Controllers
 export 'src/glance_widget_controller.dart';
+export 'src/preview/glance_platform.dart';
+export 'src/preview/glance_preview.dart';
+export 'src/preview/glance_widget_size.dart';

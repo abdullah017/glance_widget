@@ -10,6 +10,15 @@ placed widget can know which `widgetId` it shows.
 
 ### Added
 
+* `GlancePreview` draws a widget inside the app, so a change to the data can be
+  seen on hot reload instead of through a build, an install and a trip to the
+  home screen. It renders per platform rather than averaging the two: pass
+  `platform:` to see the other host, or put both side by side. The differences
+  it shows are real ones -- the Android simple template drops `iconName`, its
+  radial gauge draws only the first metric, its charts are stretched bitmaps,
+  and it ignores `GlanceTheme.borderRadius` because the launcher clips.
+
+
 * `GlanceWidget.batch` updates many widgets, of any mix of templates, in a
   single platform call. The per-template helpers each cross the method channel
   once, so refreshing a dashboard of twenty widgets cost twenty round trips and
