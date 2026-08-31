@@ -16,9 +16,12 @@ iOS implementation of the [`glance_widget`](https://pub.dev/packages/glance_widg
 - Xcode 15.0 or higher
 - Swift 5.9 or higher
 
-Set your app's deployment target to iOS 16 as well. Under CocoaPods a lower
-target is silently tolerated, but under Swift Package Manager the build stops
-with `requires minimum platform version 16.0 for the iOS platform`.
+Set your app's deployment target to iOS 16 as well, in `ios/Podfile`
+(`platform :ios, '16.0'`) and not only in Xcode -- Flutter generates
+`FlutterGeneratedPluginSwiftPackage` from that line, so a commented-out one
+pins it to Flutter's 15.0 default. Under CocoaPods a lower target is silently
+tolerated, but under Swift Package Manager the build stops with
+`requires minimum platform version 16.0 for the iOS platform`.
 
 ## Installation
 

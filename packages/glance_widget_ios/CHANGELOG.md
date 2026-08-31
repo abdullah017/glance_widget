@@ -7,6 +7,41 @@ returning `Future<bool>`. See the main package's
 
 ### Fixed
 
+* `imageUrl` did nothing. It is documented, validated in Dart and sent over the
+  channel, and no iOS code read it -- the widget drew a placeholder saying
+  "Remote images limited in widgets". Image sources are now resolved when the
+  update is applied: fetched, downsampled through `CGImageSourceCreateThumbnail`
+  and written into the App Group container, so the extension only ever does a
+  small file read. A widget extension runs under a far tighter memory budget
+  than the app, and WidgetKit will not wait for a network round trip during a
+  timeline reload.
+* Images were carried through App Group `UserDefaults` as base64. The bytes now
+  live in a file, so every widget reload no longer has to read them back.
+* Documented the iOS 16 floor as something to set in Xcode *or* the `Podfile`.
+  Only the `Podfile` line works: Flutter generates
+  `FlutterGeneratedPluginSwiftPackage` from it, so with that line commented out
+  the generated package pins iOS 15 and this package fails to resolve against
+  it -- whatever the Xcode target says. The example app hit exactly that.
+
+### Changed
+
+* `updateImageWidgetWithResult` is asynchronous and takes a completion handler.
+  Resolving `imageUrl` needs the network, so the outcome cannot be known
+  synchronously. The plugin hops the reply back to the main thread.
+
+### Security
+
+* Only `http` and `https` image URLs are fetched, and redirects are followed by
+  hand, at most five deep, with every hop put back through the same check.
+  `URLSession` would have applied it to the first hop only. Downloads are capped
+  at 16 MB and time out.
+
+### Added
+
+* Swift unit tests, run in CI on a simulator through the example app's XCTest
+  target, and a `swiftc -typecheck` gate for the widget extension templates --
+  nothing in the repository compiled those before, which is how the image `fit`
+  key silently drifted apart from what Dart sends.
 * Method channel handlers replied `success(true)` before knowing whether the
   update had been applied, so a rejected update was reported to Dart as a
   success. Handlers now await the real outcome and answer with an error when the

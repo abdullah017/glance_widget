@@ -155,9 +155,14 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
         }
 
         let theme = args["theme"] as? [String: Any]
-        reply(result, widgetManager.updateImageWidgetWithResult(
+        // Answers on a background queue once the image has been fetched and
+        // downsampled, so the reply is hopped back to the main thread: a
+        // FlutterResult must be called there.
+        widgetManager.updateImageWidgetWithResult(
             widgetId: widgetId, data: data, theme: theme
-        ))
+        ) { outcome in
+            DispatchQueue.main.async { self.reply(result, outcome) }
+        }
     }
 
     private func handleUpdateChartWidget(_ call: FlutterMethodCall, result: @escaping FlutterResult) {

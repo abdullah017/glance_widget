@@ -225,36 +225,82 @@ public class GlanceWidgetManager {
 
     /// Updates an Image Widget with the given data
     public func updateImageWidget(widgetId: String, data: [String: Any], theme: [String: Any]?) {
-        _ = updateImageWidgetWithResult(widgetId: widgetId, data: data, theme: theme)
+        updateImageWidgetWithResult(widgetId: widgetId, data: data, theme: theme) { _ in }
     }
 
-    /// Updates an Image Widget with the given data and returns a result.
-    /// Use this method when you need to handle errors.
-    @discardableResult
-    public func updateImageWidgetWithResult(widgetId: String, data: [String: Any], theme: [String: Any]?) -> GlanceResult {
+    /// Updates an Image Widget with the given data and reports the outcome.
+    ///
+    /// Asynchronous, unlike its siblings: `imageUrl` has to be fetched and the
+    /// picture downsampled before the widget can draw it, and neither belongs in
+    /// a widget extension. An extension runs under a far tighter memory budget
+    /// than the app and WidgetKit will not wait for a network round trip during
+    /// a timeline reload, so the work happens here instead.
+    public func updateImageWidgetWithResult(
+        widgetId: String,
+        data: [String: Any],
+        theme: [String: Any]?,
+        completion: @escaping (GlanceResult) -> Void
+    ) {
         guard storage.isAvailable else {
             print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
-            return .failure(code: GlanceResult.errorAppGroupAccess,
-                          message: "App Group storage not available. Check entitlements configuration.")
+            completion(.failure(code: GlanceResult.errorAppGroupAccess,
+                                message: "App Group storage not available. Check entitlements configuration."))
+            return
         }
 
-        var widgetData = data
-        widgetData["widgetId"] = widgetId
-        widgetData["timestamp"] = Date().timeIntervalSince1970
-
-        if let theme = theme {
-            widgetData["theme"] = theme
+        guard let container = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: GlanceWidgetManager.appGroupId
+        ) else {
+            completion(.failure(code: GlanceResult.errorAppGroupAccess,
+                                message: "App Group container not available. Check entitlements configuration."))
+            return
         }
 
-        let saved = storage.save(widgetData, forKey: "\(imageWidgetKeyPrefix)\(widgetId)")
-        if !saved {
-            return .failure(code: GlanceResult.errorSaveFailed,
-                          message: "Failed to save widget data to App Group storage")
-        }
+        GlanceImageStore.store(
+            widgetId: widgetId,
+            imageBase64: data["imageBase64"] as? String,
+            imageUrl: data["imageUrl"] as? String,
+            containerURL: container
+        ) { [weak self] stored in
+            guard let self = self else { return }
 
-        trackWidgetId(widgetId)
-        WidgetCenter.shared.reloadTimelines(ofKind: "ImageWidget")
-        return .success
+            var widgetData = data
+            widgetData["widgetId"] = widgetId
+            widgetData["timestamp"] = Date().timeIntervalSince1970
+
+            switch stored {
+            case let .failed(reason):
+                completion(.failure(code: GlanceResult.errorInvalidData, message: reason))
+                return
+            case let .stored(path):
+                widgetData["imagePath"] = path
+            case .empty:
+                // A widget that used to show a picture and no longer has one
+                // must stop showing the old one.
+                GlanceImageStore.evict(widgetId: widgetId, containerURL: container)
+                widgetData["imagePath"] = nil
+            }
+
+            // The raw bytes are not carried into storage: the picture now lives
+            // in a file, and a base64 string of it would be dead weight in the
+            // App Group defaults every widget reload has to read.
+            widgetData["imageBase64"] = nil
+
+            if let theme = theme {
+                widgetData["theme"] = theme
+            }
+
+            let saved = self.storage.save(widgetData, forKey: "\(self.imageWidgetKeyPrefix)\(widgetId)")
+            if !saved {
+                completion(.failure(code: GlanceResult.errorSaveFailed,
+                                    message: "Failed to save widget data to App Group storage"))
+                return
+            }
+
+            self.trackWidgetId(widgetId)
+            WidgetCenter.shared.reloadTimelines(ofKind: "ImageWidget")
+            completion(.success)
+        }
     }
 
     /// Updates a Chart Widget with the given data
