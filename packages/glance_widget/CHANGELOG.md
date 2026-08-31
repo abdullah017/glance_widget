@@ -1,5 +1,16 @@
 ## 2.0.0
 
+**Fixed:** `GlancePreview` drew Android corners at a hardcoded 16dp, so a
+widget themed with `borderRadius: 4` rendered with 4dp corners on a device and
+16dp ones in the preview. That reading was correct when it was written -- the
+Android templates read the value and never used it -- and stopped being correct
+when they started applying it. The preview now draws what the plugin applies.
+
+**Added:** `GlancePreview.androidApiLevel` picks the Android version to
+imitate, defaulting to 31. Glance refuses `cornerRadius` below Android 12, and
+rounded widget corners are an Android 12 feature at all, so a widget is square
+on the 8.0-11 devices this plugin still supports. Pass 30 to see that.
+
 **Added:** `dart run glance_widget:doctor` checks a project's native setup and
 names what will stop a widget working. Almost every way to get this wrong fails
 quietly -- a receiver with `exported="false"` installs and never reaches the

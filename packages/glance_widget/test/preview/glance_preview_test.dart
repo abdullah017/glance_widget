@@ -236,19 +236,20 @@ void main() {
       expect(background.color, GlanceTheme.light().backgroundColor);
     });
 
-    testWidgets('Android ignores borderRadius, because the launcher clips', (
+    testWidgets('both hosts honour borderRadius on a current OS', (
       tester,
     ) async {
+      // Android used to be pinned at 16 here on the grounds that its templates
+      // read the value and never used it. #24 gave all seven of them
+      // `.cornerRadius(...)`, so the preview would now be the one lying. See
+      // preview_corner_radius_test.dart for the API-level split.
       const theme = GlanceTheme(
         backgroundColor: Color(0xFF000000),
         textColor: Color(0xFFFFFFFF),
         borderRadius: 40,
       );
 
-      for (final (platform, expected) in [
-        (GlancePlatform.android, 16.0),
-        (GlancePlatform.ios, 40.0),
-      ]) {
+      for (final platform in GlancePlatform.values) {
         await show(
           tester,
           GlancePreview(data: simple, theme: theme, platform: platform),
@@ -262,9 +263,10 @@ void main() {
               )
               .first,
         );
+
         expect(
           clip.borderRadius,
-          BorderRadius.circular(expected),
+          BorderRadius.circular(40),
           reason: platform.name,
         );
       }
