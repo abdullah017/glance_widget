@@ -1,5 +1,11 @@
 ## 2.0.0
 
+**Fixed:** on iOS, widget updates silently did nothing unless your App Group
+happened to be the example's. Both targets now read the group from the
+`GlanceWidgetAppGroup` key in their `Info.plist` -- see the updated App Groups
+step in the README, which previously told you to configure entitlements and
+stopped there.
+
 **Fixed:** on Android, `SimpleWidget` clipped its own value when resized to the
 smallest slot the launcher allows. It now adapts what it shows to the room it
 has, as the iOS templates already did.

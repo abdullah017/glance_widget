@@ -10,6 +10,7 @@
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		A11CE0AA2F0000000000E001 /* GlanceImageResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E002 /* GlanceImageResolverTests.swift */; };
+		A11CE0AA2F0000000000E015 /* GlanceAppGroupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E016 /* GlanceAppGroupTests.swift */; };
 		A11CE0AA2F0000000000E003 /* GlanceStorageKeysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E004 /* GlanceStorageKeysTests.swift */; };
 		A11CE0AA2F0000000000E005 /* GlanceBatchRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E006 /* GlanceBatchRequestTests.swift */; };
 		A11CE0AA2F0000000000E007 /* GlanceAccessoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0AA2F0000000000E008 /* GlanceAccessoryTests.swift */; };
@@ -60,6 +61,7 @@
 		31E1F35F7164B99167A7C7E8 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		A11CE0AA2F0000000000E002 /* GlanceImageResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlanceImageResolverTests.swift; sourceTree = "<group>"; };
+		A11CE0AA2F0000000000E016 /* GlanceAppGroupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlanceAppGroupTests.swift; sourceTree = "<group>"; };
 		A11CE0AA2F0000000000E004 /* GlanceStorageKeysTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlanceStorageKeysTests.swift; sourceTree = "<group>"; };
 		A11CE0AA2F0000000000E006 /* GlanceBatchRequestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlanceBatchRequestTests.swift; sourceTree = "<group>"; };
 		A11CE0AA2F0000000000E008 /* GlanceAccessoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlanceAccessoryTests.swift; path = "GlanceAccessoryTests.swift"; sourceTree = "<group>"; };
@@ -117,6 +119,7 @@
 			children = (
 				331C807B294A618700263BE5 /* RunnerTests.swift */,
 				A11CE0AA2F0000000000E002 /* GlanceImageResolverTests.swift */,
+				A11CE0AA2F0000000000E016 /* GlanceAppGroupTests.swift */,
 				A11CE0AA2F0000000000E004 /* GlanceStorageKeysTests.swift */,
 				A11CE0AA2F0000000000E006 /* GlanceBatchRequestTests.swift */,
 				A11CE0AA2F0000000000E008 /* GlanceAccessoryTests.swift */,
@@ -396,6 +399,7 @@
 			files = (
 				331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */,
 				A11CE0AA2F0000000000E001 /* GlanceImageResolverTests.swift in Sources */,
+				A11CE0AA2F0000000000E015 /* GlanceAppGroupTests.swift in Sources */,
 				A11CE0AA2F0000000000E003 /* GlanceStorageKeysTests.swift in Sources */,
 				A11CE0AA2F0000000000E005 /* GlanceBatchRequestTests.swift in Sources */,
 				A11CE0AA2F0000000000E007 /* GlanceAccessoryTests.swift in Sources */,

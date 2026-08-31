@@ -68,7 +68,7 @@ that omits one fails to compile rather than quietly losing a feature.
 ```
 GlanceWidgets/
 ├── GlanceWidgets.swift      # Widget bundle entry point
-├── SharedModels.swift       # Data models (edit AppConfig.appGroupId!)
+├── SharedModels.swift       # Data models (reads the App Group from Info.plist)
 ├── SimpleWidget.swift       # Simple widget template
 ├── ProgressWidget.swift     # Progress widget template
 ├── ListWidget.swift         # List widget template
@@ -83,22 +83,26 @@ GlanceWidgets/
 └── GlanceWidgets.entitlements
 ```
 
-## Step 4: Update App Group ID
+## Step 4: Name the App Group in both Info.plists
 
-**IMPORTANT**: Edit `SharedModels.swift` and update the App Group ID:
+The entitlement grants access to the group; it does not say which group to use.
+Both targets have to be told, and they have to agree.
 
-```swift
-enum AppConfig {
-    // Change this to match YOUR App Group ID
-    static let appGroupId = "group.com.yourcompany.yourapp"
-}
+Add to `ios/Runner/Info.plist` **and** to the widget extension's `Info.plist`:
+
+```xml
+<key>GlanceWidgetAppGroup</key>
+<string>group.com.yourcompany.yourapp</string>
 ```
 
-Also update the iOS plugin's `GlanceWidgetManager.swift`:
+Nothing in Swift needs editing. `SharedModels.swift` reads this key, and so
+does the plugin.
 
-```swift
-public static var appGroupId: String = "group.com.yourcompany.yourapp"
-```
+> Earlier versions of this guide told you to edit `AppConfig.appGroupId` in
+> `SharedModels.swift` *and* `GlanceWidgetManager.appGroupId` in the plugin's
+> own source. The second is inside the pub cache -- `flutter pub get` throws
+> the edit away, and the widget goes back to reading a store nobody writes to.
+> Neither edit is needed now.
 
 ## Step 5: Configure URL Scheme
 
@@ -180,8 +184,13 @@ GlanceWidgetController().onAction.listen((action) {
 ## Troubleshooting
 
 ### Widget shows placeholder data
-- Ensure App Group ID matches in both targets
-- Check that `SharedModels.swift` has the correct `appGroupId`
+- Check that `GlanceWidgetAppGroup` is present in **both** Info.plists and that
+  the two spellings match exactly. If the app writes to one group and the
+  extension reads another, both calls succeed and nothing is shared.
+- Check that both targets carry the App Groups entitlement for that identifier.
+  Without it `UserDefaults(suiteName:)` returns nil and every write is dropped
+  with no error. The plugin logs this at startup -- filter Console.app on
+  subsystem `dev.glance.widget`.
 - Try calling `GlanceWidget.forceRefreshAll()` from your app
 
 ### Widget doesn't update

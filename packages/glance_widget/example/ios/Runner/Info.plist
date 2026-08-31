@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- The App Group the plugin shares widget data through. Must match the
+	     group declared in both this target's and the widget extension's
+	     entitlements. Without it the plugin falls back to a group this app has
+	     no entitlement for and every update silently does nothing. -->
+	<key>GlanceWidgetAppGroup</key>
+	<string>group.com.example.glancewidget</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

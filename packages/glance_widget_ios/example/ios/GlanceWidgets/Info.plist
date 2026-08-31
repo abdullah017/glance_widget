@@ -2,6 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Must be the same group as the host app's Info.plist and both
+	     targets' entitlements. If these two disagree the app writes to one
+	     store and the widget reads another, with no error on either side. -->
+	<key>GlanceWidgetAppGroup</key>
+	<string>group.com.example.glancewidget</string>
     <key>CFBundleDisplayName</key>
     <string>Glance Widgets</string>
     <key>CFBundleExecutable</key>

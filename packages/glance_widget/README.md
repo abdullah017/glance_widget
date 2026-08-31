@@ -358,17 +358,37 @@ In Xcode:
 
 ### 2. Configure App Groups
 
-Both targets need the same App Group:
+Both targets need the same App Group, **and both need to be told its name.**
 
 1. Select `Runner` target → Signing & Capabilities → + App Groups
 2. Add: `group.com.yourcompany.yourapp`
-3. Select `GlanceWidgets` target → repeat with same App Group ID
+3. Select `GlanceWidgets` target → repeat with the same App Group ID
+4. Add this to **both** targets' `Info.plist`:
+
+```xml
+<key>GlanceWidgetAppGroup</key>
+<string>group.com.yourcompany.yourapp</string>
+```
+
+Step 4 is not optional and not cosmetic. The entitlement grants access to the
+group; it does not tell the plugin which group to use. Without the key the
+plugin falls back to the example app's group, which your app has no entitlement
+for -- `UserDefaults(suiteName:)` returns nil, every update fails, and the
+widget sits on its placeholder data with nothing in the console to explain it.
+
+If the key is missing you will now see this in Console.app, which is the one
+place the old version said nothing at all:
+
+```
+No App Group configured. Add a GlanceWidgetAppGroup key to the app's
+Info.plist ... every widget update will do nothing.
+```
 
 ### 3. Add Widget Files
 
 Copy the ready-made views from [`glance_widget_ios/example/ios/GlanceWidgets/`](https://github.com/abdullahtas0/glance_widget/blob/master/packages/glance_widget_ios/example/ios/GlanceWidgets) into your extension target:
 - `GlanceWidgets.swift`
-- `SharedModels.swift` (update `appGroupId`!)
+- `SharedModels.swift` (reads `GlanceWidgetAppGroup` from the extension's Info.plist; nothing to edit)
 - `SimpleWidget.swift`
 - `ProgressWidget.swift`
 - `ListWidget.swift`
