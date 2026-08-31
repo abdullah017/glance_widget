@@ -21,6 +21,30 @@ returning `Future<bool>`. See the main package's
   several placed widgets is refused with `NO_WIDGET_INSTANCE` instead of
   overwriting one at random.
 
+* `imageUrl` did nothing. It is documented, validated and sent over the channel,
+  and no native code read it -- the widget drew a blank box with no error and no
+  log. Image sources are now resolved when the update is applied, not when the
+  widget is drawn: a Glance composition runs in the host's process on the host's
+  schedule and is no place for network I/O.
+* The image fit setting never applied. Dart sends `fit`; this read
+  `data["imageFit"]`, which was always null.
+* Images were decoded inside the `@Composable` body, so the same picture was
+  decoded again on every recomposition. Decoding now happens once at update
+  time, and the result is held in a bounded cache.
+* Images were decoded at full resolution. A 4000x3000 photo is roughly 48 MB of
+  ARGB_8888, over the limit for handing to a widget host, and the resulting
+  `OutOfMemoryError` is an `Error` rather than an `Exception` -- so the
+  `catch (e: Exception)` around the decode never caught it and the host process
+  died. Images are now downsampled to fit a 512 px budget before decoding, with
+  the error caught as a backstop.
+
+### Security
+
+* Only `http` and `https` image URLs are fetched. A widget update carries an
+  app-supplied string into a network stack, and `file://` or `content://` would
+  have made that a way to read arbitrary local data. Downloads are also capped
+  at 16 MB and time out.
+
 ### Added
 
 * JVM unit tests for the plugin's Android sources, run in CI. The instance

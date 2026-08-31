@@ -93,6 +93,7 @@ object GlanceWidgetManager {
 
     // Image keys
     val imageBase64Key = stringPreferencesKey("imageBase64")
+    val imagePathKey = stringPreferencesKey("imagePath")
     val imageFitKey = stringPreferencesKey("imageFit")
 
     // Chart keys
@@ -477,6 +478,21 @@ object GlanceWidgetManager {
     ): UpdateResult {
         return try {
             Log.d(TAG, "Updating image widget: $widgetId")
+
+            // Resolved here rather than in the template: `imageUrl` needs the
+            // network and every picture needs downsampling, and a Glance
+            // composition runs in the host's process on the host's schedule.
+            val stored = ImageStore.store(
+                context,
+                widgetId,
+                data["imageBase64"] as? String,
+                data["imageUrl"] as? String
+            )
+            if (stored is ImageStore.Result.Failed) {
+                Log.w(TAG, "Image widget \"$widgetId\": ${stored.reason}")
+                return UpdateResult.Error(UpdateResult.ERROR_INVALID_DATA, stored.reason)
+            }
+
             val widget = ImageGlanceWidget()
             val glanceIds =
                 when (val targets = resolveTargets(context, ImageGlanceWidget::class.java, widgetId)) {
@@ -496,8 +512,15 @@ object GlanceWidgetManager {
                         this[widgetIdKey] = widgetId
                         this[titleKey] = data["title"] as? String ?: ""
                         data["subtitle"]?.let { this[subtitleKey] = it as String }
-                        data["imageBase64"]?.let { this[imageBase64Key] = it as String }
-                        data["imageFit"]?.let { this[imageFitKey] = it as String }
+                        when (stored) {
+                            is ImageStore.Result.Stored -> this[imagePathKey] = stored.path
+                            // A widget that used to show a picture and no longer
+                            // has one must stop showing the old one.
+                            else -> remove(imagePathKey)
+                        }
+                        // Dart sends `fit`; this read `imageFit`, so the setting
+                        // silently never applied.
+                        data["fit"]?.let { this[imageFitKey] = it as String }
                         data["deepLinkUri"]?.let { this[deepLinkUriKey] = it as String }
                         this[timestampKey] = System.currentTimeMillis()
 

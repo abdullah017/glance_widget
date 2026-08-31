@@ -340,6 +340,15 @@ class ImageWidgetData extends WidgetData {
   @override
   void validate() {
     WidgetData.checkNotEmpty(title, 'title');
+    // Documented as "at least one of imageUrl or imageBase64", but nothing
+    // enforced it, so a widget with neither was accepted and drew a blank box.
+    if ((imageUrl == null || imageUrl!.isEmpty) &&
+        (imageBase64 == null || imageBase64!.isEmpty)) {
+      throw const GlanceWidgetValidationException(
+        'ImageWidgetData needs either imageUrl or imageBase64',
+        field: 'imageUrl',
+      );
+    }
   }
 
   @override
