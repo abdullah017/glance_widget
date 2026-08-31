@@ -1,6 +1,6 @@
 # glance_widget_platform_interface
 
-A common platform interface for the [`glance_widget`](https://github.com/abdullah017/glance_widget) plugin.
+A common platform interface for the [`glance_widget`](https://github.com/abdullahtas0/glance_widget) plugin.
 
 This interface allows platform-specific implementations of the `glance_widget` plugin, as well as the plugin itself, to ensure they are supporting the same interface.
 

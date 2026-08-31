@@ -1,13 +1,13 @@
 Pod::Spec.new do |s|
   s.name             = 'glance_widget_ios'
-  s.version          = '0.1.0'
+  s.version          = '1.0.0'
   s.summary          = 'iOS implementation of the glance_widget plugin using WidgetKit.'
   s.description      = <<-DESC
 iOS implementation of the glance_widget plugin that provides home screen widgets
 using Apple's WidgetKit framework with SwiftUI. Supports Simple, Progress, and
 List widget templates with instant updates when the app is in foreground.
                        DESC
-  s.homepage         = 'https://github.com/abdullah017/glance_widget'
+  s.homepage         = 'https://github.com/abdullahtas0/glance_widget'
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Abdullah Tas' => 'abdullah@example.com' }
   s.source           = { :path => '.' }

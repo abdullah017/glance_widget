@@ -1,42 +1,15 @@
-name: glance_widget
-description: Create instant-updating home screen widgets for Android (Jetpack Glance) and iOS (WidgetKit). Supports Simple, Progress, List, Image, Chart, Calendar, and Gauge widget templates.
-version: 1.0.1
-homepage: https://github.com/abdullah017/glance_widget
-repository: https://github.com/abdullah017/glance_widget
-issue_tracker: https://github.com/abdullah017/glance_widget/issues
-documentation: https://github.com/abdullah017/glance_widget#readme
-
-topics:
-  - widget
-  - android
-  - ios
-  - glance
-  - widgetkit
+# Workspace root. This is NOT a published package — it exists only to give the
+# four glance_widget packages a single shared dependency resolution, so a
+# sibling dependency resolves to the local source without pubspec_overrides.
+name: glance_widget_workspace
+publish_to: none
 
 environment:
-  sdk: ">=3.6.0 <4.0.0"
-  flutter: ">=3.27.0"
+  sdk: ^3.8.0
 
-dependencies:
-  flutter:
-    sdk: flutter
-  glance_widget_platform_interface: ^1.0.0
-  glance_widget_android: ^1.0.0
-  glance_widget_ios: ^1.0.0
-  logging: ^1.3.0
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^6.0.0
-  fake_async: ^1.3.2
-  mocktail: ^1.0.4
-  plugin_platform_interface: ^2.1.8
-
-flutter:
-  plugin:
-    platforms:
-      android:
-        default_package: glance_widget_android
-      ios:
-        default_package: glance_widget_ios
+workspace:
+  - packages/glance_widget
+  - packages/glance_widget_platform_interface
+  - packages/glance_widget_android
+  - packages/glance_widget_ios
+  - packages/glance_widget/example

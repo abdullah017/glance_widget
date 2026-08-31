@@ -28,7 +28,7 @@
 /// ctrl.dispose();
 /// ```
 ///
-/// See the [README](https://github.com/abdullah017/glance_widget) for complete documentation.
+/// See the [README](https://github.com/abdullahtas0/glance_widget) for complete documentation.
 library;
 
 // Core

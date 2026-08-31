@@ -1,6 +1,6 @@
 # glance_widget_android
 
-The Android implementation of [`glance_widget`](https://github.com/abdullah017/glance_widget).
+The Android implementation of [`glance_widget`](https://github.com/abdullahtas0/glance_widget).
 
 ## Usage
 
