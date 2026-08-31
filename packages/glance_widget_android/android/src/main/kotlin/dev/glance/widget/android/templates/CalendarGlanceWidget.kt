@@ -29,6 +29,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dev.glance.widget.android.CornerRadius
 import dev.glance.widget.android.GlanceWidgetManager
+import dev.glance.widget.android.ReportActionCallback
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -100,13 +101,17 @@ private fun CalendarWidgetContent(prefs: Preferences) {
             .fillMaxSize()
             .background(backgroundColor)
             .cornerRadius(CornerRadius.dpFor(prefs[GlanceWidgetManager.borderRadiusKey]).dp)
-            .clickable {
+            // Not a lambda action: that runs in a process the system may
+            // have started purely to deliver this tap, with no Flutter engine
+            // in it, so the event went to a null sink and vanished. A deep link
+            // still starts the activity -- the launch is the notification.
+            .clickable(
                 if (deepLinkUri != null) {
                     actionStartActivity(Intent(Intent.ACTION_VIEW, Uri.parse(deepLinkUri)))
                 } else {
-                    GlanceWidgetManager.sendActionEvent(widgetId, "tap")
+                    ReportActionCallback.tap(widgetId, "tap")
                 }
-            }
+            )
             .padding(16.dp)
     ) {
         // Date header section
@@ -235,13 +240,14 @@ private fun CalendarEventRow(
         modifier = GlanceModifier
             .fillMaxWidth()
             .padding(vertical = 6.dp)
-            .clickable {
-                GlanceWidgetManager.sendActionEvent(
+            .clickable(
+                ReportActionCallback.tapAt(
                     widgetId,
                     "eventTap",
-                    mapOf("index" to index)
+                    index,
+                    indexName = "index"
                 )
-            },
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Colored dot indicator

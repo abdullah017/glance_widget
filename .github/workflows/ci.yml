@@ -117,6 +117,34 @@ jobs:
       - name: Build debug APK
         working-directory: packages/glance_widget/example
         run: flutter build apk --debug
+      - name: Build release APK (runs R8 against the plugin's consumer rules)
+        working-directory: packages/glance_widget/example
+        run: flutter build apk --release
+      - name: Assert R8 kept the serialized models' field names
+        working-directory: packages/glance_widget/example
+        run: |
+          # BackgroundUpdateConfig and PendingAction are stored as Gson JSON and
+          # read back after an app update, so their field names are a storage
+          # format. If R8 renames them the readers just return null and the
+          # failure is silent -- background updates stop, queued taps vanish,
+          # release only. consumer-rules.pro keeps them; this proves it still does.
+          mapping=build/app/outputs/mapping/release/mapping.txt
+          test -f "$mapping" || { echo "::error::no R8 mapping at $mapping -- did minification get turned off?"; exit 1; }
+          status=0
+          for class in BackgroundUpdateConfig PendingAction; do
+            renamed=$(awk -v c="dev.glance.widget.android.$class ->" '
+              index($0, c) == 1 { inside = 1; next }
+              /^#/ { next }
+              inside && /^[^ ]/ { inside = 0 }
+              inside && /^    [a-zA-Z].* -> [a-z0-9]+$/ && !/\(/ { print }
+            ' "$mapping")
+            if [ -n "$renamed" ]; then
+              echo "::error::R8 renamed fields on $class -- its stored JSON will not survive an app update:"
+              echo "$renamed"
+              status=1
+            fi
+          done
+          exit $status
 
   android-unit-tests:
     name: Kotlin unit tests (glance_widget_android)

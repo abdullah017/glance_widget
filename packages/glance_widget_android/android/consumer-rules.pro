@@ -15,6 +15,26 @@
 }
 
 # ============================================
+# Gson-serialized models
+# ============================================
+# These two are written to disk as JSON and read back later, so their field
+# names are a storage format, not an implementation detail. Left to R8 they
+# become a, b, c, d -- and the letters are not stable across builds, so an app
+# update makes everything the previous version wrote unreadable. Both readers
+# swallow the parse failure and return null, so the symptom is silent: widgets
+# stop updating in the background, queued taps never arrive, and only in
+# release. Verified in build/app/outputs/mapping/release/mapping.txt.
+#
+# ActionCallback implementations need no rule here -- glance-appwidget's own
+# proguard.txt already keeps them.
+-keepclassmembers class dev.glance.widget.android.BackgroundUpdateConfig {
+    <fields>;
+}
+-keepclassmembers class dev.glance.widget.android.PendingAction {
+    <fields>;
+}
+
+# ============================================
 # Flutter Plugin
 # ============================================
 # Keep the plugin class
