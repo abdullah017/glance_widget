@@ -1,0 +1,63 @@
+name: Bug report
+description: Something in glance_widget does not behave as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Home screen widgets fail in ways the app cannot see, so please be
+        specific about which side broke: the Dart call, the native update, or
+        the widget's appearance on the home screen.
+
+  - type: input
+    id: package
+    attributes:
+      label: Which package
+      description: glance_widget, glance_widget_android, glance_widget_ios or glance_widget_platform_interface — and its version.
+      placeholder: glance_widget 2.0.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected, and what you got instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: The smallest snippet that shows the problem. A link to a repository is ideal.
+      render: dart
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options:
+        - Android
+        - iOS
+        - Both
+    validations:
+      required: true
+
+  - type: textarea
+    id: flutter-doctor
+    attributes:
+      label: flutter doctor -v
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Native logs
+      description: "`adb logcat` on Android, or the Console output for the widget extension on iOS."
+      render: shell
