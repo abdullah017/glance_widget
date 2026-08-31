@@ -1,0 +1,15 @@
+# `.pubignore` REPLACES `.gitignore` for publishing — it does not merge with it.
+
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec_overrides.yaml
+docs/
+
+*.log
+.DS_Store
+.idea/
+.vscode/
+*.iml
+coverage/
