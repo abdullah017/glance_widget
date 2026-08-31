@@ -4,7 +4,7 @@ iOS implementation of the [`glance_widget`](https://pub.dev/packages/glance_widg
 
 ## Features
 
-- Three widget templates: Simple, Progress, and List
+- Seven widget templates: Simple, Progress, List, Calendar, Image, Chart and Gauge
 - **Instant updates** when app is in foreground (no budget limit!)
 - Theme support with dark/light modes
 - Widget tap actions sent back to Flutter
@@ -14,7 +14,11 @@ iOS implementation of the [`glance_widget`](https://pub.dev/packages/glance_widg
 
 - iOS 16.0 or higher
 - Xcode 15.0 or higher
-- Swift 5.0 or higher
+- Swift 5.9 or higher
+
+Set your app's deployment target to iOS 16 as well. Under CocoaPods a lower
+target is silently tolerated, but under Swift Package Manager the build stops
+with `requires minimum platform version 16.0 for the iOS platform`.
 
 ## Installation
 
@@ -22,8 +26,11 @@ This package is automatically included when you add `glance_widget` to your Flut
 
 ```yaml
 dependencies:
-  glance_widget: ^0.1.0
+  glance_widget: ^1.0.0
 ```
+
+Both CocoaPods and Swift Package Manager are supported; the same sources back
+each of them, so no extra step is needed either way.
 
 ## Setup
 
@@ -63,7 +70,10 @@ In `ios/Runner/Info.plist`, add:
 
 ### 4. Implement Widget Extension
 
-Create your widget views in the extension. Example `SimpleWidget.swift`:
+Ready-made views for all seven templates ship with this package under
+[`example/ios/GlanceWidgets/`](example/ios/GlanceWidgets/) — copy them into your
+extension target rather than writing them by hand. The sketch below is only to
+show the shape of a provider:
 
 ```swift
 import WidgetKit

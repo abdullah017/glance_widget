@@ -13,7 +13,15 @@ Create instant-updating home screen widgets for **Android** and **iOS**. Built w
 
 ## Why glance_widget?
 
-Unlike other packages (e.g., `home_widget`) that only provide a data bridge and require you to write all widget UI in native Swift/Kotlin, **glance_widget is a complete solution** — zero native code required.
+Unlike other packages (e.g., `home_widget`) that only provide a data bridge and
+leave you to write every widget's UI in native Swift/Kotlin, **glance_widget
+ships the widgets themselves**.
+
+On Android there is genuinely nothing native to write: declare the receivers in
+your manifest and you are done. On iOS, WidgetKit requires every app to own its
+widget extension target, so you create that target in Xcode once and copy in the
+ready-made Swift views this package provides — you write the glue, not the
+widgets.
 
 | | glance_widget | home_widget |
 |---|---|---|
@@ -23,7 +31,7 @@ Unlike other packages (e.g., `home_widget`) that only provide a data bridge and 
 | **Background Updates** | Built-in `GlanceBackground` (WorkManager + Timeline) | Requires external `flutter_workmanager` |
 | **iOS Push** | Built-in iOS 26+ APNs support | Not available |
 | **Platform Safety** | `GlanceConfig.strictMode` — graceful on Web/desktop | Crashes on unsupported platforms |
-| **Native Code** | Zero | Required for every widget |
+| **Native Code** | None on Android; copy-in extension on iOS | Required for every widget |
 
 ## Features
 
@@ -72,14 +80,19 @@ dependencies:
   glance_widget: ^1.0.0
 ```
 
+The Android and iOS implementations are endorsed, so they come along
+automatically — you do not list them yourself.
+
 ## Requirements
 
 | Platform | Minimum Version |
 |----------|-----------------|
-| Flutter | 3.27+ |
-| Dart | 3.6+ |
+| Flutter | 3.32+ |
+| Dart | 3.8+ |
 | Android | API 26 (Android 8.0) |
 | iOS | 16.0 |
+
+Both CocoaPods and Swift Package Manager are supported on iOS.
 
 ---
 
@@ -199,12 +212,19 @@ In `android/app/build.gradle.kts`:
 
 ```kotlin
 android {
-    compileSdk = 36
+    compileSdk = flutter.compileSdkVersion
     defaultConfig {
+        // Jetpack Glance app widgets require API 26.
         minSdk = 26
     }
 }
 ```
+
+That is the whole Android setup. You do **not** need to enable Jetpack Compose in
+your app: the plugin renders with Compose, so it brings its own Compose compiler
+and applies it only to itself, tracking whatever Kotlin version your app
+resolved. Apps that need to pin a different one can set `glance.kotlinVersion` in
+`android/gradle.properties`.
 
 ---
 
@@ -228,7 +248,7 @@ Both targets need the same App Group:
 
 ### 3. Add Widget Files
 
-Copy files from `glance_widget_ios/example/ios/GlanceWidgets/` to your extension:
+Copy the ready-made views from [`glance_widget_ios/example/ios/GlanceWidgets/`](https://github.com/abdullahtas0/glance_widget/blob/master/packages/glance_widget_ios/example/ios/GlanceWidgets) into your extension target:
 - `GlanceWidgets.swift`
 - `SharedModels.swift` (update `appGroupId`!)
 - `SimpleWidget.swift`
@@ -239,7 +259,20 @@ Copy files from `glance_widget_ios/example/ios/GlanceWidgets/` to your extension
 - `CalendarWidget.swift`
 - `GaugeWidget.swift`
 
-### 4. Configure URL Scheme
+### 4. Set the Deployment Target
+
+This plugin requires iOS 16. Set the same floor on your app, in Xcode under
+Runner → General → Minimum Deployments, or in `ios/Podfile`:
+
+```ruby
+platform :ios, '16.0'
+```
+
+Under CocoaPods a lower target is silently tolerated until something breaks at
+runtime; under Swift Package Manager the build stops with
+`requires minimum platform version 16.0 for the iOS platform`.
+
+### 5. Configure URL Scheme
 
 Add to `ios/Runner/Info.plist`:
 
@@ -255,7 +288,7 @@ Add to `ios/Runner/Info.plist`:
 </array>
 ```
 
-See [iOS Widget Setup Guide](glance_widget_ios/example/ios/WIDGET_SETUP.md) for detailed instructions.
+See the [iOS Widget Setup Guide](https://github.com/abdullahtas0/glance_widget/blob/master/packages/glance_widget_ios/example/ios/WIDGET_SETUP.md) for detailed instructions.
 
 ---
 

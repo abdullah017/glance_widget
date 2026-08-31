@@ -10,9 +10,20 @@ However, if you `import` this package to use any of its APIs directly, you shoul
 
 ## Requirements
 
-- Android SDK 26+ (Android 8.0 Oreo)
+- Android SDK 26+ (Android 8.0 Oreo) — set `minSdk = 26` in your app's `build.gradle.kts`
 - Kotlin 2.0+
-- Jetpack Compose enabled
+
+You do **not** need to enable Jetpack Compose in your app. This package renders
+its widgets with Compose, so it supplies its own Compose compiler and applies it
+only to itself.
+
+The Compose compiler has to match the Kotlin version your app resolved, so the
+package reads that version from the build and follows it. If your setup needs a
+different one, override it in `android/gradle.properties`:
+
+```properties
+glance.kotlinVersion=2.2.20
+```
 
 ## Implementation Details
 
@@ -21,10 +32,15 @@ This package uses:
 - **DataStore Preferences** for widget state management
 - **Gson** for JSON serialization
 - **Kotlin Coroutines** for asynchronous operations
+- **WorkManager** for background widget updates
 
 ## Widget Templates
 
-Three widget templates are provided:
-- `SimpleGlanceWidget` - Title + Value + Subtitle display
-- `ProgressGlanceWidget` - Circular or linear progress indicators
-- `ListGlanceWidget` - Scrollable list with optional checkboxes
+Seven widget templates are provided:
+- `SimpleGlanceWidget` — title, value and subtitle
+- `ProgressGlanceWidget` — circular or linear progress indicators
+- `ListGlanceWidget` — scrollable list with optional checkboxes
+- `CalendarGlanceWidget` — upcoming events
+- `ImageGlanceWidget` — image with optional caption
+- `ChartGlanceWidget` — bar and line charts
+- `GaugeGlanceWidget` — gauge with thresholds
