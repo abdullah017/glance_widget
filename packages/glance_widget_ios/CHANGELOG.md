@@ -1,5 +1,33 @@
 ## 2.0.0
 
+**Fixed:** every widget update silently did nothing in any app whose App Group
+was not the example's. `GlanceWidgetManager.appGroupId` was a constant holding
+`group.com.example.glancewidget`, and nothing in the plugin ever assigned it --
+no Dart API, no method channel, no `Info.plist` read. An app following the
+README got its entitlements right and still had the plugin writing to a suite
+it held no entitlement for, so `UserDefaults(suiteName:)` returned nil and the
+widget sat on placeholder data with nothing in the console. The doc comment
+said "users must configure this in their app's entitlements", which does not
+change a constant.
+
+The App Group is now read from the app's `Info.plist` key
+`GlanceWidgetAppGroup`, which is available before any Dart runs -- a setter
+called from Dart would arrive after the first update. Assigning
+`GlanceWidgetManager.appGroupId` still works and still wins, so apps that found
+that escape hatch are not broken. A value that cannot work -- blank, an
+unsubstituted build setting, a bundle id pasted in by mistake -- is refused
+rather than passed to `UserDefaults`, where it would fail further from the
+mistake.
+
+**Changed:** every plugin diagnostic moved from `print` to `os.Logger` under
+subsystem `dev.glance.widget`. `print` reaches the Xcode console during a
+debug run and nowhere else, which is the wrong half of the problem: the
+failures reported here -- an App Group with no entitlement, a payload that
+will not encode -- all end in a widget that simply does not change, so whoever
+is investigating is holding a phone, not a debugger. The messages now survive
+to Console.app and `sysdiagnose`, and the App Group one names the two
+`Info.plist` entries to compare.
+
 **Added:** the `ListWidget` checkbox now runs an App Intent instead of opening
 a URL, so ticking it no longer launches the app. The new state is written by
 the widget extension and the interaction is queued in the App Group; the plugin

@@ -3,10 +3,27 @@ import WidgetKit
 
 // MARK: - App Group Configuration
 
-/// App Group ID for sharing data between Flutter app and widget extension.
-/// **Important**: This must match the App Group ID configured in both targets' entitlements.
+/// App Group ID for sharing data between the Flutter app and this extension.
+///
+/// Read from this target's `Info.plist` rather than written here, so there is
+/// one place to change it instead of two that can disagree. Two copies is how
+/// the widget ends up reading an empty store while the app writes happily to a
+/// different one -- no error on either side, just a widget stuck on its
+/// placeholder.
+///
+/// Set `GlanceWidgetAppGroup` in both the app's and this extension's Info.plist
+/// to the group both targets declare in their entitlements.
 enum AppConfig {
-    static let appGroupId = "group.com.example.glancewidget"
+    static let appGroupId: String = {
+        let value = Bundle.main.object(forInfoDictionaryKey: "GlanceWidgetAppGroup") as? String
+        let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard trimmed.hasPrefix("group."), trimmed.count > "group.".count else {
+            // Nothing usable configured. The old default keeps the example
+            // working; any other app lands here and reads an empty store.
+            return "group.com.example.glancewidget"
+        }
+        return trimmed
+    }()
 }
 
 // MARK: - Simple Widget Data

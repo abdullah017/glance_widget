@@ -31,8 +31,19 @@ public class AppGroupStorage {
     public init(appGroupId: String) {
         self.userDefaults = UserDefaults(suiteName: appGroupId)
         if userDefaults == nil {
-            print("GlanceWidget: Warning - Failed to initialize UserDefaults with suite: \(appGroupId)")
-            print("GlanceWidget: Ensure App Group is configured in both app and widget extension entitlements")
+            // Not a warning: nothing this object is asked to do afterwards can
+            // work. Every save is dropped and every load returns nil, and none
+            // of it raises, so the only symptom on a device is a widget that
+            // never changes.
+            GlanceLog.storage.error(
+                """
+                App Group "\(appGroupId, privacy: .public)" is not available. \
+                Add it to the App Groups entitlement of BOTH the app and the \
+                widget extension, and check that GlanceWidgetAppGroup in both \
+                Info.plists names this exact identifier. Until then no widget \
+                data is shared.
+                """
+            )
         }
     }
 
@@ -43,7 +54,9 @@ public class AppGroupStorage {
     @discardableResult
     public func save(_ dictionary: [String: Any], forKey key: String) -> Bool {
         guard userDefaults != nil else {
-            print("GlanceWidget: Cannot save - App Group storage not available")
+            GlanceLog.storage.error(
+                "Dropping \(key, privacy: .public): App Group storage unavailable."
+            )
             return false
         }
 
@@ -53,7 +66,9 @@ public class AppGroupStorage {
             userDefaults?.synchronize() // Force immediate write for widget access
             return true
         } catch {
-            print("GlanceWidget: Failed to save dictionary for key '\(key)': \(error)")
+            GlanceLog.storage.error(
+                "Failed to encode dictionary for \(key, privacy: .public): \(error)"
+            )
             return false
         }
     }
@@ -65,7 +80,9 @@ public class AppGroupStorage {
             userDefaults?.set(data, forKey: key)
             userDefaults?.synchronize()
         } catch {
-            print("GlanceWidget: Failed to save array for key '\(key)': \(error)")
+            GlanceLog.storage.error(
+                "Failed to encode array for \(key, privacy: .public): \(error)"
+            )
         }
     }
 
@@ -101,7 +118,9 @@ public class AppGroupStorage {
         do {
             return try JSONSerialization.jsonObject(with: data) as? [String: Any]
         } catch {
-            print("GlanceWidget: Failed to load dictionary for key '\(key)': \(error)")
+            GlanceLog.storage.error(
+                "Failed to decode dictionary for \(key, privacy: .public): \(error)"
+            )
             return nil
         }
     }
@@ -112,7 +131,9 @@ public class AppGroupStorage {
         do {
             return try JSONSerialization.jsonObject(with: data) as? [String]
         } catch {
-            print("GlanceWidget: Failed to load array for key '\(key)': \(error)")
+            GlanceLog.storage.error(
+                "Failed to decode array for \(key, privacy: .public): \(error)"
+            )
             return nil
         }
     }

@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 import WidgetKit
 
 /// Result type for widget update operations.
@@ -48,9 +49,32 @@ public class GlanceWidgetManager {
     /// Shared singleton instance
     public static let shared = GlanceWidgetManager()
 
-    /// App Group ID for sharing data with widget extension
-    /// Users must configure this in their app's entitlements
-    public static var appGroupId: String = "group.com.example.glancewidget"
+    /// The App Group the plugin shares data through.
+    ///
+    /// Resolved from the app's `Info.plist` key `GlanceWidgetAppGroup` -- see
+    /// [GlanceAppGroup]. This used to be a plain constant that nothing ever
+    /// assigned, so any app whose group was not the example's wrote to a suite
+    /// it held no entitlement for and every update silently did nothing.
+    ///
+    /// Assigning it still works, for apps that already did so from their
+    /// `AppDelegate`, and takes precedence. It must be set before the first
+    /// use of ``shared``; the resolution is logged either way.
+    public static var appGroupId: String {
+        get { resolvedAppGroup.identifier }
+        set { overriddenAppGroupId = newValue }
+    }
+
+    /// Set only by an app assigning ``appGroupId`` directly.
+    private static var overriddenAppGroupId: String?
+
+    static var resolvedAppGroup: GlanceAppGroup.Resolution {
+        GlanceAppGroup.resolve(
+            infoPlist: Bundle.main.infoDictionary,
+            override: overriddenAppGroupId
+        )
+    }
+
+    static let log = GlanceLog.widget
 
     private let storage: AppGroupStorage
     private var eventSink: FlutterEventSink?
@@ -64,7 +88,19 @@ public class GlanceWidgetManager {
     private let timelineRefreshIntervalKey = "timeline_refresh_interval"
 
     private init() {
-        storage = AppGroupStorage(appGroupId: GlanceWidgetManager.appGroupId)
+        let resolution = GlanceWidgetManager.resolvedAppGroup
+        if resolution.isFallback {
+            GlanceWidgetManager.log.error(
+                """
+                No App Group configured. Add a \(GlanceAppGroup.infoPlistKey, privacy: .public) \
+                key to the app's Info.plist naming the group both the app and the \
+                widget extension declare. Falling back to \
+                \(GlanceAppGroup.legacyDefault, privacy: .public), which this app almost \
+                certainly has no entitlement for -- every widget update will do nothing.
+                """
+            )
+        }
+        storage = AppGroupStorage(appGroupId: resolution.identifier)
         loadActiveWidgetIds()
     }
 
@@ -87,7 +123,9 @@ public class GlanceWidgetManager {
     @discardableResult
     public func updateSimpleWidgetWithResult(widgetId: String, data: [String: Any], theme: [String: Any]?) -> GlanceResult {
         guard storage.isAvailable else {
-            print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
+            GlanceWidgetManager.log.error(
+                "App Group storage unavailable for \(GlanceWidgetManager.appGroupId, privacy: .public). The app and the widget extension must both declare it."
+            )
             return .failure(code: GlanceResult.errorAppGroupAccess,
                           message: "App Group storage not available. Check entitlements configuration.")
         }
@@ -124,7 +162,9 @@ public class GlanceWidgetManager {
     @discardableResult
     public func updateProgressWidgetWithResult(widgetId: String, data: [String: Any], theme: [String: Any]?) -> GlanceResult {
         guard storage.isAvailable else {
-            print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
+            GlanceWidgetManager.log.error(
+                "App Group storage unavailable for \(GlanceWidgetManager.appGroupId, privacy: .public). The app and the widget extension must both declare it."
+            )
             return .failure(code: GlanceResult.errorAppGroupAccess,
                           message: "App Group storage not available. Check entitlements configuration.")
         }
@@ -158,7 +198,9 @@ public class GlanceWidgetManager {
     @discardableResult
     public func updateListWidgetWithResult(widgetId: String, data: [String: Any], theme: [String: Any]?) -> GlanceResult {
         guard storage.isAvailable else {
-            print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
+            GlanceWidgetManager.log.error(
+                "App Group storage unavailable for \(GlanceWidgetManager.appGroupId, privacy: .public). The app and the widget extension must both declare it."
+            )
             return .failure(code: GlanceResult.errorAppGroupAccess,
                           message: "App Group storage not available. Check entitlements configuration.")
         }
@@ -192,7 +234,9 @@ public class GlanceWidgetManager {
     @discardableResult
     public func updateCalendarWidgetWithResult(widgetId: String, data: [String: Any], theme: [String: Any]?) -> GlanceResult {
         guard storage.isAvailable else {
-            print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
+            GlanceWidgetManager.log.error(
+                "App Group storage unavailable for \(GlanceWidgetManager.appGroupId, privacy: .public). The app and the widget extension must both declare it."
+            )
             return .failure(code: GlanceResult.errorAppGroupAccess,
                           message: "App Group storage not available. Check entitlements configuration.")
         }
@@ -235,7 +279,9 @@ public class GlanceWidgetManager {
         completion: @escaping (GlanceResult) -> Void
     ) {
         guard storage.isAvailable else {
-            print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
+            GlanceWidgetManager.log.error(
+                "App Group storage unavailable for \(GlanceWidgetManager.appGroupId, privacy: .public). The app and the widget extension must both declare it."
+            )
             completion(.failure(code: GlanceResult.errorAppGroupAccess,
                                 message: "App Group storage not available. Check entitlements configuration."))
             return
@@ -306,7 +352,9 @@ public class GlanceWidgetManager {
     @discardableResult
     public func updateChartWidgetWithResult(widgetId: String, data: [String: Any], theme: [String: Any]?) -> GlanceResult {
         guard storage.isAvailable else {
-            print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
+            GlanceWidgetManager.log.error(
+                "App Group storage unavailable for \(GlanceWidgetManager.appGroupId, privacy: .public). The app and the widget extension must both declare it."
+            )
             return .failure(code: GlanceResult.errorAppGroupAccess,
                           message: "App Group storage not available. Check entitlements configuration.")
         }
@@ -340,7 +388,9 @@ public class GlanceWidgetManager {
     @discardableResult
     public func updateGaugeWidgetWithResult(widgetId: String, data: [String: Any], theme: [String: Any]?) -> GlanceResult {
         guard storage.isAvailable else {
-            print("GlanceWidget: App Group storage not available. Check entitlements for: \(GlanceWidgetManager.appGroupId)")
+            GlanceWidgetManager.log.error(
+                "App Group storage unavailable for \(GlanceWidgetManager.appGroupId, privacy: .public). The app and the widget extension must both declare it."
+            )
             return .failure(code: GlanceResult.errorAppGroupAccess,
                           message: "App Group storage not available. Check entitlements configuration.")
         }
