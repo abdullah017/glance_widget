@@ -17,6 +17,14 @@ returning `Future<bool>`. See the main package's
 
 ### Fixed
 
+* Gauge widgets ignored the metrics they were given. The radial gauge read
+  `progress`, `value`, `gaugeColor`, `minLabel` and `maxLabel` off the payload,
+  none of which `GaugeWidgetData` has ever sent, so every gauge drew an empty
+  arc reading `0%`; the dashboard gauge forwarded metrics untouched, but the
+  template reads `value` as text and needs a `progress` fraction, so every card
+  showed a blank value and no bar. Both shapes are now derived from the metrics,
+  matching what the iOS templates draw.
+
 * Method channel handlers replied `success(true)` before knowing whether the
   update had been applied, so a rejected update was reported to Dart as a
   success. Handlers now await the real outcome and answer with an error when the
