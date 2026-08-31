@@ -108,13 +108,11 @@ class _LiveActivityPageState extends State<LiveActivityPage> {
                 enabled ?? false ? Icons.check_circle : Icons.block,
                 color: enabled ?? false ? Colors.green : Colors.orange,
               ),
-              title: Text(
-                switch (enabled) {
-                  null => 'Checking…',
-                  true => 'Live Activities are available',
-                  false => 'Not available here',
-                },
-              ),
+              title: Text(switch (enabled) {
+                null => 'Checking…',
+                true => 'Live Activities are available',
+                false => 'Not available here',
+              }),
               subtitle: const Text(
                 'iOS 16.2+, and the user can turn them off per app in '
                 'Settings. Android and desktop answer false rather than '

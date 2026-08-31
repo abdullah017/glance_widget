@@ -85,10 +85,10 @@ void main() {
       final sent = args['content']! as Map<Object?, Object?>;
       final stats = (sent['stats']! as List<Object?>)
           .cast<Map<Object?, Object?>>();
-      expect(
-        stats.map((s) => s['label']).toList(),
-        <String>['Driver', 'Items'],
-      );
+      expect(stats.map((s) => s['label']).toList(), <String>[
+        'Driver',
+        'Items',
+      ]);
       expect(stats.map((s) => s['value']).toList(), <String>['Sam', '3']);
     });
 
@@ -188,11 +188,13 @@ void main() {
       expect(await platform.isLiveActivityRunning('delivery-42'), isFalse);
     });
 
-    test('answers false rather than throwing where there are none at all',
-        () async {
-      mockUnimplemented();
-      expect(await platform.isLiveActivityRunning('delivery-42'), isFalse);
-    });
+    test(
+      'answers false rather than throwing where there are none at all',
+      () async {
+        mockUnimplemented();
+        expect(await platform.isLiveActivityRunning('delivery-42'), isFalse);
+      },
+    );
 
     test('an empty activityId is refused', () async {
       mockIos();

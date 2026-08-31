@@ -517,10 +517,8 @@ class GlanceWidget {
     required LiveActivityContent content,
   }) {
     return PlatformGuard.guardVoid(
-      () => _platform.startLiveActivity(
-        activityId: activityId,
-        content: content,
-      ),
+      () =>
+          _platform.startLiveActivity(activityId: activityId, content: content),
     );
   }
 
