@@ -1,5 +1,10 @@
 ## 2.0.0
 
+**Added:** `GlanceTheme.useDynamicColor`, sent over the wire as
+`useDynamicColor`. Defaults to `false`, so existing themes are unaffected.
+Honoured on Android 12+; elsewhere the theme's own colours are used, which is
+why they remain required.
+
 **Breaking:** the platform interface now models failure as an exception rather
 than a boolean.
 

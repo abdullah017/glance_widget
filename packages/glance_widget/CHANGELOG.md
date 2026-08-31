@@ -1,5 +1,10 @@
 ## 2.0.0
 
+**Added:** `GlanceTheme.useDynamicColor` opts a widget into Material You on
+Android 12 and above. Off by default; your theme's colours remain the fallback
+everywhere else, iOS included. See the README for why this is gated rather than
+handed to the platform.
+
 **Fixed:** `GlanceTheme.borderRadius` did nothing on Android -- every widget had
 square corners however the theme was configured, while iOS rounded as asked
 (#20). Rounded corners need Android 12 or newer; see the platform comparison in

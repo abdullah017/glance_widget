@@ -39,7 +39,8 @@ widgets.
 - **Instant Updates** - Widgets update in < 1 second on both platforms
 - **Cross-Platform** - Same API for Android and iOS
 - **7 Widget Templates** - Simple, Progress, List, Image, Chart, Calendar, and Gauge
-- **Theme Support** - Light/Dark themes with full customization
+- **Theme Support** - Light/Dark themes with full customization, plus opt-in
+  Material You on Android 12+
 - **Deep Links** - All widgets support custom deep link URIs
 - **Interactive Actions** - Tap, checkbox toggle, item tap handling. Ticking a
   checkbox never launches the app on either platform, and taps survive being
@@ -63,6 +64,43 @@ widgets.
 | Interactive Actions | `ActionCallback` (checkbox + taps) | App Intents (checkbox), URL (taps) |
 | Min Version | Android 8.0 (API 26) | iOS 17.0 |
 | Rounded corners | `GlanceTheme.borderRadius`, Android 12+ only | `GlanceTheme.borderRadius` |
+| Wallpaper colours | `useDynamicColor`, Android 12+ only | Not available |
+
+## Material You (Android 12+)
+
+Set `useDynamicColor: true` and the widget takes its colours from the user's
+wallpaper instead of the ones on the theme:
+
+```dart
+await GlanceWidget.updateSimpleWidget(
+  widgetId: 'price',
+  data: const SimpleWidgetData(title: 'BTC', value: '\$64,120'),
+  theme: GlanceTheme.dark().copyWith(useDynamicColor: true),
+);
+```
+
+It is off by default, and it is worth leaving off unless you mean it -- you are
+handing your widget's appearance to whatever the user has set as their
+background.
+
+**The theme's own colours are still required, and still used.** They are the
+fallback for every device that cannot supply a palette:
+
+| | Result |
+|---|---|
+| Android 12+ | Wallpaper colours (`surface`, `onSurface`, `onSurfaceVariant`, `primary`) |
+| Android 8-11 | The colours on your `GlanceTheme` |
+| iOS | The colours on your `GlanceTheme` |
+
+That second row is the reason this is gated rather than passed straight through.
+Glance's dynamic colour providers resolve through resources whose `values-v31`
+variant points at the system palette -- and whose plain `values` variant is the
+static Material baseline, `#ff6750a4`. Handing them to an Android 11 device
+does not fall back to your theme; it silently repaints the widget purple. So
+below Android 12 the request is ignored and your colours are used.
+
+Light and dark follow the system automatically when dynamic colour is on, so
+`isDark` stops mattering.
 
 ## Interactive checkboxes
 

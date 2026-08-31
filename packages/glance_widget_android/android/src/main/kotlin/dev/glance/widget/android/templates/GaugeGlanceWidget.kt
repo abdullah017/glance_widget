@@ -29,6 +29,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dev.glance.widget.android.CornerRadius
 import dev.glance.widget.android.GlanceWidgetManager
+import dev.glance.widget.android.widgetColors
 import dev.glance.widget.android.ReportActionCallback
 
 /**
@@ -69,26 +70,15 @@ private fun GaugeWidgetContent(prefs: Preferences) {
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
 
     // Theme colors
-    val backgroundColor = prefs[GlanceWidgetManager.backgroundColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(if (isDark) 0xFF1A1A2E.toInt() else 0xFFFFFFFF.toInt()))
+    val colors = widgetColors(prefs)
 
-    val textColor = prefs[GlanceWidgetManager.textColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(if (isDark) 0xFFFFFFFF.toInt() else 0xFF212121.toInt()))
 
-    val secondaryTextColor = prefs[GlanceWidgetManager.secondaryTextColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(if (isDark) 0xFFB0B0B0.toInt() else 0xFF757575.toInt()))
 
-    val accentColor = prefs[GlanceWidgetManager.accentColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(0xFF2196F3.toInt()))
 
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(backgroundColor)
+            .background(colors.background)
             .cornerRadius(CornerRadius.dpFor(prefs[GlanceWidgetManager.borderRadiusKey]).dp)
             // Not a lambda action: that runs in a process the system may
             // have started purely to deliver this tap, with no Flutter engine
@@ -108,7 +98,7 @@ private fun GaugeWidgetContent(prefs: Preferences) {
             Text(
                 text = title,
                 style = TextStyle(
-                    color = textColor,
+                    color = colors.text,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -121,9 +111,9 @@ private fun GaugeWidgetContent(prefs: Preferences) {
                 DashboardContent(
                     metricsJson = metricsJson,
                     widgetId = widgetId,
-                    textColor = textColor,
-                    secondaryTextColor = secondaryTextColor,
-                    accentColor = accentColor,
+                    textColor = colors.text,
+                    secondaryTextColor = colors.secondaryText,
+                    accentColor = colors.accent,
                     isDark = isDark
                 )
             }
@@ -131,7 +121,7 @@ private fun GaugeWidgetContent(prefs: Preferences) {
                 // Radial gauge (default) - rendered as bitmap
                 RadialGaugeContent(
                     bitmapBase64 = gaugeBitmapBase64,
-                    secondaryTextColor = secondaryTextColor,
+                    secondaryTextColor = colors.secondaryText,
                     isDark = isDark,
                     title = title
                 )

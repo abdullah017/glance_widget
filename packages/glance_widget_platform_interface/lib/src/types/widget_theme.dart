@@ -10,6 +10,7 @@ class GlanceTheme {
     this.accentColor = const Color(0xFF2196F3),
     this.borderRadius = 16.0,
     this.isDark = false,
+    this.useDynamicColor = false,
   });
 
   /// Creates a default light theme.
@@ -50,6 +51,19 @@ class GlanceTheme {
   /// Whether to use dark theme.
   final bool isDark;
 
+  /// Whether the widget should take its colours from the system wallpaper
+  /// (Material You) instead of the ones set on this theme.
+  ///
+  /// **Android 12 (API 31) and above only, and Android only.** Below that the
+  /// platform exposes no wallpaper palette, and on iOS there is no equivalent
+  /// at all; in both cases the colours on this theme are used instead. That is
+  /// why they are still required when this is `true` -- they are the fallback,
+  /// not dead weight.
+  ///
+  /// Off by default. Turning it on hands your widget's appearance to the
+  /// user's wallpaper, which is a choice worth making deliberately.
+  final bool useDynamicColor;
+
   /// Serialises this theme for transport over a platform channel.
   Map<String, dynamic> toMap() => {
     'backgroundColor': backgroundColor.toARGB32(),
@@ -58,6 +72,7 @@ class GlanceTheme {
     'accentColor': accentColor.toARGB32(),
     'borderRadius': borderRadius,
     'isDark': isDark,
+    'useDynamicColor': useDynamicColor,
   };
 
   /// Returns a copy of this theme with the given fields replaced.
@@ -68,6 +83,7 @@ class GlanceTheme {
     Color? accentColor,
     double? borderRadius,
     bool? isDark,
+    bool? useDynamicColor,
   }) {
     return GlanceTheme(
       backgroundColor: backgroundColor ?? this.backgroundColor,
@@ -76,6 +92,7 @@ class GlanceTheme {
       accentColor: accentColor ?? this.accentColor,
       borderRadius: borderRadius ?? this.borderRadius,
       isDark: isDark ?? this.isDark,
+      useDynamicColor: useDynamicColor ?? this.useDynamicColor,
     );
   }
 }

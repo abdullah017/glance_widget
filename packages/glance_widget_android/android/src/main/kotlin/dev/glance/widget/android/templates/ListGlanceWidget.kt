@@ -29,6 +29,7 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import dev.glance.widget.android.CornerRadius
 import dev.glance.widget.android.GlanceWidgetManager
+import dev.glance.widget.android.widgetColors
 import dev.glance.widget.android.ListItems
 import dev.glance.widget.android.ReportActionCallback
 import dev.glance.widget.android.ToggleListItemAction
@@ -73,26 +74,15 @@ private fun ListWidgetContent(prefs: Preferences) {
     }
 
     // Theme colors
-    val backgroundColor = prefs[GlanceWidgetManager.backgroundColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(if (isDark) 0xFF1A1A2E.toInt() else 0xFFFFFFFF.toInt()))
+    val colors = widgetColors(prefs)
 
-    val textColor = prefs[GlanceWidgetManager.textColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(if (isDark) 0xFFFFFFFF.toInt() else 0xFF212121.toInt()))
 
-    val secondaryTextColor = prefs[GlanceWidgetManager.secondaryTextColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(if (isDark) 0xFFB0B0B0.toInt() else 0xFF757575.toInt()))
 
-    val accentColor = prefs[GlanceWidgetManager.accentColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(0xFF2196F3.toInt()))
 
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(backgroundColor)
+            .background(colors.background)
             .cornerRadius(CornerRadius.dpFor(prefs[GlanceWidgetManager.borderRadiusKey]).dp)
             .padding(16.dp)
     ) {
@@ -107,7 +97,7 @@ private fun ListWidgetContent(prefs: Preferences) {
             Text(
                 text = title,
                 style = TextStyle(
-                    color = textColor,
+                    color = colors.text,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -119,7 +109,7 @@ private fun ListWidgetContent(prefs: Preferences) {
             Text(
                 text = "${items.size}",
                 style = TextStyle(
-                    color = secondaryTextColor,
+                    color = colors.secondaryText,
                     fontSize = 14.sp
                 )
             )
@@ -146,7 +136,7 @@ private fun ListWidgetContent(prefs: Preferences) {
                 Text(
                     text = "No items",
                     style = TextStyle(
-                        color = secondaryTextColor,
+                        color = colors.secondaryText,
                         fontSize = 14.sp
                     )
                 )
@@ -160,9 +150,9 @@ private fun ListWidgetContent(prefs: Preferences) {
                         widgetId = widgetId,
                         showCheckbox = showCheckboxes,
                         deepLinkUri = deepLinkUri,
-                        textColor = textColor,
-                        secondaryTextColor = secondaryTextColor,
-                        accentColor = accentColor,
+                        textColor = colors.text,
+                        secondaryTextColor = colors.secondaryText,
+                        accentColor = colors.accent,
                         isDark = isDark
                     )
                 }
