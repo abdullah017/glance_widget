@@ -50,6 +50,16 @@ returning `Future<bool>`. See the main package's
   app-supplied string into a network stack, and `file://` or `content://` would
   have made that a way to read arbitrary local data. Downloads are also capped
   at 16 MB and time out.
+* Redirects are followed by hand, at most five deep, with every hop put back
+  through the same scheme check. `HttpURLConnection.instanceFollowRedirects`
+  would have applied that check to the first hop only, so a permitted `https://`
+  address could have handed the fetch on to something else.
+
+Private and loopback addresses are deliberately not blocked: the app already
+holds the `INTERNET` permission and could make the same request itself, so
+refusing them would buy little and would break serving widget images from a LAN
+host or a local dev server. Apps that put third-party URLs into `imageUrl`
+should validate them as they would any other URL they fetch.
 
 ### Added
 

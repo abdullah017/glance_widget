@@ -39,6 +39,9 @@ internal object ImageStore {
     /** Refuses anything larger before a byte of it is decoded. */
     private const val MAX_DOWNLOAD_BYTES = 16L * 1024 * 1024
 
+    /** Bounds a redirect chain, since each hop is followed by hand. */
+    private const val MAX_REDIRECTS = 5
+
     sealed interface Result {
         /** The picture is at [path], already downsampled. */
         data class Stored(val path: String) : Result
@@ -143,40 +146,78 @@ internal object ImageStore {
         data class Err(val reason: String) : Fetched
     }
 
+    /**
+     * Fetches [url], following redirects by hand.
+     *
+     * `HttpURLConnection.instanceFollowRedirects` would apply the scheme check
+     * to the first hop only, so a permitted `https://` address could hand the
+     * fetch on to something else. Each hop is re-validated here instead, and
+     * the chain is bounded.
+     *
+     * Note on reachable addresses: private and loopback ranges are deliberately
+     * NOT blocked. On a device the app already holds the INTERNET permission and
+     * could make this request itself, so refusing them would buy little and
+     * would break serving widget images from a LAN host or a local dev server.
+     * Callers that pass third-party URLs into [ImageWidgetData.imageUrl] should
+     * validate them the way they would any other URL they fetch.
+     */
     private fun download(url: String): Fetched {
-        var connection: HttpURLConnection? = null
-        return try {
-            connection = (URL(url).openConnection() as HttpURLConnection).apply {
-                connectTimeout = CONNECT_TIMEOUT_MS
-                readTimeout = READ_TIMEOUT_MS
-                instanceFollowRedirects = true
-                requestMethod = "GET"
+        var current = url
+        repeat(MAX_REDIRECTS + 1) {
+            var connection: HttpURLConnection? = null
+            try {
+                connection = (URL(current).openConnection() as HttpURLConnection).apply {
+                    connectTimeout = CONNECT_TIMEOUT_MS
+                    readTimeout = READ_TIMEOUT_MS
+                    instanceFollowRedirects = false
+                    requestMethod = "GET"
+                }
+
+                val status = connection.responseCode
+                if (status in 300..399) {
+                    val location = connection.getHeaderField("Location")
+                        ?: return Fetched.Err("imageUrl redirected with no Location header")
+
+                    // Resolved against the current URL, since Location may be
+                    // relative, then put back through the same scheme check.
+                    val next = runCatching { URL(URL(current), location).toString() }.getOrNull()
+                        ?: return Fetched.Err("imageUrl redirected to an unusable address: '$location'")
+
+                    when (val hop = ImageResolver.sourceOf(null, next)) {
+                        is ImageSource.Remote -> {
+                            current = hop.url
+                            return@repeat
+                        }
+                        is ImageSource.Invalid -> return Fetched.Err("imageUrl redirect refused: ${hop.reason}")
+                        else -> return Fetched.Err("imageUrl redirected to an unusable address: '$location'")
+                    }
+                }
+
+                if (status !in 200..299) {
+                    return Fetched.Err("fetching imageUrl returned HTTP $status")
+                }
+
+                val declared = connection.contentLengthLong
+                if (declared > MAX_DOWNLOAD_BYTES) {
+                    return Fetched.Err("imageUrl is $declared bytes, over the $MAX_DOWNLOAD_BYTES byte limit")
+                }
+
+                // A server may understate or omit the length, so the read is
+                // capped as well rather than trusting the header.
+                val bytes = connection.inputStream.use { it.readAtMost(MAX_DOWNLOAD_BYTES) }
+                    ?: return Fetched.Err("imageUrl exceeded the $MAX_DOWNLOAD_BYTES byte limit while downloading")
+
+                return Fetched.Ok(bytes)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IOException) {
+                Log.e(TAG, "Failed to fetch a widget image", e)
+                return Fetched.Err("could not fetch imageUrl: ${e.message}")
+            } finally {
+                connection?.disconnect()
             }
-
-            val status = connection.responseCode
-            if (status !in 200..299) {
-                return Fetched.Err("fetching imageUrl returned HTTP $status")
-            }
-
-            val declared = connection.contentLengthLong
-            if (declared > MAX_DOWNLOAD_BYTES) {
-                return Fetched.Err("imageUrl is ${declared} bytes, over the ${MAX_DOWNLOAD_BYTES} byte limit")
-            }
-
-            // A server may understate or omit the length, so the read is capped
-            // as well rather than trusting the header.
-            val bytes = connection.inputStream.use { it.readAtMost(MAX_DOWNLOAD_BYTES) }
-                ?: return Fetched.Err("imageUrl exceeded the ${MAX_DOWNLOAD_BYTES} byte limit while downloading")
-
-            Fetched.Ok(bytes)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to fetch $url", e)
-            Fetched.Err("could not fetch imageUrl: ${e.message}")
-        } finally {
-            connection?.disconnect()
         }
+        return Fetched.Err("imageUrl exceeded $MAX_REDIRECTS redirects")
     }
 
     /** Reads the whole stream, or null once it goes past [limit]. */

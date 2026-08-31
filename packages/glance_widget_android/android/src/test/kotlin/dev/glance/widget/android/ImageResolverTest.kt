@@ -48,6 +48,17 @@ class ImageResolverTest {
     }
 
     @Test
+    fun `a redirect target goes through the same scheme check as the first hop`() {
+        // Redirects are followed by hand precisely so this check applies to
+        // every hop; `instanceFollowRedirects` would have checked only the first.
+        assertTrue(invalid(ImageResolver.sourceOf(null, "file:///etc/hosts")).reason.isNotEmpty())
+        assertEquals(
+            "https://cdn.example.com/a.png",
+            remote(ImageResolver.sourceOf(null, "https://cdn.example.com/a.png")).url,
+        )
+    }
+
+    @Test
     fun `a malformed url is refused rather than thrown at the network stack`() {
         assertTrue(invalid(ImageResolver.sourceOf(null, "not a url")).reason.isNotEmpty())
     }
