@@ -51,6 +51,17 @@ public enum GlanceStorageKeys {
         return id.isEmpty ? nil : id
     }
 
+    /// Every key a widget id can have a payload under.
+    ///
+    /// One id is not tied to one template -- nothing stops an app writing
+    /// `"btc"` as a simple widget and later as a chart -- so dropping an id
+    /// means dropping all seven. Derived from [GlanceWidgetKind.allCases] so a
+    /// template added later is included without anyone remembering to, and
+    /// pinned by a test so that "all seven" stays a fact rather than a hope.
+    public static func allKeys(forWidgetId widgetId: String) -> [String] {
+        GlanceWidgetKind.allCases.map { key($0, widgetId: widgetId) }
+    }
+
     /// The ids one template has data for, in a stable order.
     ///
     /// This is the rule `WidgetStorage.knownWidgetIds(prefix:)` implements in the

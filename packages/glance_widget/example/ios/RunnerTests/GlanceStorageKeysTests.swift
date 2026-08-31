@@ -81,4 +81,40 @@ struct GlanceStorageKeysTests {
         #expect(GlanceStorageKeys.widgetIds(in: keys, kind: .chart) == ["revenue"])
         #expect(GlanceStorageKeys.widgetIds(in: keys, kind: .gauge).isEmpty)
     }
+
+    /// What `forgetWidget` deletes.
+    ///
+    /// Nothing ties one id to one template -- an app can write "btc" as a
+    /// simple widget today and as a chart tomorrow -- so dropping an id has to
+    /// drop all seven keys. Deriving them from `allCases` means a template
+    /// added later is covered; this pins that it really is all of them, so
+    /// adding a case to `GlanceWidgetKind` without a payload key fails here
+    /// rather than leaking a payload nothing can reach.
+    @Test("forgetting an id covers every template")
+    func allKeysForOneId() {
+        let keys = GlanceStorageKeys.allKeys(forWidgetId: "btc")
+
+        #expect(keys.count == GlanceWidgetKind.allCases.count)
+        #expect(Set(keys).count == keys.count)
+        #expect(keys.contains("simpleWidgetData_btc"))
+        #expect(keys.contains("gaugeWidgetData_btc"))
+        for kind in GlanceWidgetKind.allCases {
+            #expect(keys.contains(GlanceStorageKeys.key(kind, widgetId: "btc")))
+        }
+    }
+
+    /// The keys are per id, not shared. Forgetting one widget must not name a
+    /// key belonging to another.
+    @Test("forgetting one id names no other id's keys")
+    func allKeysAreScopedToTheId() {
+        let keys = GlanceStorageKeys.allKeys(forWidgetId: "btc")
+
+        #expect(!keys.contains { GlanceStorageKeys.widgetId(fromKey: $0, kind: .simple) == "eth" })
+        for key in keys {
+            let ids = GlanceWidgetKind.allCases.compactMap {
+                GlanceStorageKeys.widgetId(fromKey: key, kind: $0)
+            }
+            #expect(ids.allSatisfy { $0 == "btc" })
+        }
+    }
 }

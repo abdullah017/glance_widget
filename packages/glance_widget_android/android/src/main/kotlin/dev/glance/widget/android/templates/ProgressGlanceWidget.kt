@@ -25,6 +25,7 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import dev.glance.widget.android.CornerRadius
 import dev.glance.widget.android.GlanceWidgetManager
+import dev.glance.widget.android.WidgetRemoval
 import dev.glance.widget.android.widgetColors
 import dev.glance.widget.android.ReportActionCallback
 import dev.glance.widget.android.WidgetSizeClass
@@ -46,6 +47,17 @@ class ProgressGlanceWidget : GlanceAppWidget() {
             val prefs = currentState<Preferences>()
             ProgressWidgetContent(prefs)
         }
+    }
+
+    /**
+     * Drops the data this widget was the last one using.
+     *
+     * Glance deletes the instance's own state after this returns; everything
+     * keyed by the app's `widgetId` -- the cached image, the tracked id -- is
+     * not its business, and used to survive the widget forever. See #13.
+     */
+    override suspend fun onDelete(context: Context, glanceId: GlanceId) {
+        WidgetRemoval.onInstanceDeleted(context, glanceId)
     }
 }
 

@@ -429,9 +429,54 @@ public class GlanceWidgetManager {
         WidgetCenter.shared.reloadAllTimelines()
     }
 
-    /// Returns list of active widget IDs
+    /// The widget ids this app has data stored for, in ascending order.
+    ///
+    /// "Active" means the app has written to the id and has not since dropped
+    /// it with `forgetWidget(_:)` -- not that a widget carrying it is on the
+    /// home screen. WidgetKit gives an app no signal when a widget is removed,
+    /// so unlike Android, where `onDelete` cleans up on its own, this is the
+    /// only way an id leaves the list. See #13.
+    ///
+    /// Sorted because the backing store is a `Set`. Returning it directly meant
+    /// two calls could answer in different orders, and a caller rendering the
+    /// list got it reshuffled at random.
     public func getActiveWidgetIds() -> [String] {
-        return Array(activeWidgetIds)
+        return activeWidgetIds.sorted()
+    }
+
+    /// Drops everything stored for [widgetId].
+    ///
+    /// The payload for every template, the downsampled image on disk, and the
+    /// id itself. A widget still on the home screen carrying this id will
+    /// render its placeholder afterwards -- there is nothing left for it to
+    /// read -- which is the point when the id belongs to a widget the user has
+    /// already removed.
+    ///
+    /// Android does this by itself from `onDelete`. WidgetKit has no
+    /// equivalent: an extension is not told when its widget is removed, and
+    /// `WidgetCenter.getCurrentConfigurations` answers with configuration
+    /// intents whose type only the app that defined them can decode. So on iOS
+    /// this is the app's call to make.
+    public func forgetWidget(_ widgetId: String) {
+        for key in GlanceStorageKeys.allKeys(forWidgetId: widgetId) {
+            storage.remove(forKey: key)
+        }
+
+        if let container = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: GlanceWidgetManager.appGroupId
+        ) {
+            GlanceImageStore.evict(widgetId: widgetId, containerURL: container)
+        } else {
+            // The payload is gone either way; say so rather than leave a file
+            // nothing will ever look for again with no record of why.
+            GlanceLog.storage.error(
+                "Forgot \(widgetId, privacy: .public) but could not reach the App Group container to delete its image."
+            )
+        }
+
+        activeWidgetIds.remove(widgetId)
+        persistActiveWidgetIds()
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     /// Gets the Widget Push Token for server-triggered updates (iOS 26+)

@@ -1,5 +1,8 @@
 ## 2.0.0
 
+**Added:** `forgetWidget(String widgetId)`, for dropping everything stored for
+an id.
+
 **Added:** `GlanceTheme.useDynamicColor`, sent over the wire as
 `useDynamicColor`. Defaults to `false`, so existing themes are unaffected.
 Honoured on Android 12+; elsewhere the theme's own colours are used, which is

@@ -130,6 +130,11 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
     throw UnimplementedError('getActiveWidgetIds() has not been implemented.');
   }
 
+  /// Drops everything stored for [widgetId].
+  Future<void> forgetWidget(String widgetId) {
+    throw UnimplementedError('forgetWidget() has not been implemented.');
+  }
+
   /// Stream of widget action events (taps, etc.)
   Stream<GlanceWidgetAction> get onWidgetAction {
     throw UnimplementedError('onWidgetAction has not been implemented.');

@@ -308,6 +308,20 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
                 result.success(ids)
             }
 
+            "forgetWidget" -> {
+                val widgetId = call.argument<String>("widgetId")
+                if (widgetId.isNullOrEmpty()) {
+                    result.error(
+                        "INVALID_ARGUMENTS",
+                        "forgetWidget requires a non-empty widgetId",
+                        null
+                    )
+                } else {
+                    GlanceWidgetManager.forgetWidget(context, widgetId)
+                    result.success(true)
+                }
+            }
+
             "isWidgetPushSupported" -> {
                 // Widget Push Updates is an iOS 26+ only feature
                 result.success(false)

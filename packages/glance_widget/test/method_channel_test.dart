@@ -30,6 +30,7 @@ void main() {
             case 'updateGaugeWidget':
             case 'setGlobalTheme':
             case 'forceRefreshAll':
+            case 'forgetWidget':
               return true;
             case 'getActiveWidgetIds':
               return <String>['widget1', 'widget2'];
@@ -517,6 +518,16 @@ void main() {
       });
     });
 
+    group('forgetWidget', () {
+      test('sends the id the platform is to drop', () async {
+        await platform.forgetWidget('btc');
+
+        expect(log.length, 1);
+        expect(log[0].method, 'forgetWidget');
+        expect(log[0].arguments, {'widgetId': 'btc'});
+      });
+    });
+
     group('getWidgetPushToken', () {
       test('returns push token', () async {
         final result = await platform.getWidgetPushToken();
@@ -757,6 +768,7 @@ void main() {
           'completeWidgetConfiguration': () =>
               platform.completeWidgetConfiguration('w'),
           'testBackgroundUpdate': () => platform.testBackgroundUpdate('w'),
+          'forgetWidget': () => platform.forgetWidget('w'),
         };
 
         for (final entry in calls.entries) {
