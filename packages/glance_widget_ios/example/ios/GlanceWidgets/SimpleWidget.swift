@@ -1,23 +1,57 @@
+import AppIntents
 import WidgetKit
 import SwiftUI
 
+// MARK: - Configuration
+
+/// The ids this template has data for, offered when the user edits the widget.
+struct SimpleWidgetIdOptions: DynamicOptionsProvider {
+    func results() async throws -> [String] {
+        WidgetStorage.shared.knownWidgetIds(prefix: "simpleWidgetData_")
+    }
+}
+
+/// Carries the `widgetId` a placed instance should render.
+///
+/// `widgetId` is documented as a "unique identifier for this widget instance",
+/// and without a per-instance parameter there is nothing for the extension to
+/// key on: every placed widget read the most recently written payload, so two
+/// widgets built from this template always showed the same thing.
+struct SimpleWidgetIntent: WidgetConfigurationIntent {
+    static var title: LocalizedStringResource { "Simple Widget" }
+    static var description: IntentDescription {
+        IntentDescription("Choose which of your app's widgets this one shows.")
+    }
+
+    @Parameter(title: "Widget", optionsProvider: SimpleWidgetIdOptions())
+    var widgetId: String?
+
+    init() {}
+
+    init(widgetId: String?) {
+        self.widgetId = widgetId
+    }
+}
+
 // MARK: - Timeline Provider
 
-struct SimpleWidgetProvider: TimelineProvider {
+struct SimpleWidgetProvider: AppIntentTimelineProvider {
     typealias Entry = SimpleWidgetEntry
+    typealias Intent = SimpleWidgetIntent
 
     func placeholder(in context: Context) -> SimpleWidgetEntry {
         SimpleWidgetEntry(date: Date(), data: .placeholder)
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (SimpleWidgetEntry) -> Void) {
-        let data = WidgetStorage.shared.loadSimpleWidget() ?? .placeholder
-        completion(SimpleWidgetEntry(date: Date(), data: data))
+    func snapshot(for configuration: SimpleWidgetIntent, in context: Context) async -> SimpleWidgetEntry {
+        SimpleWidgetEntry(date: Date(), data: load(for: configuration))
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<SimpleWidgetEntry>) -> Void) {
-        let data = WidgetStorage.shared.loadSimpleWidget() ?? .placeholder
-        let entry = SimpleWidgetEntry(date: Date(), data: data)
+    func timeline(
+        for configuration: SimpleWidgetIntent,
+        in context: Context
+    ) async -> Timeline<SimpleWidgetEntry> {
+        let entry = SimpleWidgetEntry(date: Date(), data: load(for: configuration))
 
         // Check for configured timeline refresh interval
         let refreshInterval = WidgetStorage.shared.getTimelineRefreshInterval()
@@ -27,8 +61,13 @@ struct SimpleWidgetProvider: TimelineProvider {
         } else {
             policy = .never
         }
-        let timeline = Timeline(entries: [entry], policy: policy)
-        completion(timeline)
+        return Timeline(entries: [entry], policy: policy)
+    }
+
+    /// An unconfigured instance falls back to the most recently updated payload
+    /// so a freshly placed widget shows something rather than a placeholder.
+    private func load(for configuration: SimpleWidgetIntent) -> SimpleWidgetData {
+        WidgetStorage.shared.loadSimpleWidget(widgetId: configuration.widgetId) ?? .placeholder
     }
 }
 
@@ -196,16 +235,16 @@ struct SimpleWidget: Widget {
     let kind: String = "SimpleWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: SimpleWidgetProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                SimpleWidgetEntryView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        Color(argb: entry.data.theme?.backgroundColor
-                              ?? WidgetThemeData.defaultDark.backgroundColor)
-                    }
-            } else {
-                SimpleWidgetEntryView(entry: entry)
-            }
+        AppIntentConfiguration(
+            kind: kind,
+            intent: SimpleWidgetIntent.self,
+            provider: SimpleWidgetProvider()
+        ) { entry in
+            SimpleWidgetEntryView(entry: entry)
+                .containerBackground(for: .widget) {
+                    Color(argb: entry.data.theme?.backgroundColor
+                          ?? WidgetThemeData.defaultDark.backgroundColor)
+                }
         }
         .configurationDisplayName("Simple Widget")
         .description("Display a value with title and optional subtitle. Perfect for prices, stats, or metrics.")

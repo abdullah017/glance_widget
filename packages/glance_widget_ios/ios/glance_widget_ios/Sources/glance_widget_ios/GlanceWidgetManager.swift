@@ -58,15 +58,8 @@ public class GlanceWidgetManager {
     private var activeWidgetIds: Set<String> = []
 
     // Storage keys
-    private let simpleWidgetKeyPrefix = "simpleWidgetData_"
-    private let progressWidgetKeyPrefix = "progressWidgetData_"
-    private let listWidgetKeyPrefix = "listWidgetData_"
-    private let calendarWidgetKeyPrefix = "calendarWidgetData_"
-    private let imageWidgetKeyPrefix = "imageWidgetData_"
-    private let chartWidgetKeyPrefix = "chartWidgetData_"
-    private let gaugeWidgetKeyPrefix = "gaugeWidgetData_"
     private let globalThemeKey = "globalTheme"
-    private let activeWidgetsKey = "activeWidgetIds"
+    private let activeWidgetsKey = GlanceStorageKeys.activeWidgetIds
     private let widgetPushTokenKey = "widgetPushToken"
     private let timelineRefreshIntervalKey = "timeline_refresh_interval"
 
@@ -107,7 +100,7 @@ public class GlanceWidgetManager {
             widgetData["theme"] = theme
         }
 
-        let saved = storage.save(widgetData, forKey: "\(simpleWidgetKeyPrefix)\(widgetId)")
+        let saved = storage.save(widgetData, forKey: GlanceStorageKeys.key(.simple, widgetId: widgetId))
         if !saved {
             return .failure(code: GlanceResult.errorSaveFailed,
                           message: "Failed to save widget data to App Group storage")
@@ -144,7 +137,7 @@ public class GlanceWidgetManager {
             widgetData["theme"] = theme
         }
 
-        let saved = storage.save(widgetData, forKey: "\(progressWidgetKeyPrefix)\(widgetId)")
+        let saved = storage.save(widgetData, forKey: GlanceStorageKeys.key(.progress, widgetId: widgetId))
         if !saved {
             return .failure(code: GlanceResult.errorSaveFailed,
                           message: "Failed to save widget data to App Group storage")
@@ -178,7 +171,7 @@ public class GlanceWidgetManager {
             widgetData["theme"] = theme
         }
 
-        let saved = storage.save(widgetData, forKey: "\(listWidgetKeyPrefix)\(widgetId)")
+        let saved = storage.save(widgetData, forKey: GlanceStorageKeys.key(.list, widgetId: widgetId))
         if !saved {
             return .failure(code: GlanceResult.errorSaveFailed,
                           message: "Failed to save widget data to App Group storage")
@@ -212,7 +205,7 @@ public class GlanceWidgetManager {
             widgetData["theme"] = theme
         }
 
-        let saved = storage.save(widgetData, forKey: "\(calendarWidgetKeyPrefix)\(widgetId)")
+        let saved = storage.save(widgetData, forKey: GlanceStorageKeys.key(.calendar, widgetId: widgetId))
         if !saved {
             return .failure(code: GlanceResult.errorSaveFailed,
                           message: "Failed to save widget data to App Group storage")
@@ -290,7 +283,7 @@ public class GlanceWidgetManager {
                 widgetData["theme"] = theme
             }
 
-            let saved = self.storage.save(widgetData, forKey: "\(self.imageWidgetKeyPrefix)\(widgetId)")
+            let saved = self.storage.save(widgetData, forKey: GlanceStorageKeys.key(.image, widgetId: widgetId))
             if !saved {
                 completion(.failure(code: GlanceResult.errorSaveFailed,
                                     message: "Failed to save widget data to App Group storage"))
@@ -326,7 +319,7 @@ public class GlanceWidgetManager {
             widgetData["theme"] = theme
         }
 
-        let saved = storage.save(widgetData, forKey: "\(chartWidgetKeyPrefix)\(widgetId)")
+        let saved = storage.save(widgetData, forKey: GlanceStorageKeys.key(.chart, widgetId: widgetId))
         if !saved {
             return .failure(code: GlanceResult.errorSaveFailed,
                           message: "Failed to save widget data to App Group storage")
@@ -360,7 +353,7 @@ public class GlanceWidgetManager {
             widgetData["theme"] = theme
         }
 
-        let saved = storage.save(widgetData, forKey: "\(gaugeWidgetKeyPrefix)\(widgetId)")
+        let saved = storage.save(widgetData, forKey: GlanceStorageKeys.key(.gauge, widgetId: widgetId))
         if !saved {
             return .failure(code: GlanceResult.errorSaveFailed,
                           message: "Failed to save widget data to App Group storage")

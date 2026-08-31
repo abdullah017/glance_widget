@@ -5,8 +5,28 @@ return `Future<void>` and throw `GlanceWidgetException` on failure instead of
 returning `Future<bool>`. See the main package's
 [migration guide](https://pub.dev/packages/glance_widget) for details.
 
+**Breaking:** the minimum deployment target is now iOS 17, up from iOS 16.
+`AppIntentConfiguration` is the only widget configuration that carries a
+per-instance parameter, and so the only way a placed widget can know which
+`widgetId` it renders -- see the fix below. It requires iOS 17.
+
+**Breaking:** the widget templates use `AppIntentConfiguration` instead of
+`StaticConfiguration`, and their timeline providers are
+`AppIntentTimelineProvider`. If you copied the templates and edited them, take
+the new versions: the change is mechanical, and a `StaticConfiguration` widget
+cannot be pointed at a `widgetId`.
+
 ### Fixed
 
+* Every placed instance of a template rendered the same data. `widgetId` was
+  honoured when writing and ignored when reading: each widget called
+  `load...Widget()` with no id and fell through to "whichever payload was
+  written last", so two `SimpleWidget`s could not show `'btc'` and `'eth'`.
+  This was the mirror image of the Android defect fixed in 2.0.0, where the
+  write path clobbered instead. Widgets now take a `widgetId` from their
+  configuration, and the person placing the widget picks it from the ids the app
+  has actually sent data for. An unconfigured instance keeps the old
+  most-recent behaviour so a freshly placed widget is never blank.
 * `imageUrl` did nothing. It is documented, validated in Dart and sent over the
   channel, and no iOS code read it -- the widget drew a placeholder saying
   "Remote images limited in widgets". Image sources are now resolved when the
@@ -35,6 +55,14 @@ returning `Future<bool>`. See the main package's
   hand, at most five deep, with every hop put back through the same check.
   `URLSession` would have applied it to the first hop only. Downloads are capped
   at 16 MB and time out.
+
+### Changed
+
+* The seven App Group key prefixes were private string literals in
+  `GlanceWidgetManager`, typed out again by hand in the widget templates. They
+  now live in `GlanceStorageKeys`, which the plugin uses and the tests pin to
+  their exact values -- a rename used to fail nothing at all, leaving the
+  configuration picker empty and every configured widget blank.
 
 ### Added
 

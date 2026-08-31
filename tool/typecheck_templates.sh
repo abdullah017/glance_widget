@@ -20,5 +20,5 @@ echo "Type-checking $TEMPLATES against $(basename "$SDK")"
 
 # Warnings are reported but do not fail: the templates carry a known backlog of
 # non-exhaustive `WidgetFamily` switches, tracked separately. Errors do fail.
-swiftc -typecheck -sdk "$SDK" -target arm64-apple-ios16.0 "$TEMPLATES"/*.swift
+swiftc -typecheck -sdk "$SDK" -target arm64-apple-ios17.0 "$TEMPLATES"/*.swift
 echo "Templates type-check clean."

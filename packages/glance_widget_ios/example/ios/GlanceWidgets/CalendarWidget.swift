@@ -1,23 +1,57 @@
+import AppIntents
 import WidgetKit
 import SwiftUI
 
+// MARK: - Configuration
+
+/// The ids this template has data for, offered when the user edits the widget.
+struct CalendarWidgetIdOptions: DynamicOptionsProvider {
+    func results() async throws -> [String] {
+        WidgetStorage.shared.knownWidgetIds(prefix: "calendarWidgetData_")
+    }
+}
+
+/// Carries the `widgetId` a placed instance should render.
+///
+/// `widgetId` is documented as a "unique identifier for this widget instance",
+/// and without a per-instance parameter there is nothing for the extension to
+/// key on: every placed widget read the most recently written payload, so two
+/// widgets built from this template always showed the same thing.
+struct CalendarWidgetIntent: WidgetConfigurationIntent {
+    static var title: LocalizedStringResource { "Calendar Widget" }
+    static var description: IntentDescription {
+        IntentDescription("Choose which of your app's widgets this one shows.")
+    }
+
+    @Parameter(title: "Widget", optionsProvider: CalendarWidgetIdOptions())
+    var widgetId: String?
+
+    init() {}
+
+    init(widgetId: String?) {
+        self.widgetId = widgetId
+    }
+}
+
 // MARK: - Timeline Provider
 
-struct CalendarWidgetProvider: TimelineProvider {
+struct CalendarWidgetProvider: AppIntentTimelineProvider {
     typealias Entry = CalendarWidgetEntry
+    typealias Intent = CalendarWidgetIntent
 
     func placeholder(in context: Context) -> CalendarWidgetEntry {
         CalendarWidgetEntry(date: Date(), data: .placeholder)
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (CalendarWidgetEntry) -> Void) {
-        let data = WidgetStorage.shared.loadCalendarWidget() ?? .placeholder
-        completion(CalendarWidgetEntry(date: Date(), data: data))
+    func snapshot(for configuration: CalendarWidgetIntent, in context: Context) async -> CalendarWidgetEntry {
+        CalendarWidgetEntry(date: Date(), data: load(for: configuration))
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<CalendarWidgetEntry>) -> Void) {
-        let data = WidgetStorage.shared.loadCalendarWidget() ?? .placeholder
-        let entry = CalendarWidgetEntry(date: Date(), data: data)
+    func timeline(
+        for configuration: CalendarWidgetIntent,
+        in context: Context
+    ) async -> Timeline<CalendarWidgetEntry> {
+        let entry = CalendarWidgetEntry(date: Date(), data: load(for: configuration))
 
         // Check for configured timeline refresh interval
         let refreshInterval = WidgetStorage.shared.getTimelineRefreshInterval()
@@ -27,8 +61,13 @@ struct CalendarWidgetProvider: TimelineProvider {
         } else {
             policy = .never
         }
-        let timeline = Timeline(entries: [entry], policy: policy)
-        completion(timeline)
+        return Timeline(entries: [entry], policy: policy)
+    }
+
+    /// An unconfigured instance falls back to the most recently updated payload
+    /// so a freshly placed widget shows something rather than a placeholder.
+    private func load(for configuration: CalendarWidgetIntent) -> CalendarWidgetData {
+        WidgetStorage.shared.loadCalendarWidget(widgetId: configuration.widgetId) ?? .placeholder
     }
 }
 
@@ -406,16 +445,16 @@ struct CalendarWidget: Widget {
     let kind: String = "CalendarWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: CalendarWidgetProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                CalendarWidgetEntryView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        Color(argb: entry.data.theme?.backgroundColor
-                              ?? WidgetThemeData.defaultDark.backgroundColor)
-                    }
-            } else {
-                CalendarWidgetEntryView(entry: entry)
-            }
+        AppIntentConfiguration(
+            kind: kind,
+            intent: CalendarWidgetIntent.self,
+            provider: CalendarWidgetProvider()
+        ) { entry in
+            CalendarWidgetEntryView(entry: entry)
+                .containerBackground(for: .widget) {
+                    Color(argb: entry.data.theme?.backgroundColor
+                          ?? WidgetThemeData.defaultDark.backgroundColor)
+                }
         }
         .configurationDisplayName("Calendar Widget")
         .description("Display upcoming events with date header and colored indicators. Perfect for schedules and agendas.")

@@ -21,7 +21,7 @@ List widget templates with instant updates when the app is in foreground.
   # dependency managers stay in sync from one copy of the code.
   s.source_files     = 'glance_widget_ios/Sources/glance_widget_ios/**/*.swift'
   s.dependency 'Flutter'
-  s.platform         = :ios, '16.0'
+  s.platform         = :ios, '17.0'
   s.swift_version    = '5.9'
 
   # Flutter.framework does not contain a i386 slice.

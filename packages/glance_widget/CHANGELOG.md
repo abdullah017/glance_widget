@@ -3,8 +3,25 @@
 **Breaking:** widget updates now report failures instead of hiding them. See
 [doc/migration_v2.md](doc/migration_v2.md) for the full migration.
 
+**Breaking:** iOS now requires a deployment target of 17.0, up from 16.0. The
+iOS widget templates need `AppIntentConfiguration`, which is the only widget
+configuration carrying a per-instance parameter and therefore the only way a
+placed widget can know which `widgetId` it shows.
+
 ### Fixed
 
+* `widgetId` did not actually identify an instance on either platform. On
+  Android every update was written into every placed widget of that template,
+  so updating `'btc'` overwrote a widget showing `'eth'`. On iOS the mirror
+  image: writes were per id, reads were not, so every placed widget rendered
+  whichever id was updated last. Android now routes each update to the instance
+  holding the id; on iOS the person placing the widget picks the id from the
+  ones the app has sent data for (long-press → Edit Widget).
+* `imageUrl` was documented, validated and sent over the channel, and no native
+  code on either platform read it. Images are now fetched and downsampled when
+  the update is applied rather than when the widget is drawn — a widget host
+  composes on its own schedule and under a much tighter memory budget, and a
+  full-resolution photo was enough to kill the process on Android.
 * A failed widget update was reported as a success. The native plugins answer a
   failed update with a platform error, never with `false`, so the `Future<bool>`
   every method returned was `true` on success and `true` again for any caller

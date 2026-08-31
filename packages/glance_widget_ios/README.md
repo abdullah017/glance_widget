@@ -5,6 +5,8 @@ iOS implementation of the [`glance_widget`](https://pub.dev/packages/glance_widg
 ## Features
 
 - Seven widget templates: Simple, Progress, List, Calendar, Image, Chart and Gauge
+- Per-instance configuration: place two widgets from one template and point each
+  at a different `widgetId` (long-press → Edit Widget)
 - **Instant updates** when app is in foreground (no budget limit!)
 - Theme support with dark/light modes
 - Widget tap actions sent back to Flutter
@@ -12,16 +14,16 @@ iOS implementation of the [`glance_widget`](https://pub.dev/packages/glance_widg
 
 ## Requirements
 
-- iOS 16.0 or higher
+- iOS 17.0 or higher
 - Xcode 15.0 or higher
 - Swift 5.9 or higher
 
-Set your app's deployment target to iOS 16 as well, in `ios/Podfile`
-(`platform :ios, '16.0'`) and not only in Xcode -- Flutter generates
+Set your app's deployment target to iOS 17 as well, in `ios/Podfile`
+(`platform :ios, '17.0'`) and not only in Xcode -- Flutter generates
 `FlutterGeneratedPluginSwiftPackage` from that line, so a commented-out one
 pins it to Flutter's 15.0 default. Under CocoaPods a lower target is silently
 tolerated, but under Swift Package Manager the build stops with
-`requires minimum platform version 16.0 for the iOS platform`.
+`requires minimum platform version 17.0 for the iOS platform`.
 
 ## Installation
 

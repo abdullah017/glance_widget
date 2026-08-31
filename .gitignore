@@ -70,8 +70,11 @@ app.*.map.json
 *.freezed.dart
 *.mocks.dart
 
-# Docs (specs and plans - not for git)
-docs/
+# Working notes -- the plan and progress files at the repository root.
+# Anchored: an unanchored `docs/` matches a directory of that name at ANY depth,
+# which silently swallowed the findings notes shipped beside the iOS widget
+# templates. Nothing failed; the file simply never entered git.
+/docs/
 
 # Credentials and secrets
 .env

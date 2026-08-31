@@ -6,9 +6,10 @@ import PackageDescription
 let package = Package(
     name: "glance_widget_ios",
     platforms: [
-        // WidgetKit's `AccessoryWidgetBackground`, `Text(timerInterval:)` and the
-        // container-background modifier this plugin relies on require iOS 16.
-        .iOS("16.0")
+        // `AppIntentConfiguration` -- the only widget configuration that carries
+        // a per-instance parameter, and so the only way a placed widget can know
+        // which `widgetId` it renders -- requires iOS 17.
+        .iOS("17.0")
     ],
     products: [
         .library(name: "glance-widget-ios", targets: ["glance_widget_ios"])

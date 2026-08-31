@@ -1,23 +1,57 @@
+import AppIntents
 import WidgetKit
 import SwiftUI
 
+// MARK: - Configuration
+
+/// The ids this template has data for, offered when the user edits the widget.
+struct ListWidgetIdOptions: DynamicOptionsProvider {
+    func results() async throws -> [String] {
+        WidgetStorage.shared.knownWidgetIds(prefix: "listWidgetData_")
+    }
+}
+
+/// Carries the `widgetId` a placed instance should render.
+///
+/// `widgetId` is documented as a "unique identifier for this widget instance",
+/// and without a per-instance parameter there is nothing for the extension to
+/// key on: every placed widget read the most recently written payload, so two
+/// widgets built from this template always showed the same thing.
+struct ListWidgetIntent: WidgetConfigurationIntent {
+    static var title: LocalizedStringResource { "List Widget" }
+    static var description: IntentDescription {
+        IntentDescription("Choose which of your app's widgets this one shows.")
+    }
+
+    @Parameter(title: "Widget", optionsProvider: ListWidgetIdOptions())
+    var widgetId: String?
+
+    init() {}
+
+    init(widgetId: String?) {
+        self.widgetId = widgetId
+    }
+}
+
 // MARK: - Timeline Provider
 
-struct ListWidgetProvider: TimelineProvider {
+struct ListWidgetProvider: AppIntentTimelineProvider {
     typealias Entry = ListWidgetEntry
+    typealias Intent = ListWidgetIntent
 
     func placeholder(in context: Context) -> ListWidgetEntry {
         ListWidgetEntry(date: Date(), data: .placeholder)
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (ListWidgetEntry) -> Void) {
-        let data = WidgetStorage.shared.loadListWidget() ?? .placeholder
-        completion(ListWidgetEntry(date: Date(), data: data))
+    func snapshot(for configuration: ListWidgetIntent, in context: Context) async -> ListWidgetEntry {
+        ListWidgetEntry(date: Date(), data: load(for: configuration))
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<ListWidgetEntry>) -> Void) {
-        let data = WidgetStorage.shared.loadListWidget() ?? .placeholder
-        let entry = ListWidgetEntry(date: Date(), data: data)
+    func timeline(
+        for configuration: ListWidgetIntent,
+        in context: Context
+    ) async -> Timeline<ListWidgetEntry> {
+        let entry = ListWidgetEntry(date: Date(), data: load(for: configuration))
 
         // Check for configured timeline refresh interval
         let refreshInterval = WidgetStorage.shared.getTimelineRefreshInterval()
@@ -27,8 +61,13 @@ struct ListWidgetProvider: TimelineProvider {
         } else {
             policy = .never
         }
-        let timeline = Timeline(entries: [entry], policy: policy)
-        completion(timeline)
+        return Timeline(entries: [entry], policy: policy)
+    }
+
+    /// An unconfigured instance falls back to the most recently updated payload
+    /// so a freshly placed widget shows something rather than a placeholder.
+    private func load(for configuration: ListWidgetIntent) -> ListWidgetData {
+        WidgetStorage.shared.loadListWidget(widgetId: configuration.widgetId) ?? .placeholder
     }
 }
 
@@ -345,16 +384,16 @@ struct ListWidget: Widget {
     let kind: String = "ListWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: ListWidgetProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                ListWidgetEntryView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        Color(argb: entry.data.theme?.backgroundColor
-                              ?? WidgetThemeData.defaultDark.backgroundColor)
-                    }
-            } else {
-                ListWidgetEntryView(entry: entry)
-            }
+        AppIntentConfiguration(
+            kind: kind,
+            intent: ListWidgetIntent.self,
+            provider: ListWidgetProvider()
+        ) { entry in
+            ListWidgetEntryView(entry: entry)
+                .containerBackground(for: .widget) {
+                    Color(argb: entry.data.theme?.backgroundColor
+                          ?? WidgetThemeData.defaultDark.backgroundColor)
+                }
         }
         .configurationDisplayName("List Widget")
         .description("Display a list of items with optional checkboxes. Perfect for todos, shopping lists, or quick notes.")

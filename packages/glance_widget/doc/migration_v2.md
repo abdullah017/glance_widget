@@ -103,3 +103,69 @@ an unregistered event channel. `listen` still works and simply never fires.
 `GlanceWidgetController.update`, `setTheme` and `onAction` are guarded the same
 way; in 1.x the controllers bypassed the guard entirely and threw
 `MissingPluginException` on desktop.
+
+## 6. iOS requires a deployment target of 17.0
+
+Up from 16.0. Set it in `ios/Podfile`:
+
+```ruby
+platform :ios, '17.0'
+```
+
+Set it there even if your project has no pods left. Flutter generates
+`FlutterGeneratedPluginSwiftPackage` from that line, and a commented-out one
+pins the generated package to Flutter's default whatever the Xcode target says,
+so the build stops with `requires minimum platform version 17.0 for the iOS
+platform`.
+
+The reason is the fix below: `AppIntentConfiguration` is the only widget
+configuration that carries a per-instance parameter, and it needs iOS 17.
+
+## 7. iOS widget templates take a `widgetId` from their configuration
+
+In 1.x every placed instance of a template rendered the same data. `widgetId`
+was honoured when the plugin wrote a payload and ignored when the extension read
+one back — each widget called `load...Widget()` with no id and got whichever
+payload was written last — so two `SimpleWidget`s could not show `'btc'` and
+`'eth'`.
+
+If you copied the templates into your app, take the new versions. The change is
+mechanical, and there is no way to point a `StaticConfiguration` widget at an
+id:
+
+```swift
+// Before
+struct SimpleWidgetProvider: TimelineProvider {
+    func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> Void) {
+        let data = WidgetStorage.shared.loadSimpleWidget() ?? .placeholder
+        ...
+    }
+}
+
+StaticConfiguration(kind: kind, provider: SimpleWidgetProvider()) { entry in ... }
+
+// After
+struct SimpleWidgetProvider: AppIntentTimelineProvider {
+    func timeline(for configuration: SimpleWidgetIntent, in context: Context) async -> Timeline<Entry> {
+        let data = WidgetStorage.shared.loadSimpleWidget(widgetId: configuration.widgetId)
+            ?? .placeholder
+        ...
+    }
+}
+
+AppIntentConfiguration(
+    kind: kind,
+    intent: SimpleWidgetIntent.self,
+    provider: SimpleWidgetProvider()
+) { entry in ... }
+```
+
+Nothing changes in your Dart code, and nothing changes on Android, where updates
+are routed to the instance holding the id automatically.
+
+There is one behaviour change for the people using your app: with two widgets
+from the same template on the home screen, they choose which is which by
+long-pressing a widget and tapping **Edit Widget**. The picker offers the ids
+your app has sent data for. An instance nobody has configured keeps the 1.x
+behaviour and shows the most recently updated id, so a freshly placed widget is
+never blank.
