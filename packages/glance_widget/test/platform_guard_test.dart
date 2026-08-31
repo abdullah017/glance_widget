@@ -9,16 +9,19 @@ void main() {
   });
 
   group('PlatformGuard', () {
-    test('returns default on unsupported platform (strictMode=false)', () async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.linux;
-      GlanceConfig.strictMode = false;
+    test(
+      'returns default on unsupported platform (strictMode=false)',
+      () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+        GlanceConfig.strictMode = false;
 
-      final result = await PlatformGuard.guard(
-        () async => 'executed',
-        'default',
-      );
-      expect(result, 'default');
-    });
+        final result = await PlatformGuard.guard(
+          () async => 'executed',
+          'default',
+        );
+        expect(result, 'default');
+      },
+    );
 
     test('throws on unsupported platform (strictMode=true)', () async {
       debugDefaultTargetPlatformOverride = TargetPlatform.linux;

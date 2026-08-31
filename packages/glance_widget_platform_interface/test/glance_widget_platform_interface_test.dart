@@ -8,19 +8,13 @@ void main() {
 
   group('GlanceWidgetPlatform', () {
     test('default instance is MethodChannelGlanceWidget', () {
-      expect(
-        GlanceWidgetPlatform.instance,
-        isA<MethodChannelGlanceWidget>(),
-      );
+      expect(GlanceWidgetPlatform.instance, isA<MethodChannelGlanceWidget>());
     });
 
     test('cannot be implemented with `implements`', () {
-      expect(
-        () {
-          GlanceWidgetPlatform.instance = _InvalidImplementation();
-        },
-        throwsA(isA<AssertionError>()),
-      );
+      expect(() {
+        GlanceWidgetPlatform.instance = _InvalidImplementation();
+      }, throwsA(isA<AssertionError>()));
     });
   });
 
@@ -143,10 +137,7 @@ void main() {
     });
 
     test('toMap includes imageBase64 when provided', () {
-      const data = ImageWidgetData(
-        title: 'Photo',
-        imageBase64: 'base64data',
-      );
+      const data = ImageWidgetData(title: 'Photo', imageBase64: 'base64data');
       final map = data.toMap();
 
       expect(map['imageBase64'], 'base64data');
@@ -164,10 +155,7 @@ void main() {
     });
 
     test('toMap includes subtitle when provided', () {
-      const data = ImageWidgetData(
-        title: 'Photo',
-        subtitle: 'A caption',
-      );
+      const data = ImageWidgetData(title: 'Photo', subtitle: 'A caption');
       final map = data.toMap();
 
       expect(map['subtitle'], 'A caption');
@@ -366,9 +354,7 @@ void main() {
     test('toMap includes required fields', () {
       final data = GaugeWidgetData(
         title: 'Performance',
-        metrics: [
-          GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
-        ],
+        metrics: [GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0)],
       );
       final map = data.toMap();
 
@@ -405,12 +391,7 @@ void main() {
             color: Color(0xFFFF0000),
             unit: '%',
           ),
-          GaugeMetric(
-            label: 'RAM',
-            value: 8.0,
-            maxValue: 16.0,
-            unit: 'GB',
-          ),
+          GaugeMetric(label: 'RAM', value: 8.0, maxValue: 16.0, unit: 'GB'),
         ],
       );
       final map = data.toMap();

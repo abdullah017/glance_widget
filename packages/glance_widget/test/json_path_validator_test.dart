@@ -25,19 +25,25 @@ void main() {
 
     test('valid simple paths pass', () {
       expect(() => JsonPathValidator.validate(r'$.bitcoin'), returnsNormally);
-      expect(() => JsonPathValidator.validate(r'$.bitcoin.usd'), returnsNormally);
+      expect(
+        () => JsonPathValidator.validate(r'$.bitcoin.usd'),
+        returnsNormally,
+      );
       expect(() => JsonPathValidator.validate(r'$.data[0]'), returnsNormally);
       expect(() => JsonPathValidator.validate(r'$.store.*'), returnsNormally);
       expect(() => JsonPathValidator.validate(r'$.items[*]'), returnsNormally);
     });
 
-    test('non-standard path with strictMode=false logs warning but does not throw', () {
-      GlanceConfig.strictMode = false;
-      expect(
-        () => JsonPathValidator.validate(r'$.store.book[?(@.price < 10)]'),
-        returnsNormally,
-      );
-    });
+    test(
+      'non-standard path with strictMode=false logs warning but does not throw',
+      () {
+        GlanceConfig.strictMode = false;
+        expect(
+          () => JsonPathValidator.validate(r'$.store.book[?(@.price < 10)]'),
+          returnsNormally,
+        );
+      },
+    );
 
     test('non-standard path with strictMode=true throws', () {
       GlanceConfig.strictMode = true;

@@ -359,20 +359,14 @@ class GlanceWidget {
   /// await GlanceWidget.setTheme(GlanceTheme.dark());
   /// ```
   static Future<bool> setTheme(GlanceTheme theme) {
-    return PlatformGuard.guard(
-      () => _platform.setGlobalTheme(theme),
-      false,
-    );
+    return PlatformGuard.guard(() => _platform.setGlobalTheme(theme), false);
   }
 
   /// Forces a refresh of all widgets.
   ///
   /// Useful when you need to ensure all widgets are updated immediately.
   static Future<bool> refreshAll() {
-    return PlatformGuard.guard(
-      () => _platform.forceRefreshAll(),
-      false,
-    );
+    return PlatformGuard.guard(() => _platform.forceRefreshAll(), false);
   }
 
   /// Gets the list of active widget IDs.
@@ -416,10 +410,7 @@ class GlanceWidget {
   /// }
   /// ```
   static Future<String?> getWidgetPushToken() {
-    return PlatformGuard.guard(
-      () => _platform.getWidgetPushToken(),
-      null,
-    );
+    return PlatformGuard.guard(() => _platform.getWidgetPushToken(), null);
   }
 
   /// Checks if Widget Push Updates are supported on the current platform.
@@ -438,10 +429,7 @@ class GlanceWidget {
   /// }
   /// ```
   static Future<bool> isWidgetPushSupported() {
-    return PlatformGuard.guard(
-      () => _platform.isWidgetPushSupported(),
-      false,
-    );
+    return PlatformGuard.guard(() => _platform.isWidgetPushSupported(), false);
   }
 
   /// Marks widget configuration as complete.

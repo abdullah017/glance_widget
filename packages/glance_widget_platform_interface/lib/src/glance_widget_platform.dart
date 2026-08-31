@@ -83,7 +83,9 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
     required CalendarWidgetData data,
     GlanceTheme? theme,
   }) {
-    throw UnimplementedError('updateCalendarWidget() has not been implemented.');
+    throw UnimplementedError(
+      'updateCalendarWidget() has not been implemented.',
+    );
   }
 
   /// Updates a Gauge Widget with the given data.
@@ -298,7 +300,9 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   /// On Android, this completes the configuration activity result.
   /// On iOS, this is a no-op as configuration is handled by the system.
   Future<bool> completeWidgetConfiguration(String widgetId) {
-    throw UnimplementedError('completeWidgetConfiguration() has not been implemented.');
+    throw UnimplementedError(
+      'completeWidgetConfiguration() has not been implemented.',
+    );
   }
 
   /// Triggers a one-time background update immediately (for testing).

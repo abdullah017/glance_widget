@@ -71,10 +71,9 @@ class DebouncedWidgetController<T extends WidgetData> {
   bool get hasPendingUpdate => _pendingData != null;
 
   /// Duration since the last successful update dispatch.
-  Duration? get timeSinceLastUpdate =>
-      _lastUpdateTime != null
-          ? DateTime.now().difference(_lastUpdateTime!)
-          : null;
+  Duration? get timeSinceLastUpdate => _lastUpdateTime != null
+      ? DateTime.now().difference(_lastUpdateTime!)
+      : null;
 
   /// Whether the widget data is stale (no update within [stalenessThreshold]).
   bool get isStale {

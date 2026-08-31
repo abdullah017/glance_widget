@@ -41,7 +41,7 @@ class JsonPathValidator {
       if (GlanceConfig.strictMode) {
         throw GlanceWidgetValidationException(
           'JSONPath expression may not be valid: $path. '
-              r'Supported: $.field, $.field[0], $.a.b.c, $.field[*]',
+          r'Supported: $.field, $.field[0], $.a.b.c, $.field[*]',
           field: 'valuePath',
           invalidValue: path,
         );

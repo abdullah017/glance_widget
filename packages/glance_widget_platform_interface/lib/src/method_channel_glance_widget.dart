@@ -358,22 +358,20 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
     String? valueSuffix,
   }) async {
     try {
-      final result = await _methodChannel.invokeMethod<bool>(
-        'configureBackgroundUpdate',
-        {
-          'widgetId': widgetId,
-          'template': template,
-          'apiUrl': apiUrl,
-          'headers': headers,
-          'intervalMinutes': intervalMinutes,
-          'title': title,
-          'valuePath': valuePath,
-          'subtitlePath': subtitlePath,
-          'valuePrefix': valuePrefix,
-          'valueSuffix': valueSuffix,
-          'enabled': true,
-        },
-      );
+      final result = await _methodChannel
+          .invokeMethod<bool>('configureBackgroundUpdate', {
+            'widgetId': widgetId,
+            'template': template,
+            'apiUrl': apiUrl,
+            'headers': headers,
+            'intervalMinutes': intervalMinutes,
+            'title': title,
+            'valuePath': valuePath,
+            'subtitlePath': subtitlePath,
+            'valuePrefix': valuePrefix,
+            'valueSuffix': valueSuffix,
+            'enabled': true,
+          });
       return result ?? false;
     } on PlatformException catch (e) {
       _log.warning('Failed to configure background update: ${e.message}', e);
@@ -408,7 +406,9 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
   }
 
   @override
-  Future<Map<String, dynamic>> getBackgroundUpdateStatus(String widgetId) async {
+  Future<Map<String, dynamic>> getBackgroundUpdateStatus(
+    String widgetId,
+  ) async {
     try {
       final result = await _methodChannel.invokeMethod<Map<Object?, Object?>>(
         'getBackgroundUpdateStatus',
@@ -438,10 +438,7 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
     try {
       final result = await _methodChannel.invokeMethod<bool>(
         'configureTimelineRefresh',
-        {
-          'widgetId': widgetId,
-          'intervalMinutes': intervalMinutes,
-        },
+        {'widgetId': widgetId, 'intervalMinutes': intervalMinutes},
       );
       return result ?? false;
     } on PlatformException catch (e) {

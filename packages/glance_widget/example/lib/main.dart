@@ -39,7 +39,8 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   // Simple widget state
@@ -71,10 +72,27 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   // Calendar widget state
   final List<CalendarEvent> _events = [
-    const CalendarEvent(time: '09:00', title: 'Team Standup', color: Color(0xFF4CAF50)),
-    const CalendarEvent(time: '11:00', title: 'Design Review', color: Color(0xFF2196F3)),
-    const CalendarEvent(time: '14:00', title: 'Sprint Planning', color: Color(0xFFFFA726)),
-    const CalendarEvent(time: 'All Day', title: 'Project Deadline', color: Color(0xFFE53935), isAllDay: true),
+    const CalendarEvent(
+      time: '09:00',
+      title: 'Team Standup',
+      color: Color(0xFF4CAF50),
+    ),
+    const CalendarEvent(
+      time: '11:00',
+      title: 'Design Review',
+      color: Color(0xFF2196F3),
+    ),
+    const CalendarEvent(
+      time: '14:00',
+      title: 'Sprint Planning',
+      color: Color(0xFFFFA726),
+    ),
+    const CalendarEvent(
+      time: 'All Day',
+      title: 'Project Deadline',
+      color: Color(0xFFE53935),
+      isAllDay: true,
+    ),
   ];
   CalendarWidgetController? _calendarController;
 
@@ -182,7 +200,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1A1A2E),
         title: const Text('Configure Widget'),
-        content: Text('Widget "$widgetId" needs configuration.\nSelect what data to display.'),
+        content: Text(
+          'Widget "$widgetId" needs configuration.\nSelect what data to display.',
+        ),
         actions: [
           TextButton(
             onPressed: () {
@@ -219,20 +239,25 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     setState(() => _isRealtimeActive = !_isRealtimeActive);
 
     if (_isRealtimeActive) {
-      _realtimeTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      _realtimeTimer = Timer.periodic(const Duration(milliseconds: 50), (
+        timer,
+      ) {
         final random = Random();
         final change = (random.nextDouble() - 0.5) * 100;
         setState(() {
           _cryptoPrice += change;
           _priceChange = (change / _cryptoPrice) * 100;
         });
-        _cryptoController?.scheduleUpdate(SimpleWidgetData(
-          title: 'Bitcoin',
-          value: '\$${_cryptoPrice.toStringAsFixed(2)}',
-          subtitle: '${_priceChange >= 0 ? '+' : ''}${_priceChange.toStringAsFixed(2)}%',
-          subtitleColor: _priceChange >= 0 ? Colors.green : Colors.red,
-          deepLinkUri: 'glancewidget://crypto/btc',
-        ));
+        _cryptoController?.scheduleUpdate(
+          SimpleWidgetData(
+            title: 'Bitcoin',
+            value: '\$${_cryptoPrice.toStringAsFixed(2)}',
+            subtitle:
+                '${_priceChange >= 0 ? '+' : ''}${_priceChange.toStringAsFixed(2)}%',
+            subtitleColor: _priceChange >= 0 ? Colors.green : Colors.red,
+            deepLinkUri: 'glancewidget://crypto/btc',
+          ),
+        );
       });
     } else {
       _realtimeTimer?.cancel();
@@ -250,13 +275,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     });
 
     // v1.0: Use type-safe SimpleWidgetController with update()
-    await _simpleController?.update(SimpleWidgetData(
-      title: 'Bitcoin',
-      value: '\$${_cryptoPrice.toStringAsFixed(2)}',
-      subtitle: '${_priceChange >= 0 ? '+' : ''}${_priceChange.toStringAsFixed(2)}%',
-      subtitleColor: _priceChange >= 0 ? Colors.green : Colors.red,
-      deepLinkUri: 'glancewidget://crypto/btc',
-    ));
+    await _simpleController?.update(
+      SimpleWidgetData(
+        title: 'Bitcoin',
+        value: '\$${_cryptoPrice.toStringAsFixed(2)}',
+        subtitle:
+            '${_priceChange >= 0 ? '+' : ''}${_priceChange.toStringAsFixed(2)}%',
+        subtitleColor: _priceChange >= 0 ? Colors.green : Colors.red,
+        deepLinkUri: 'glancewidget://crypto/btc',
+      ),
+    );
   }
 
   // ── Progress Widget ──
@@ -264,28 +292,35 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   void _startDownload() {
     setState(() => _downloadProgress = 0.0);
     _downloadTimer?.cancel();
-    _downloadTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) async {
+    _downloadTimer = Timer.periodic(const Duration(milliseconds: 100), (
+      timer,
+    ) async {
       setState(() => _downloadProgress += 0.02);
 
       // v1.0: Use type-safe ProgressWidgetController with update()
-      await _progressController?.update(ProgressWidgetData(
-        title: 'Downloading...',
-        progress: _downloadProgress.clamp(0.0, 1.0),
-        subtitle: '${(_downloadProgress * 100).toInt().clamp(0, 100)}% complete',
-        progressType: ProgressType.circular,
-        progressColor: Colors.blue,
-        deepLinkUri: 'glancewidget://downloads',
-      ));
+      await _progressController?.update(
+        ProgressWidgetData(
+          title: 'Downloading...',
+          progress: _downloadProgress.clamp(0.0, 1.0),
+          subtitle:
+              '${(_downloadProgress * 100).toInt().clamp(0, 100)}% complete',
+          progressType: ProgressType.circular,
+          progressColor: Colors.blue,
+          deepLinkUri: 'glancewidget://downloads',
+        ),
+      );
 
       if (_downloadProgress >= 1.0) {
         timer.cancel();
-        await _progressController?.update(ProgressWidgetData(
-          title: 'Complete!',
-          progress: 1.0,
-          subtitle: 'Download finished',
-          progressType: ProgressType.circular,
-          progressColor: Colors.green,
-        ));
+        await _progressController?.update(
+          ProgressWidgetData(
+            title: 'Complete!',
+            progress: 1.0,
+            subtitle: 'Download finished',
+            progressType: ProgressType.circular,
+            progressColor: Colors.green,
+          ),
+        );
       }
     });
   }
@@ -294,12 +329,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Future<void> _updateListWidget() async {
     // v1.0: Use type-safe ListWidgetController with update()
-    await _listController?.update(ListWidgetData(
-      title: 'Today\'s Tasks',
-      items: _todoItems,
-      showCheckboxes: true,
-      deepLinkUri: 'glancewidget://todos',
-    ));
+    await _listController?.update(
+      ListWidgetData(
+        title: 'Today\'s Tasks',
+        items: _todoItems,
+        showCheckboxes: true,
+        deepLinkUri: 'glancewidget://todos',
+      ),
+    );
   }
 
   void _toggleTodoItem(int index) {
@@ -322,13 +359,15 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     final base64Image = await _generateSampleImage();
 
     // v1.0: Use type-safe ImageWidgetController with update()
-    await _imageController?.update(ImageWidgetData(
-      title: 'Photo of the Day',
-      imageBase64: base64Image,
-      subtitle: 'Generated gradient',
-      fit: ImageFit.cover,
-      deepLinkUri: 'glancewidget://gallery',
-    ));
+    await _imageController?.update(
+      ImageWidgetData(
+        title: 'Photo of the Day',
+        imageBase64: base64Image,
+        subtitle: 'Generated gradient',
+        fit: ImageFit.cover,
+        deepLinkUri: 'glancewidget://gallery',
+      ),
+    );
   }
 
   Future<String> _generateSampleImage() async {
@@ -360,14 +399,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Future<void> _updateChartWidget() async {
     // v1.0: Use type-safe ChartWidgetController with update()
-    await _chartController?.update(ChartWidgetData(
-      title: 'Revenue',
-      dataPoints: _chartData,
-      chartType: _selectedChartType,
-      color: Colors.blue,
-      subtitle: 'Last 7 days',
-      deepLinkUri: 'glancewidget://analytics',
-    ));
+    await _chartController?.update(
+      ChartWidgetData(
+        title: 'Revenue',
+        dataPoints: _chartData,
+        chartType: _selectedChartType,
+        color: Colors.blue,
+        subtitle: 'Last 7 days',
+        deepLinkUri: 'glancewidget://analytics',
+      ),
+    );
   }
 
   void _randomizeChartData() {
@@ -382,29 +423,51 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Future<void> _updateCalendarWidget() async {
     // v1.0: Use type-safe CalendarWidgetController with update()
-    await _calendarController?.update(CalendarWidgetData(
-      title: 'Today\'s Events',
-      date: DateTime.now(),
-      events: _events,
-      maxEvents: 5,
-      deepLinkUri: 'glancewidget://calendar',
-    ));
+    await _calendarController?.update(
+      CalendarWidgetData(
+        title: 'Today\'s Events',
+        date: DateTime.now(),
+        events: _events,
+        maxEvents: 5,
+        deepLinkUri: 'glancewidget://calendar',
+      ),
+    );
   }
 
   // ── Gauge Widget ──
 
   Future<void> _updateGaugeWidget() async {
     // v1.0: Use type-safe GaugeWidgetController with update()
-    await _gaugeController?.update(GaugeWidgetData(
-      title: 'System Monitor',
-      metrics: [
-        GaugeMetric(label: 'CPU', value: _cpuUsage, maxValue: 100, color: Colors.green, unit: '%'),
-        GaugeMetric(label: 'Memory', value: _memoryUsage, maxValue: 100, color: Colors.orange, unit: '%'),
-        GaugeMetric(label: 'Disk', value: _diskUsage, maxValue: 100, color: Colors.blue, unit: '%'),
-      ],
-      gaugeType: _selectedGaugeType,
-      deepLinkUri: 'glancewidget://monitor',
-    ));
+    await _gaugeController?.update(
+      GaugeWidgetData(
+        title: 'System Monitor',
+        metrics: [
+          GaugeMetric(
+            label: 'CPU',
+            value: _cpuUsage,
+            maxValue: 100,
+            color: Colors.green,
+            unit: '%',
+          ),
+          GaugeMetric(
+            label: 'Memory',
+            value: _memoryUsage,
+            maxValue: 100,
+            color: Colors.orange,
+            unit: '%',
+          ),
+          GaugeMetric(
+            label: 'Disk',
+            value: _diskUsage,
+            maxValue: 100,
+            color: Colors.blue,
+            unit: '%',
+          ),
+        ],
+        gaugeType: _selectedGaugeType,
+        deepLinkUri: 'glancewidget://monitor',
+      ),
+    );
   }
 
   void _randomizeGaugeData() {
@@ -432,7 +495,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       final success = await GlanceBackground.configureUpdate(
         widgetId: 'crypto_btc',
         template: GlanceTemplate.simple,
-        apiUrl: 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true',
+        apiUrl:
+            'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true',
         intervalMinutes: 15,
         title: 'Bitcoin',
         valuePath: r'$.bitcoin.usd',
@@ -441,7 +505,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       );
       setState(() {
         _isBackgroundUpdateEnabled = success;
-        _backgroundUpdateStatus = success ? 'Enabled (15 min interval)' : 'Failed to configure';
+        _backgroundUpdateStatus = success
+            ? 'Enabled (15 min interval)'
+            : 'Failed to configure';
       });
     }
   }
@@ -452,7 +518,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       final isConfigured = status['isConfigured'] == true;
       final workState = status['workState'] ?? 'Unknown';
       _isBackgroundUpdateEnabled = isConfigured;
-      _backgroundUpdateStatus = isConfigured ? 'State: $workState' : 'Not configured';
+      _backgroundUpdateStatus = isConfigured
+          ? 'State: $workState'
+          : 'Not configured';
     });
   }
 
@@ -463,7 +531,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     }
     final success = await GlanceBackground.testUpdate('crypto_btc');
     _showSnackBar(
-      success ? 'Test triggered! Check widget in a few seconds...' : 'Failed to trigger test',
+      success
+          ? 'Test triggered! Check widget in a few seconds...'
+          : 'Failed to trigger test',
       success ? Colors.green : Colors.red,
     );
   }
@@ -491,9 +561,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   void _showSnackBar(String message, Color color) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: color),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message), backgroundColor: color));
   }
 
   // ── BUILD ──
@@ -715,8 +785,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                    Text(subtitle, style: TextStyle(fontSize: 13, color: Colors.grey[400])),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                    ),
                   ],
                 ),
               ),
@@ -742,11 +822,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
           child: Column(
             children: [
-              Text('Bitcoin', style: TextStyle(fontSize: 14, color: Colors.grey[400])),
+              Text(
+                'Bitcoin',
+                style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+              ),
               const SizedBox(height: 8),
               Text(
                 '\$${_cryptoPrice.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -783,7 +870,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         Row(
           children: [
             Expanded(
-              child: _buildButton('Update', Icons.refresh, const Color(0xFFFFA726), _updateSimpleWidget, dark: true),
+              child: _buildButton(
+                'Update',
+                Icons.refresh,
+                const Color(0xFFFFA726),
+                _updateSimpleWidget,
+                dark: true,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -823,12 +916,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                       value: _downloadProgress.clamp(0.0, 1.0),
                       strokeWidth: 6,
                       backgroundColor: const Color(0xFF3A3A4E),
-                      color: _downloadProgress >= 1.0 ? Colors.green : Colors.blue,
+                      color: _downloadProgress >= 1.0
+                          ? Colors.green
+                          : Colors.blue,
                     ),
                   ),
                   Text(
                     '${(_downloadProgress * 100).toInt().clamp(0, 100)}%',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ],
               ),
@@ -845,7 +944,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           'Start Download',
           Icons.download,
           Colors.blue,
-          _downloadProgress > 0 && _downloadProgress < 1.0 ? null : _startDownload,
+          _downloadProgress > 0 && _downloadProgress < 1.0
+              ? null
+              : _startDownload,
           fullWidth: true,
         ),
       ],
@@ -868,7 +969,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             children: [
               Row(
                 children: [
-                  const Text('Today\'s Tasks', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const Text(
+                    'Today\'s Tasks',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                   const Spacer(),
                   Text(
                     '${_todoItems.where((i) => i.checked).length}/${_todoItems.length}',
@@ -886,7 +994,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     child: Row(
                       children: [
                         Icon(
-                          item.checked ? Icons.check_box : Icons.check_box_outline_blank,
+                          item.checked
+                              ? Icons.check_box
+                              : Icons.check_box_outline_blank,
                           color: item.checked ? Colors.blue : Colors.grey,
                           size: 20,
                         ),
@@ -896,7 +1006,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                           style: TextStyle(
                             fontSize: 14,
                             color: item.checked ? Colors.grey : Colors.white,
-                            decoration: item.checked ? TextDecoration.lineThrough : null,
+                            decoration: item.checked
+                                ? TextDecoration.lineThrough
+                                : null,
                           ),
                         ),
                       ],
@@ -908,7 +1020,13 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
         ),
         const SizedBox(height: 12),
-        _buildButton('Sync to Widget', Icons.sync, Colors.green, _updateListWidget, fullWidth: true),
+        _buildButton(
+          'Sync to Widget',
+          Icons.sync,
+          Colors.green,
+          _updateListWidget,
+          fullWidth: true,
+        ),
       ],
     );
   }
@@ -942,13 +1060,29 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 ),
               ),
               const SizedBox(height: 12),
-              const Text('Photo of the Day', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-              Text('Generated gradient image', style: TextStyle(fontSize: 13, color: Colors.grey[400])),
+              const Text(
+                'Photo of the Day',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                'Generated gradient image',
+                style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        _buildButton('Send to Widget', Icons.send, Colors.purple, _updateImageWidget, fullWidth: true),
+        _buildButton(
+          'Send to Widget',
+          Icons.send,
+          Colors.purple,
+          _updateImageWidget,
+          fullWidth: true,
+        ),
         const SizedBox(height: 8),
         Text(
           'Generates a base64-encoded gradient image',
@@ -975,9 +1109,19 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             children: [
               Row(
                 children: [
-                  const Text('Revenue', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const Text(
+                    'Revenue',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                   const Spacer(),
-                  Text('Last 7 days', style: TextStyle(fontSize: 12, color: Colors.grey[400])),
+                  Text(
+                    'Last 7 days',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -998,20 +1142,31 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             final isSelected = _selectedChartType == type;
             return Expanded(
               child: Padding(
-                padding: EdgeInsets.only(right: type != ChartType.sparkline ? 8 : 0),
+                padding: EdgeInsets.only(
+                  right: type != ChartType.sparkline ? 8 : 0,
+                ),
                 child: GestureDetector(
                   onTap: () => setState(() => _selectedChartType = type),
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.blue.withAlpha(51) : const Color(0xFF0A0A1A),
+                      color: isSelected
+                          ? Colors.blue.withAlpha(51)
+                          : const Color(0xFF0A0A1A),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: isSelected ? Colors.blue : const Color(0xFF3A3A4E)),
+                      border: Border.all(
+                        color: isSelected
+                            ? Colors.blue
+                            : const Color(0xFF3A3A4E),
+                      ),
                     ),
                     child: Text(
                       type.name[0].toUpperCase() + type.name.substring(1),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13, color: isSelected ? Colors.blue : Colors.grey[400]),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isSelected ? Colors.blue : Colors.grey[400],
+                      ),
                     ),
                   ),
                 ),
@@ -1022,9 +1177,23 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _buildButton('Update', Icons.refresh, Colors.blue, _updateChartWidget)),
+            Expanded(
+              child: _buildButton(
+                'Update',
+                Icons.refresh,
+                Colors.blue,
+                _updateChartWidget,
+              ),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: _buildButton('Randomize', Icons.shuffle, const Color(0xFF3A3A4E), _randomizeChartData)),
+            Expanded(
+              child: _buildButton(
+                'Randomize',
+                Icons.shuffle,
+                const Color(0xFF3A3A4E),
+                _randomizeChartData,
+              ),
+            ),
           ],
         ),
       ],
@@ -1048,7 +1217,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             children: [
               Row(
                 children: [
-                  const Text('Today\'s Events', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                  const Text(
+                    'Today\'s Events',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                   const Spacer(),
                   Text(
                     '${now.day}/${now.month}/${now.year}',
@@ -1057,41 +1233,69 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 ],
               ),
               const Divider(color: Color(0xFF3A3A4E)),
-              ..._events.map((event) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Row(
-                      children: [
+              ..._events.map(
+                (event) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: event.color ?? Colors.blue,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        event.time,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[400],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          event.title,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      if (event.isAllDay)
                         Container(
-                          width: 4,
-                          height: 24,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
-                            color: event.color ?? Colors.blue,
-                            borderRadius: BorderRadius.circular(2),
+                            color: Colors.red.withAlpha(26),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'All Day',
+                            style: TextStyle(fontSize: 10, color: Colors.red),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Text(event.time, style: TextStyle(fontSize: 13, color: Colors.grey[400], fontWeight: FontWeight.w500)),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(event.title, style: const TextStyle(fontSize: 14, color: Colors.white)),
-                        ),
-                        if (event.isAllDay)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withAlpha(26),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text('All Day', style: TextStyle(fontSize: 10, color: Colors.red)),
-                          ),
-                      ],
-                    ),
-                  )),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        _buildButton('Send to Widget', Icons.calendar_month, const Color(0xFFFFA726), _updateCalendarWidget, fullWidth: true, dark: true),
+        _buildButton(
+          'Send to Widget',
+          Icons.calendar_month,
+          const Color(0xFFFFA726),
+          _updateCalendarWidget,
+          fullWidth: true,
+          dark: true,
+        ),
       ],
     );
   }
@@ -1109,7 +1313,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
           child: Column(
             children: [
-              const Text('System Monitor', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+              const Text(
+                'System Monitor',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1129,20 +1340,31 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             final isSelected = _selectedGaugeType == type;
             return Expanded(
               child: Padding(
-                padding: EdgeInsets.only(right: type != GaugeType.dashboard ? 8 : 0),
+                padding: EdgeInsets.only(
+                  right: type != GaugeType.dashboard ? 8 : 0,
+                ),
                 child: GestureDetector(
                   onTap: () => setState(() => _selectedGaugeType = type),
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.green.withAlpha(51) : const Color(0xFF0A0A1A),
+                      color: isSelected
+                          ? Colors.green.withAlpha(51)
+                          : const Color(0xFF0A0A1A),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: isSelected ? Colors.green : const Color(0xFF3A3A4E)),
+                      border: Border.all(
+                        color: isSelected
+                            ? Colors.green
+                            : const Color(0xFF3A3A4E),
+                      ),
                     ),
                     child: Text(
                       type.name[0].toUpperCase() + type.name.substring(1),
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 13, color: isSelected ? Colors.green : Colors.grey[400]),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isSelected ? Colors.green : Colors.grey[400],
+                      ),
                     ),
                   ),
                 ),
@@ -1153,9 +1375,23 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _buildButton('Update', Icons.refresh, Colors.green, _updateGaugeWidget)),
+            Expanded(
+              child: _buildButton(
+                'Update',
+                Icons.refresh,
+                Colors.green,
+                _updateGaugeWidget,
+              ),
+            ),
             const SizedBox(width: 12),
-            Expanded(child: _buildButton('Randomize', Icons.shuffle, const Color(0xFF3A3A4E), _randomizeGaugeData)),
+            Expanded(
+              child: _buildButton(
+                'Randomize',
+                Icons.shuffle,
+                const Color(0xFF3A3A4E),
+                _randomizeGaugeData,
+              ),
+            ),
           ],
         ),
       ],
@@ -1179,7 +1415,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               ),
               Text(
                 '${value.toInt()}%',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: color),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
               ),
             ],
           ),
@@ -1215,9 +1455,16 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   children: [
                     Text(
                       _isBackgroundUpdateEnabled ? 'Active' : 'Inactive',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                    Text(_backgroundUpdateStatus, style: TextStyle(fontSize: 12, color: Colors.grey[400])),
+                    Text(
+                      _backgroundUpdateStatus,
+                      style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                    ),
                   ],
                 ),
               ),
@@ -1237,7 +1484,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildButton('Status', Icons.refresh, const Color(0xFF3A3A4E), _checkBackgroundUpdateStatus),
+              child: _buildButton(
+                'Status',
+                Icons.refresh,
+                const Color(0xFF3A3A4E),
+                _checkBackgroundUpdateStatus,
+              ),
             ),
           ],
         ),
@@ -1279,7 +1531,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                   children: [
                     Text(
                       _isTimelineRefreshEnabled ? 'Enabled' : 'Disabled',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                     Text(
                       _isTimelineRefreshEnabled
@@ -1325,21 +1581,39 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     ];
 
     return Column(
-      children: links.map((link) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 70,
-                  child: Text(link.$1, style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.w500)),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(link.$2, style: TextStyle(fontSize: 12, color: Colors.cyan[300], fontFamily: 'monospace')),
-                ),
-              ],
+      children: links
+          .map(
+            (link) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 70,
+                    child: Text(
+                      link.$1,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      link.$2,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.cyan[300],
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          )).toList(),
+          )
+          .toList(),
     );
   }
 
@@ -1363,7 +1637,11 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         const SizedBox(height: 8),
         Text(
           'Try tapping widgets on your home screen!',
-          style: TextStyle(fontSize: 12, color: Colors.grey[500], fontStyle: FontStyle.italic),
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[500],
+            fontStyle: FontStyle.italic,
+          ),
         ),
       ],
     );
@@ -1380,7 +1658,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               color: Colors.pink.withAlpha(26),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text(type, style: const TextStyle(fontSize: 11, color: Colors.pink, fontFamily: 'monospace')),
+            child: Text(
+              type,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Colors.pink,
+                fontFamily: 'monospace',
+              ),
+            ),
           ),
           const SizedBox(width: 10),
           Text(desc, style: TextStyle(fontSize: 13, color: Colors.grey[400])),
@@ -1462,25 +1747,49 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
     return _buildSection(
       title: 'Platform',
-      subtitle: isIOS ? 'iOS (WidgetKit)' : isAndroid ? 'Android (Jetpack Glance)' : 'Unknown',
+      subtitle: isIOS
+          ? 'iOS (WidgetKit)'
+          : isAndroid
+          ? 'Android (Jetpack Glance)'
+          : 'Unknown',
       icon: isIOS ? Icons.apple : Icons.android,
       color: isIOS ? Colors.white : Colors.green,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildPlatformRow(Icons.widgets, 'Templates: 7 (Simple, Progress, List, Image, Chart, Calendar, Gauge)'),
-          if (isAndroid) _buildPlatformRow(Icons.flash_on, 'Instant updates (Jetpack Glance)'),
-          if (isAndroid) _buildPlatformRow(Icons.lock, 'Lock screen widgets supported'),
-          if (isAndroid) _buildPlatformRow(Icons.cloud_sync, 'Background updates (WorkManager)'),
-          if (isIOS) _buildPlatformRow(Icons.flash_on, 'Instant updates when app is in foreground'),
-          if (isIOS) _buildPlatformRow(Icons.timer, 'Timeline refresh (.after policy)'),
+          _buildPlatformRow(
+            Icons.widgets,
+            'Templates: 7 (Simple, Progress, List, Image, Chart, Calendar, Gauge)',
+          ),
+          if (isAndroid)
+            _buildPlatformRow(
+              Icons.flash_on,
+              'Instant updates (Jetpack Glance)',
+            ),
+          if (isAndroid)
+            _buildPlatformRow(Icons.lock, 'Lock screen widgets supported'),
+          if (isAndroid)
+            _buildPlatformRow(
+              Icons.cloud_sync,
+              'Background updates (WorkManager)',
+            ),
+          if (isIOS)
+            _buildPlatformRow(
+              Icons.flash_on,
+              'Instant updates when app is in foreground',
+            ),
+          if (isIOS)
+            _buildPlatformRow(Icons.timer, 'Timeline refresh (.after policy)'),
           if (isIOS) ...[
             _buildPlatformRow(
               _isPushSupported ? Icons.check_circle : Icons.cancel,
               'Widget Push: ${_isPushSupported ? 'Supported (iOS 26+)' : 'Not available'}',
             ),
             if (_isPushSupported && _pushToken != null)
-              _buildPlatformRow(Icons.vpn_key, 'Push Token: ${_pushToken!.substring(0, min(16, _pushToken!.length))}...'),
+              _buildPlatformRow(
+                Icons.vpn_key,
+                'Push Token: ${_pushToken!.substring(0, min(16, _pushToken!.length))}...',
+              ),
           ],
           _buildPlatformRow(Icons.link, 'Deep link support on all widgets'),
           _buildPlatformRow(Icons.touch_app, 'Interactive widget actions'),
@@ -1496,7 +1805,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
         children: [
           Icon(icon, color: Colors.grey[400], size: 16),
           const SizedBox(width: 8),
-          Expanded(child: Text(text, style: TextStyle(fontSize: 13, color: Colors.grey[400]))),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+            ),
+          ),
         ],
       ),
     );
@@ -1504,8 +1818,18 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Widget _buildTemplateOverview() {
     final templates = [
-      ('Simple', Icons.currency_bitcoin, const Color(0xFFFFA726), 'Title + Value + Subtitle'),
-      ('Progress', Icons.downloading, Colors.blue, 'Circular or linear progress'),
+      (
+        'Simple',
+        Icons.currency_bitcoin,
+        const Color(0xFFFFA726),
+        'Title + Value + Subtitle',
+      ),
+      (
+        'Progress',
+        Icons.downloading,
+        Colors.blue,
+        'Circular or linear progress',
+      ),
       ('List', Icons.checklist, Colors.green, 'Items with optional checkboxes'),
       ('Image', Icons.image, Colors.purple, 'Photo with title and subtitle'),
       ('Chart', Icons.show_chart, Colors.cyan, 'Line, bar, or sparkline'),
@@ -1519,18 +1843,37 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
       icon: Icons.dashboard,
       color: Colors.purple,
       child: Column(
-        children: templates.map((t) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4),
-              child: Row(
-                children: [
-                  Icon(t.$2, color: t.$3, size: 20),
-                  const SizedBox(width: 12),
-                  SizedBox(width: 70, child: Text(t.$1, style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w500))),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(t.$4, style: TextStyle(fontSize: 13, color: Colors.grey[400]))),
-                ],
+        children: templates
+            .map(
+              (t) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Icon(t.$2, color: t.$3, size: 20),
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: 70,
+                      child: Text(
+                        t.$1,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        t.$4,
+                        style: TextStyle(fontSize: 13, color: Colors.grey[400]),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            )).toList(),
+            )
+            .toList(),
       ),
     );
   }
@@ -1540,13 +1883,27 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget _buildStat(String label, String value) {
     return Column(
       children: [
-        Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
         Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
       ],
     );
   }
 
-  Widget _buildButton(String label, IconData icon, Color color, VoidCallback? onPressed, {bool fullWidth = false, bool dark = false}) {
+  Widget _buildButton(
+    String label,
+    IconData icon,
+    Color color,
+    VoidCallback? onPressed, {
+    bool fullWidth = false,
+    bool dark = false,
+  }) {
     return SizedBox(
       width: fullWidth ? double.infinity : null,
       child: ElevatedButton.icon(
@@ -1565,7 +1922,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   Widget _buildInfoItem(String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Text(text, style: TextStyle(fontSize: 14, color: Colors.grey[300])),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 14, color: Colors.grey[300]),
+      ),
     );
   }
 }
@@ -1607,10 +1967,13 @@ class _MiniChartPainter extends CustomPainter {
         break;
       default:
         final path = Path();
-        final stepX = data.length > 1 ? size.width / (data.length - 1) : size.width;
+        final stepX = data.length > 1
+            ? size.width / (data.length - 1)
+            : size.width;
         for (int i = 0; i < data.length; i++) {
           final x = i * stepX;
-          final y = size.height - ((data[i] - minVal) / range) * size.height * 0.9;
+          final y =
+              size.height - ((data[i] - minVal) / range) * size.height * 0.9;
           if (i == 0) {
             path.moveTo(x, y);
           } else {
@@ -1637,5 +2000,6 @@ class _MiniChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _MiniChartPainter old) => old.data != data || old.chartType != chartType;
+  bool shouldRepaint(covariant _MiniChartPainter old) =>
+      old.data != data || old.chartType != chartType;
 }

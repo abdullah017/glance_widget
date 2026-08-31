@@ -10,6 +10,7 @@ class MockGlanceWidgetPlatform extends Mock
     implements GlanceWidgetPlatform {}
 
 class FakeSimpleWidgetData extends Fake implements SimpleWidgetData {}
+
 class FakeGlanceTheme extends Fake implements GlanceTheme {}
 
 void main() {
@@ -27,11 +28,13 @@ void main() {
 
   group('Integration: full flow', () {
     test('Controller create -> update -> dispose lifecycle', () async {
-      when(() => mockPlatform.updateSimpleWidget(
-        widgetId: any(named: 'widgetId'),
-        data: any(named: 'data'),
-        theme: any(named: 'theme'),
-      )).thenAnswer((_) async => true);
+      when(
+        () => mockPlatform.updateSimpleWidget(
+          widgetId: any(named: 'widgetId'),
+          data: any(named: 'data'),
+          theme: any(named: 'theme'),
+        ),
+      ).thenAnswer((_) async => true);
 
       final ctrl = SimpleWidgetController(widgetId: 'test');
       final result = await ctrl.update(
@@ -48,8 +51,9 @@ void main() {
 
     test('Multiple controllers share single platform stream', () async {
       final streamController = StreamController<GlanceWidgetAction>.broadcast();
-      when(() => mockPlatform.onWidgetAction)
-          .thenAnswer((_) => streamController.stream);
+      when(
+        () => mockPlatform.onWidgetAction,
+      ).thenAnswer((_) => streamController.stream);
 
       final ctrl1 = SimpleWidgetController(widgetId: 'a');
       final ctrl2 = ProgressWidgetController(widgetId: 'b');
@@ -60,15 +64,27 @@ void main() {
       ctrl2.onAction.listen(actionsB.add);
 
       final now = DateTime.now();
-      streamController.add(GlanceWidgetAction(
-        widgetId: 'a', type: GlanceActionType.tap, timestamp: now,
-      ));
-      streamController.add(GlanceWidgetAction(
-        widgetId: 'b', type: GlanceActionType.refresh, timestamp: now,
-      ));
-      streamController.add(GlanceWidgetAction(
-        widgetId: 'a', type: GlanceActionType.refresh, timestamp: now,
-      ));
+      streamController.add(
+        GlanceWidgetAction(
+          widgetId: 'a',
+          type: GlanceActionType.tap,
+          timestamp: now,
+        ),
+      );
+      streamController.add(
+        GlanceWidgetAction(
+          widgetId: 'b',
+          type: GlanceActionType.refresh,
+          timestamp: now,
+        ),
+      );
+      streamController.add(
+        GlanceWidgetAction(
+          widgetId: 'a',
+          type: GlanceActionType.refresh,
+          timestamp: now,
+        ),
+      );
 
       await Future.delayed(Duration.zero);
 
@@ -86,20 +102,25 @@ void main() {
       verify(() => mockPlatform.dispose()).called(1);
     });
 
-    test('Sealed WidgetData exhaustive switch in controller dispatch', () async {
-      // Verify all 7 widget types dispatch correctly
-      when(() => mockPlatform.updateSimpleWidget(
-        widgetId: any(named: 'widgetId'),
-        data: any(named: 'data'),
-        theme: any(named: 'theme'),
-      )).thenAnswer((_) async => true);
+    test(
+      'Sealed WidgetData exhaustive switch in controller dispatch',
+      () async {
+        // Verify all 7 widget types dispatch correctly
+        when(
+          () => mockPlatform.updateSimpleWidget(
+            widgetId: any(named: 'widgetId'),
+            data: any(named: 'data'),
+            theme: any(named: 'theme'),
+          ),
+        ).thenAnswer((_) async => true);
 
-      final ctrl = SimpleWidgetController(widgetId: 'test');
-      final result = await ctrl.update(
-        SimpleWidgetData(title: 'T', value: 'V'),
-      );
-      expect(result, true);
-      ctrl.dispose();
-    });
+        final ctrl = SimpleWidgetController(widgetId: 'test');
+        final result = await ctrl.update(
+          SimpleWidgetData(title: 'T', value: 'V'),
+        );
+        expect(result, true);
+        ctrl.dispose();
+      },
+    );
   });
 }

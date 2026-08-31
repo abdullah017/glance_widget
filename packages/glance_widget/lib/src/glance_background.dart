@@ -56,11 +56,10 @@ class GlanceBackground {
   }
 
   /// Cancels background updates for a widget.
-  static Future<bool> cancelUpdate(String widgetId) =>
-      PlatformGuard.guard(
-        () => GlanceWidgetPlatform.instance.cancelBackgroundUpdate(widgetId),
-        false,
-      );
+  static Future<bool> cancelUpdate(String widgetId) => PlatformGuard.guard(
+    () => GlanceWidgetPlatform.instance.cancelBackgroundUpdate(widgetId),
+    false,
+  );
 
   /// Gets the status of background updates for a widget.
   static Future<Map<String, dynamic>> getUpdateStatus(String widgetId) =>
@@ -70,11 +69,10 @@ class GlanceBackground {
       );
 
   /// Triggers a one-time background update immediately (for testing).
-  static Future<bool> testUpdate(String widgetId) =>
-      PlatformGuard.guard(
-        () => GlanceWidgetPlatform.instance.testBackgroundUpdate(widgetId),
-        false,
-      );
+  static Future<bool> testUpdate(String widgetId) => PlatformGuard.guard(
+    () => GlanceWidgetPlatform.instance.testBackgroundUpdate(widgetId),
+    false,
+  );
 
   /// Configures iOS timeline-based refresh for a widget.
   ///
@@ -83,14 +81,13 @@ class GlanceBackground {
   static Future<bool> configureTimelineRefresh({
     required String widgetId,
     int intervalMinutes = 30,
-  }) =>
-      PlatformGuard.guard(
-        () => GlanceWidgetPlatform.instance.configureTimelineRefresh(
-          widgetId: widgetId,
-          intervalMinutes: intervalMinutes < 5 ? 5 : intervalMinutes,
-        ),
-        false,
-      );
+  }) => PlatformGuard.guard(
+    () => GlanceWidgetPlatform.instance.configureTimelineRefresh(
+      widgetId: widgetId,
+      intervalMinutes: intervalMinutes < 5 ? 5 : intervalMinutes,
+    ),
+    false,
+  );
 
   /// Cancels iOS timeline-based refresh for a widget.
   static Future<bool> cancelTimelineRefresh(String widgetId) =>

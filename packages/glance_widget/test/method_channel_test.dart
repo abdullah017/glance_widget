@@ -212,10 +212,7 @@ void main() {
       test('sends fit parameter', () async {
         await platform.updateImageWidget(
           widgetId: 'image_widget',
-          data: const ImageWidgetData(
-            title: 'Photo',
-            fit: ImageFit.contain,
-          ),
+          data: const ImageWidgetData(title: 'Photo', fit: ImageFit.contain),
         );
 
         expect(log.length, 1);
@@ -242,10 +239,7 @@ void main() {
       test('sends correct method call', () async {
         final result = await platform.updateChartWidget(
           widgetId: 'chart_widget',
-          data: ChartWidgetData(
-            title: 'Sales',
-            dataPoints: [10.0, 20.0, 30.0],
-          ),
+          data: ChartWidgetData(title: 'Sales', dataPoints: [10.0, 20.0, 30.0]),
         );
 
         expect(result, true);
@@ -276,10 +270,7 @@ void main() {
       test('sends theme when provided', () async {
         await platform.updateChartWidget(
           widgetId: 'chart_widget',
-          data: ChartWidgetData(
-            title: 'Sales',
-            dataPoints: [10.0],
-          ),
+          data: ChartWidgetData(title: 'Sales', dataPoints: [10.0]),
           theme: GlanceTheme.light(),
         );
 
@@ -315,9 +306,7 @@ void main() {
           data: CalendarWidgetData(
             title: 'Today',
             date: date,
-            events: const [
-              CalendarEvent(time: '09:00', title: 'Standup'),
-            ],
+            events: const [CalendarEvent(time: '09:00', title: 'Standup')],
           ),
         );
 
@@ -339,11 +328,7 @@ void main() {
             date: DateTime(2026, 3, 10),
             events: const [
               CalendarEvent(time: '09:00', title: 'Standup'),
-              CalendarEvent(
-                time: 'All Day',
-                title: 'Birthday',
-                isAllDay: true,
-              ),
+              CalendarEvent(time: 'All Day', title: 'Birthday', isAllDay: true),
             ],
           ),
         );
@@ -397,9 +382,7 @@ void main() {
           widgetId: 'gauge_widget',
           data: GaugeWidgetData(
             title: 'Performance',
-            metrics: [
-              GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
-            ],
+            metrics: [GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0)],
           ),
         );
 
@@ -424,12 +407,7 @@ void main() {
                 maxValue: 100.0,
                 unit: '%',
               ),
-              GaugeMetric(
-                label: 'RAM',
-                value: 8.0,
-                maxValue: 16.0,
-                unit: 'GB',
-              ),
+              GaugeMetric(label: 'RAM', value: 8.0, maxValue: 16.0, unit: 'GB'),
             ],
           ),
         );
@@ -450,9 +428,7 @@ void main() {
           widgetId: 'gauge_widget',
           data: GaugeWidgetData(
             title: 'Test',
-            metrics: [
-              GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0),
-            ],
+            metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
           ),
           theme: GlanceTheme.light(),
         );
@@ -468,9 +444,7 @@ void main() {
           widgetId: 'gauge_widget',
           data: GaugeWidgetData(
             title: 'Dashboard',
-            metrics: [
-              GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0),
-            ],
+            metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
             gaugeType: GaugeType.dashboard,
           ),
         );
@@ -592,7 +566,9 @@ void main() {
 
     group('completeWidgetConfiguration', () {
       test('sends correct method call', () async {
-        final result = await platform.completeWidgetConfiguration('test_widget');
+        final result = await platform.completeWidgetConfiguration(
+          'test_widget',
+        );
 
         expect(result, true);
         expect(log.length, 1);
@@ -610,7 +586,9 @@ void main() {
               throw PlatformException(code: 'ERROR', message: 'Test error');
             });
 
-        final result = await platform.completeWidgetConfiguration('test_widget');
+        final result = await platform.completeWidgetConfiguration(
+          'test_widget',
+        );
 
         expect(result, false);
       });
@@ -638,10 +616,7 @@ void main() {
           'widgetId': 'todo_list',
           'type': 'checkboxToggle',
           'timestamp': 1234567890,
-          'payload': <String, dynamic>{
-            'itemIndex': 2,
-            'value': false,
-          },
+          'payload': <String, dynamic>{'itemIndex': 2, 'value': false},
         };
 
         final action = GlanceWidgetAction.fromMap(eventData);

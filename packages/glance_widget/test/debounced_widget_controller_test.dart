@@ -10,6 +10,7 @@ class MockGlanceWidgetPlatform extends Mock
     implements GlanceWidgetPlatform {}
 
 class FakeSimpleWidgetData extends Fake implements SimpleWidgetData {}
+
 class FakeGlanceTheme extends Fake implements GlanceTheme {}
 
 void main() {
@@ -25,15 +26,19 @@ void main() {
   setUp(() {
     mockPlatform = MockGlanceWidgetPlatform();
     GlanceWidgetPlatform.instance = mockPlatform;
-    when(() => mockPlatform.updateSimpleWidget(
-      widgetId: any(named: 'widgetId'),
-      data: any(named: 'data'),
-      theme: any(named: 'theme'),
-    )).thenAnswer((_) async => true);
-    when(() => mockPlatform.onWidgetAction)
-        .thenAnswer((_) => const Stream.empty());
-    when(() => mockPlatform.setGlobalTheme(any()))
-        .thenAnswer((_) async => true);
+    when(
+      () => mockPlatform.updateSimpleWidget(
+        widgetId: any(named: 'widgetId'),
+        data: any(named: 'data'),
+        theme: any(named: 'theme'),
+      ),
+    ).thenAnswer((_) async => true);
+    when(
+      () => mockPlatform.onWidgetAction,
+    ).thenAnswer((_) => const Stream.empty());
+    when(
+      () => mockPlatform.setGlobalTheme(any()),
+    ).thenAnswer((_) async => true);
   });
 
   group('DebouncedWidgetController', () {

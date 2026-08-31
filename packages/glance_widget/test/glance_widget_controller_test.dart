@@ -10,6 +10,7 @@ class MockGlanceWidgetPlatform extends Mock
     implements GlanceWidgetPlatform {}
 
 class FakeSimpleWidgetData extends Fake implements SimpleWidgetData {}
+
 class FakeGlanceTheme extends Fake implements GlanceTheme {}
 
 void main() {
@@ -26,36 +27,64 @@ void main() {
   });
 
   group('GlanceWidgetController', () {
-    test('update() dispatches to correct platform method with typed data', () async {
-      final ctrl = SimpleWidgetController(widgetId: 'test');
-      final data = SimpleWidgetData(title: 'T', value: 'V');
-      when(() => mockPlatform.updateSimpleWidget(
-        widgetId: any(named: 'widgetId'),
-        data: any(named: 'data'),
-        theme: any(named: 'theme'),
-      )).thenAnswer((_) async => true);
+    test(
+      'update() dispatches to correct platform method with typed data',
+      () async {
+        final ctrl = SimpleWidgetController(widgetId: 'test');
+        final data = SimpleWidgetData(title: 'T', value: 'V');
+        when(
+          () => mockPlatform.updateSimpleWidget(
+            widgetId: any(named: 'widgetId'),
+            data: any(named: 'data'),
+            theme: any(named: 'theme'),
+          ),
+        ).thenAnswer((_) async => true);
 
-      final result = await ctrl.update(data);
-      expect(result, true);
-      verify(() => mockPlatform.updateSimpleWidget(
-        widgetId: 'test', data: data, theme: null,
-      )).called(1);
-      ctrl.dispose();
-    });
+        final result = await ctrl.update(data);
+        expect(result, true);
+        verify(
+          () => mockPlatform.updateSimpleWidget(
+            widgetId: 'test',
+            data: data,
+            theme: null,
+          ),
+        ).called(1);
+        ctrl.dispose();
+      },
+    );
 
     test('onAction filters by widgetId from global stream', () async {
       final ctrl = SimpleWidgetController(widgetId: 'my_widget');
       final now = DateTime.now();
       final streamController = StreamController<GlanceWidgetAction>.broadcast();
-      when(() => mockPlatform.onWidgetAction)
-          .thenAnswer((_) => streamController.stream);
+      when(
+        () => mockPlatform.onWidgetAction,
+      ).thenAnswer((_) => streamController.stream);
 
       final received = <GlanceWidgetAction>[];
       ctrl.onAction.listen(received.add);
 
-      streamController.add(GlanceWidgetAction(widgetId: 'my_widget', type: GlanceActionType.tap, timestamp: now));
-      streamController.add(GlanceWidgetAction(widgetId: 'other', type: GlanceActionType.tap, timestamp: now));
-      streamController.add(GlanceWidgetAction(widgetId: 'my_widget', type: GlanceActionType.refresh, timestamp: now));
+      streamController.add(
+        GlanceWidgetAction(
+          widgetId: 'my_widget',
+          type: GlanceActionType.tap,
+          timestamp: now,
+        ),
+      );
+      streamController.add(
+        GlanceWidgetAction(
+          widgetId: 'other',
+          type: GlanceActionType.tap,
+          timestamp: now,
+        ),
+      );
+      streamController.add(
+        GlanceWidgetAction(
+          widgetId: 'my_widget',
+          type: GlanceActionType.refresh,
+          timestamp: now,
+        ),
+      );
 
       await Future.delayed(Duration.zero);
 
@@ -85,8 +114,9 @@ void main() {
     test('setTheme delegates to setGlobalTheme', () async {
       final ctrl = SimpleWidgetController(widgetId: 'test');
       final theme = GlanceTheme.dark();
-      when(() => mockPlatform.setGlobalTheme(any()))
-          .thenAnswer((_) async => true);
+      when(
+        () => mockPlatform.setGlobalTheme(any()),
+      ).thenAnswer((_) async => true);
 
       await ctrl.setTheme(theme);
       verify(() => mockPlatform.setGlobalTheme(theme)).called(1);

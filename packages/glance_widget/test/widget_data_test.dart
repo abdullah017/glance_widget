@@ -30,13 +30,29 @@ void main() {
     });
 
     test('each subclass returns correct template', () {
-      expect(SimpleWidgetData(title: 't', value: 'v').template, GlanceTemplate.simple);
-      expect(ProgressWidgetData(title: 't', progress: 0.5).template, GlanceTemplate.progress);
-      expect(ListWidgetData(title: 't', items: []).template, GlanceTemplate.list);
-      expect(ImageWidgetData(title: 't').template, GlanceTemplate.image);
-      expect(ChartWidgetData(title: 't', dataPoints: [1.0]).template, GlanceTemplate.chart);
       expect(
-        CalendarWidgetData(title: 't', date: DateTime(2026), events: []).template,
+        SimpleWidgetData(title: 't', value: 'v').template,
+        GlanceTemplate.simple,
+      );
+      expect(
+        ProgressWidgetData(title: 't', progress: 0.5).template,
+        GlanceTemplate.progress,
+      );
+      expect(
+        ListWidgetData(title: 't', items: []).template,
+        GlanceTemplate.list,
+      );
+      expect(ImageWidgetData(title: 't').template, GlanceTemplate.image);
+      expect(
+        ChartWidgetData(title: 't', dataPoints: [1.0]).template,
+        GlanceTemplate.chart,
+      );
+      expect(
+        CalendarWidgetData(
+          title: 't',
+          date: DateTime(2026),
+          events: [],
+        ).template,
         GlanceTemplate.calendar,
       );
       expect(

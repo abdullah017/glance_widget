@@ -22,10 +22,7 @@ class GlanceWidgetController<T extends WidgetData> {
   /// Creates a controller for a specific widget.
   ///
   /// No side effects in constructor — stream subscription is lazy.
-  GlanceWidgetController({
-    required this.widgetId,
-    this.theme,
-  });
+  GlanceWidgetController({required this.widgetId, this.theme});
 
   /// The unique identifier for this widget.
   final String widgetId;
@@ -58,10 +55,7 @@ class GlanceWidgetController<T extends WidgetData> {
     _assertNotDisposed();
     _subscription ??= GlanceWidgetPlatform.instance.onWidgetAction
         .where((action) => action.widgetId == widgetId)
-        .listen(
-          _actionController.add,
-          onError: _actionController.addError,
-        );
+        .listen(_actionController.add, onError: _actionController.addError);
     return _actionController.stream;
   }
 
@@ -89,19 +83,40 @@ class GlanceWidgetController<T extends WidgetData> {
     final platform = GlanceWidgetPlatform.instance;
     return switch (data) {
       SimpleWidgetData() => platform.updateSimpleWidget(
-          widgetId: widgetId, data: data, theme: theme),
+        widgetId: widgetId,
+        data: data,
+        theme: theme,
+      ),
       ProgressWidgetData() => platform.updateProgressWidget(
-          widgetId: widgetId, data: data, theme: theme),
+        widgetId: widgetId,
+        data: data,
+        theme: theme,
+      ),
       ListWidgetData() => platform.updateListWidget(
-          widgetId: widgetId, data: data, theme: theme),
+        widgetId: widgetId,
+        data: data,
+        theme: theme,
+      ),
       ImageWidgetData() => platform.updateImageWidget(
-          widgetId: widgetId, data: data, theme: theme),
+        widgetId: widgetId,
+        data: data,
+        theme: theme,
+      ),
       ChartWidgetData() => platform.updateChartWidget(
-          widgetId: widgetId, data: data, theme: theme),
+        widgetId: widgetId,
+        data: data,
+        theme: theme,
+      ),
       CalendarWidgetData() => platform.updateCalendarWidget(
-          widgetId: widgetId, data: data, theme: theme),
+        widgetId: widgetId,
+        data: data,
+        theme: theme,
+      ),
       GaugeWidgetData() => platform.updateGaugeWidget(
-          widgetId: widgetId, data: data, theme: theme),
+        widgetId: widgetId,
+        data: data,
+        theme: theme,
+      ),
     };
   }
 

@@ -840,9 +840,7 @@ void main() {
       final data = CalendarWidgetData(
         title: 'Schedule',
         date: date,
-        events: const [
-          CalendarEvent(time: '09:00', title: 'Meeting'),
-        ],
+        events: const [CalendarEvent(time: '09:00', title: 'Meeting')],
         maxEvents: 8,
       );
       final map = data.toMap();
@@ -972,9 +970,7 @@ void main() {
     test('creates data with required fields', () {
       final data = GaugeWidgetData(
         title: 'Performance',
-        metrics: [
-          GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
-        ],
+        metrics: [GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0)],
       );
       expect(data.title, 'Performance');
       expect(data.metrics.length, 1);
@@ -1013,9 +1009,7 @@ void main() {
     test('toMap includes all fields', () {
       final data = GaugeWidgetData(
         title: 'Performance',
-        metrics: [
-          GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
-        ],
+        metrics: [GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0)],
         gaugeType: GaugeType.dashboard,
       );
       final map = data.toMap();

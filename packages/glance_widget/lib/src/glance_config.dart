@@ -21,10 +21,7 @@ class PlatformGuard {
   static final _log = Logger('GlanceWidget.PlatformGuard');
 
   /// Executes [action] on supported platforms, returns [defaultValue] otherwise.
-  static Future<T> guard<T>(
-    Future<T> Function() action,
-    T defaultValue,
-  ) async {
+  static Future<T> guard<T>(Future<T> Function() action, T defaultValue) async {
     if (!GlanceConfig.isSupported) {
       if (GlanceConfig.strictMode) {
         throw UnsupportedError(

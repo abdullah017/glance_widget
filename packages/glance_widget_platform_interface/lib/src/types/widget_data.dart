@@ -73,8 +73,8 @@ class SimpleWidgetData extends WidgetData {
     this.iconName,
     this.iconBase64,
     super.deepLinkUri,
-  })  : assert(title.length > 0, 'title cannot be empty'),
-        assert(value.length > 0, 'value cannot be empty');
+  }) : assert(title.length > 0, 'title cannot be empty'),
+       assert(value.length > 0, 'value cannot be empty');
 
   @override
   Map<String, dynamic> toMap() => {
@@ -133,9 +133,11 @@ class ProgressWidgetData extends WidgetData {
     this.progressColor,
     this.trackColor,
     super.deepLinkUri,
-  })  : assert(title.length > 0, 'title cannot be empty'),
-        assert(progress >= 0.0 && progress <= 1.0,
-            'progress must be between 0.0 and 1.0');
+  }) : assert(title.length > 0, 'title cannot be empty'),
+       assert(
+         progress >= 0.0 && progress <= 1.0,
+         'progress must be between 0.0 and 1.0',
+       );
 
   @override
   Map<String, dynamic> toMap() => {
@@ -206,9 +208,11 @@ class ListWidgetData extends WidgetData {
     this.showCheckboxes = false,
     this.maxItems = 5,
     super.deepLinkUri,
-  })  : assert(title.length > 0, 'title cannot be empty'),
-        assert(maxItems >= 1 && maxItems <= 20,
-            'maxItems must be between 1 and 20');
+  }) : assert(title.length > 0, 'title cannot be empty'),
+       assert(
+         maxItems >= 1 && maxItems <= 20,
+         'maxItems must be between 1 and 20',
+       );
 
   @override
   Map<String, dynamic> toMap() => {
@@ -321,8 +325,8 @@ class ChartWidgetData extends WidgetData {
     this.color,
     this.subtitle,
     super.deepLinkUri,
-  })  : assert(title.length > 0, 'title cannot be empty'),
-        assert(dataPoints.length > 0, 'dataPoints cannot be empty');
+  }) : assert(title.length > 0, 'title cannot be empty'),
+       assert(dataPoints.length > 0, 'dataPoints cannot be empty');
 
   @override
   Map<String, dynamic> toMap() => {
@@ -392,9 +396,11 @@ class CalendarWidgetData extends WidgetData {
     required this.events,
     this.maxEvents = 5,
     super.deepLinkUri,
-  })  : assert(title.length > 0, 'title cannot be empty'),
-        assert(maxEvents >= 1 && maxEvents <= 10,
-            'maxEvents must be between 1 and 10');
+  }) : assert(title.length > 0, 'title cannot be empty'),
+       assert(
+         maxEvents >= 1 && maxEvents <= 10,
+         'maxEvents must be between 1 and 10',
+       );
 
   @override
   Map<String, dynamic> toMap() => {
@@ -476,8 +482,8 @@ class GaugeWidgetData extends WidgetData {
     required this.metrics,
     this.gaugeType = GaugeType.radial,
     super.deepLinkUri,
-  })  : assert(title.length > 0, 'title cannot be empty'),
-        assert(metrics.length > 0, 'metrics cannot be empty');
+  }) : assert(title.length > 0, 'title cannot be empty'),
+       assert(metrics.length > 0, 'metrics cannot be empty');
 
   @override
   Map<String, dynamic> toMap() => {
