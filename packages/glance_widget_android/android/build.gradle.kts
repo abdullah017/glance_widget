@@ -86,7 +86,7 @@ kotlin {
 
 dependencies {
     // Compose BOM and runtime — Glance renders through the Compose runtime.
-    implementation(platform("androidx.compose:compose-bom:2026.06.01"))
+    implementation(platform("androidx.compose:compose-bom:2026.08.00"))
     implementation("androidx.compose.runtime:runtime")
 
     // Glance for app widgets
