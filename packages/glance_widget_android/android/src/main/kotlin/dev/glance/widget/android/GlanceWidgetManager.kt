@@ -117,6 +117,7 @@ object GlanceWidgetManager {
     val accentColorKey = intPreferencesKey("accentColor")
     val borderRadiusKey = floatPreferencesKey("borderRadius")
     val isDarkKey = booleanPreferencesKey("isDark")
+    val useDynamicColorKey = booleanPreferencesKey("useDynamicColor")
 
     fun initialize(context: Context, sink: EventChannel.EventSink?) {
         synchronized(eventSinkLock) {
@@ -986,6 +987,7 @@ object GlanceWidgetManager {
         (theme["accentColor"] as? Number)?.let { prefs[accentColorKey] = it.toInt() }
         (theme["borderRadius"] as? Number)?.let { prefs[borderRadiusKey] = it.toFloat() }
         (theme["isDark"] as? Boolean)?.let { prefs[isDarkKey] = it }
+        (theme["useDynamicColor"] as? Boolean)?.let { prefs[useDynamicColorKey] = it }
     }
 
     /**

@@ -25,6 +25,7 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import dev.glance.widget.android.CornerRadius
 import dev.glance.widget.android.GlanceWidgetManager
+import dev.glance.widget.android.widgetColors
 import dev.glance.widget.android.ReportActionCallback
 
 /**
@@ -56,30 +57,19 @@ private fun ProgressWidgetContent(prefs: Preferences) {
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
 
     // Theme colors
-    val backgroundColor = prefs[GlanceWidgetManager.backgroundColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(if (isDark) 0xFF1A1A2E.toInt() else 0xFFFFFFFF.toInt()))
+    val colors = widgetColors(prefs)
 
-    val textColor = prefs[GlanceWidgetManager.textColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(if (isDark) 0xFFFFFFFF.toInt() else 0xFF212121.toInt()))
 
-    val secondaryTextColor = prefs[GlanceWidgetManager.secondaryTextColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(if (isDark) 0xFFB0B0B0.toInt() else 0xFF757575.toInt()))
 
-    val accentColor = prefs[GlanceWidgetManager.accentColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(0xFF2196F3.toInt()))
 
-    val progressColor = progressColorInt?.let { ColorProvider(Color(it.toInt())) } ?: accentColor
+    val progressColor = progressColorInt?.let { ColorProvider(Color(it.toInt())) } ?: colors.accent
     val trackColor = trackColorInt?.let { ColorProvider(Color(it.toInt())) }
         ?: ColorProvider(Color(if (isDark) 0xFF3A3A4E.toInt() else 0xFFE0E0E0.toInt()))
 
     Box(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(backgroundColor)
+            .background(colors.background)
             .cornerRadius(CornerRadius.dpFor(prefs[GlanceWidgetManager.borderRadiusKey]).dp)
             // Not a lambda action: that runs in a process the system may
             // have started purely to deliver this tap, with no Flutter engine
@@ -106,7 +96,7 @@ private fun ProgressWidgetContent(prefs: Preferences) {
                 Text(
                     text = title,
                     style = TextStyle(
-                        color = textColor,
+                        color = colors.text,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -130,7 +120,7 @@ private fun ProgressWidgetContent(prefs: Preferences) {
                     Text(
                         text = it,
                         style = TextStyle(
-                            color = secondaryTextColor,
+                            color = colors.secondaryText,
                             fontSize = 14.sp
                         )
                     )
@@ -147,7 +137,7 @@ private fun ProgressWidgetContent(prefs: Preferences) {
                 Text(
                     text = title,
                     style = TextStyle(
-                        color = secondaryTextColor,
+                        color = colors.secondaryText,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -169,7 +159,7 @@ private fun ProgressWidgetContent(prefs: Preferences) {
                     Text(
                         text = "$percentage%",
                         style = TextStyle(
-                            color = textColor,
+                            color = colors.text,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -182,7 +172,7 @@ private fun ProgressWidgetContent(prefs: Preferences) {
                     Text(
                         text = it,
                         style = TextStyle(
-                            color = secondaryTextColor,
+                            color = colors.secondaryText,
                             fontSize = 12.sp
                         )
                     )

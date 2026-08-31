@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:glance_widget_platform_interface/glance_widget_platform_interface.dart';
 
@@ -71,6 +73,63 @@ void main() {
       const data = ImageWidgetData(title: 'T', imageUrl: '', imageBase64: '');
 
       expect(data.validate, throwsA(isA<GlanceWidgetValidationException>()));
+    });
+  });
+
+  group('GlanceTheme wire format', () {
+    test('carries exactly the keys the native side reads', () {
+      expect(GlanceTheme.light().toMap().keys.toSet(), <String>{
+        'backgroundColor',
+        'textColor',
+        'secondaryTextColor',
+        'accentColor',
+        'borderRadius',
+        'isDark',
+        'useDynamicColor',
+      });
+    });
+
+    test('does not opt into dynamic colour unless asked', () {
+      // A widget that silently repaints itself from the wallpaper the first
+      // time someone upgrades the package is a bug report, not a feature.
+      expect(GlanceTheme.light().toMap()['useDynamicColor'], isFalse);
+      expect(GlanceTheme.dark().toMap()['useDynamicColor'], isFalse);
+      expect(
+        const GlanceTheme(
+          backgroundColor: Color(0xFF000000),
+          textColor: Color(0xFFFFFFFF),
+        ).useDynamicColor,
+        isFalse,
+      );
+    });
+
+    test('sends the flag through when it is set', () {
+      const theme = GlanceTheme(
+        backgroundColor: Color(0xFF000000),
+        textColor: Color(0xFFFFFFFF),
+        useDynamicColor: true,
+      );
+
+      expect(theme.toMap()['useDynamicColor'], isTrue);
+    });
+
+    test('copyWith carries the flag both ways', () {
+      final on = GlanceTheme.light().copyWith(useDynamicColor: true);
+      expect(on.useDynamicColor, isTrue);
+      expect(on.copyWith(useDynamicColor: false).useDynamicColor, isFalse);
+    });
+
+    test('the explicit colours still travel when dynamic colour is on', () {
+      // They are the fallback for every device below Android 12, so dropping
+      // them would leave those devices with nothing to paint with.
+      const theme = GlanceTheme(
+        backgroundColor: Color(0xFF102030),
+        textColor: Color(0xFFAABBCC),
+        useDynamicColor: true,
+      );
+
+      expect(theme.toMap()['backgroundColor'], 0xFF102030);
+      expect(theme.toMap()['textColor'], 0xFFAABBCC);
     });
   });
 }

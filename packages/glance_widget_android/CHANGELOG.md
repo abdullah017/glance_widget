@@ -1,5 +1,19 @@
 ## 2.0.0
 
+**Added:** `GlanceTheme.useDynamicColor` paints the widget from the wallpaper
+palette on Android 12 and above. Off by default.
+
+Below API 31 the request is ignored and the theme's own colours are used. That
+is deliberate: Glance's `DynamicThemeColorProviders` resolves through resources
+whose `values-v31` variant points at `@android:color/system_accent1_*` and
+whose plain `values` variant is the static Material baseline, so passing them
+straight through would not degrade to the app's colours on Android 8-11 -- it
+would silently repaint the widget purple.
+
+**Changed:** the four theme colours are now resolved once, in `widgetColors`,
+instead of once per template. The same block appeared in all seven, and the
+built-in defaults had drifted between them.
+
 **Fixed:** widget taps could be lost. Every template handled its taps with a
 Glance lambda action, which runs in the app's own process -- and the system is
 free to start that process from cold just to deliver the tap, with no Flutter

@@ -24,6 +24,7 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import dev.glance.widget.android.CornerRadius
 import dev.glance.widget.android.GlanceWidgetManager
+import dev.glance.widget.android.widgetColors
 import dev.glance.widget.android.ImageCache
 import dev.glance.widget.android.ReportActionCallback
 
@@ -55,17 +56,9 @@ private fun ImageWidgetContent(prefs: Preferences) {
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
 
     // Theme colors
-    val backgroundColor = prefs[GlanceWidgetManager.backgroundColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(if (isDark) 0xFF1A1A2E.toInt() else 0xFFFFFFFF.toInt()))
+    val colors = widgetColors(prefs)
 
-    val textColor = prefs[GlanceWidgetManager.textColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(if (isDark) 0xFFFFFFFF.toInt() else 0xFF212121.toInt()))
 
-    val secondaryTextColor = prefs[GlanceWidgetManager.secondaryTextColorKey]
-        ?.let { ColorProvider(Color(it.toInt())) }
-        ?: ColorProvider(Color(if (isDark) 0xFFB0B0B0.toInt() else 0xFF757575.toInt()))
 
     // Determine content scale from imageFit
     val contentScale = when (imageFit) {
@@ -78,7 +71,7 @@ private fun ImageWidgetContent(prefs: Preferences) {
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(backgroundColor)
+            .background(colors.background)
             .cornerRadius(CornerRadius.dpFor(prefs[GlanceWidgetManager.borderRadiusKey]).dp)
             // Not a lambda action: that runs in a process the system may
             // have started purely to deliver this tap, with no Flutter engine
@@ -98,7 +91,7 @@ private fun ImageWidgetContent(prefs: Preferences) {
             Text(
                 text = title,
                 style = TextStyle(
-                    color = textColor,
+                    color = colors.text,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -134,7 +127,7 @@ private fun ImageWidgetContent(prefs: Preferences) {
                     Text(
                         text = "Image unavailable",
                         style = TextStyle(
-                            color = secondaryTextColor,
+                            color = colors.secondaryText,
                             fontSize = 12.sp
                         )
                     )
@@ -154,7 +147,7 @@ private fun ImageWidgetContent(prefs: Preferences) {
                 Text(
                     text = "No image",
                     style = TextStyle(
-                        color = secondaryTextColor,
+                        color = colors.secondaryText,
                         fontSize = 12.sp
                     )
                 )
@@ -168,7 +161,7 @@ private fun ImageWidgetContent(prefs: Preferences) {
                 Text(
                     text = it,
                     style = TextStyle(
-                        color = secondaryTextColor,
+                        color = colors.secondaryText,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal
                     ),
