@@ -35,6 +35,11 @@ public enum GlanceImageStore {
     ) {
         switch GlanceImageResolver.source(imageBase64: imageBase64, imageUrl: imageUrl) {
         case .none:
+            // No picture means no file. Done here rather than at the call site
+            // because this type owns the files: a caller that forgets leaves one
+            // in the container that nothing can ever reach again. Android had
+            // exactly that bug for one release.
+            evict(widgetId: widgetId, containerURL: containerURL)
             completion(.empty)
 
         case let .invalid(reason):

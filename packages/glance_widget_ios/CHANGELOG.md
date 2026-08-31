@@ -58,6 +58,10 @@ cannot be pointed at a `widgetId`.
 
 ### Changed
 
+* Dropping the cached image file when a widget stops having a picture moved from
+  the caller into `GlanceImageStore`, which owns those files. The behaviour is
+  unchanged here; Android had the same code with the call missing, so the rule
+  now lives where it cannot be forgotten on either platform.
 * The seven App Group key prefixes were private string literals in
   `GlanceWidgetManager`, typed out again by hand in the widget templates. They
   now live in `GlanceStorageKeys`, which the plugin uses and the tests pin to

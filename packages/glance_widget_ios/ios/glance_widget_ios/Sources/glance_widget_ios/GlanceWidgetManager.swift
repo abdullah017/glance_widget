@@ -269,8 +269,8 @@ public class GlanceWidgetManager {
                 widgetData["imagePath"] = path
             case .empty:
                 // A widget that used to show a picture and no longer has one
-                // must stop showing the old one.
-                GlanceImageStore.evict(widgetId: widgetId, containerURL: container)
+                // must stop showing the old one. The file behind it is dropped
+                // by `GlanceImageStore` itself.
                 widgetData["imagePath"] = nil
             }
 

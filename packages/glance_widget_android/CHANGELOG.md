@@ -38,6 +38,13 @@ returning `Future<bool>`. See the main package's
   died. Images are now downsampled to fit a 512 px budget before decoding, with
   the error caught as a backstop.
 
+* A widget that stopped having an image kept its downsampled file on disk
+  forever. The `imagePath` preference was removed, which is what makes the
+  widget stop drawing the old picture, but nothing deleted the file it pointed
+  at and nothing could reach it afterwards. `ImageStore.evict` existed for this
+  and was never called from anywhere. Dropping the file is now the store's own
+  job rather than the caller's, so it cannot be forgotten again.
+
 * Every `catch (e: Exception)` in the widget manager swallowed
   `CancellationException`, which is an `Exception` in Kotlin. A cancelled
   coroutine was reported to Dart as a rejected update, and structured
