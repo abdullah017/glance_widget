@@ -59,7 +59,10 @@ void main() {
       // no explicit exported. The build fails with a manifest merger error that
       // does not mention widgets.
       final findings = checkAndroidManifest(
-        manifest: goodReceiver.replaceAll('\n        android:exported="true"', ''),
+        manifest: goodReceiver.replaceAll(
+          '\n        android:exported="true"',
+          '',
+        ),
         widgetInfoResources: {'simple_widget_info'},
       );
 
@@ -72,7 +75,10 @@ void main() {
       // Installs, but the launcher cannot see the receiver, so the widget never
       // reaches the picker.
       final findings = checkAndroidManifest(
-        manifest: goodReceiver.replaceAll('android:exported="true"', 'android:exported="false"'),
+        manifest: goodReceiver.replaceAll(
+          'android:exported="true"',
+          'android:exported="false"',
+        ),
         widgetInfoResources: {'simple_widget_info'},
       );
 
@@ -108,10 +114,7 @@ void main() {
 
   test('flags a receiver with no provider meta-data at all', () {
     final findings = checkAndroidManifest(
-      manifest: goodReceiver.replaceAll(
-        RegExp(r'<meta-data[\s\S]*?/>'),
-        '',
-      ),
+      manifest: goodReceiver.replaceAll(RegExp(r'<meta-data[\s\S]*?/>'), ''),
       widgetInfoResources: {'simple_widget_info'},
     );
 
@@ -145,7 +148,8 @@ void main() {
 
   test('ignores receivers that have nothing to do with this plugin', () {
     final findings = checkAndroidManifest(
-      manifest: '''
+      manifest:
+          '''
 <manifest>
   <application>
     <receiver android:name="com.example.SomeOtherReceiver" android:exported="false" />
@@ -163,7 +167,8 @@ void main() {
     // Commenting a receiver out while debugging and forgetting is common; the
     // widget vanishes from the picker with no other symptom.
     final findings = checkAndroidManifest(
-      manifest: '<manifest><application><!--$goodReceiver--></application></manifest>',
+      manifest:
+          '<manifest><application><!--$goodReceiver--></application></manifest>',
       widgetInfoResources: <String>{},
     );
 

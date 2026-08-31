@@ -29,7 +29,7 @@ List<DoctorFinding> checkAndroidManifest({
         severity: DoctorSeverity.error,
         title: 'No widget receiver is declared in AndroidManifest.xml',
         detail:
-            'Nothing will appear in the launcher\'s widget picker. Each template '
+            "Nothing will appear in the launcher's widget picker. Each template "
             'needs a <receiver> for its ...templates.<Name>WidgetReceiver class. '
             'See the Android Setup section of the README.',
       ),
@@ -48,12 +48,14 @@ List<DoctorFinding> checkAndroidManifest({
   // A receiver that lost its meta-data leaves its widget info file looking
   // orphaned. Reporting both makes the reader chase the wrong one, so the
   // symptom stays quiet while the cause is on screen.
-  final someReceiverHasNoProvider =
-      receivers.any((r) => r.providerResource == null);
+  final someReceiverHasNoProvider = receivers.any(
+    (r) => r.providerResource == null,
+  );
 
-  for (final unused in someReceiverHasNoProvider
-      ? const <String>[]
-      : widgetInfoResources.difference(referenced)) {
+  for (final unused
+      in someReceiverHasNoProvider
+          ? const <String>[]
+          : widgetInfoResources.difference(referenced)) {
     findings.add(
       DoctorFinding(
         severity: DoctorSeverity.warning,
@@ -161,7 +163,9 @@ List<_Receiver> _findGlanceReceivers(String source) {
     final body = match.group(1) ?? match.group(2)!;
     final nameMatch = _glanceReceiverName.firstMatch(body);
     if (nameMatch == null) continue;
-    if (!nameMatch.group(1)!.startsWith('dev.glance.widget.android.templates.')) {
+    if (!nameMatch
+        .group(1)!
+        .startsWith('dev.glance.widget.android.templates.')) {
       continue;
     }
     receivers.add(_Receiver(simpleName: nameMatch.group(2)!, body: body));
