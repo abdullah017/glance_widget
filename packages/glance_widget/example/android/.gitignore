@@ -1,8 +1,9 @@
-gradle-wrapper.jar
+# The Gradle wrapper is deliberately checked in, against the Flutter template's
+# default. It pins the Gradle version this plugin is built and tested against,
+# and CI needs it to run the Android module's unit tests without first paying
+# for a full APK build to have Flutter inject it.
 /.gradle
 /captures/
-/gradlew
-/gradlew.bat
 /local.properties
 GeneratedPluginRegistrant.java
 .cxx/

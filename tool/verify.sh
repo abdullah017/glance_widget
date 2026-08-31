@@ -49,6 +49,19 @@ for pkg in "${PACKAGES[@]}"; do
 done
 
 echo
+echo "Kotlin unit tests"
+# The plugin has no Gradle wrapper of its own -- it builds as a module of
+# whichever app includes it -- so the example app's wrapper drives it here, the
+# same way CI does. Skipped rather than failed when no JDK is installed, since
+# the Dart gates above are still worth running on their own.
+if command -v java >/dev/null 2>&1; then
+  run "android-unit-tests" bash -c \
+    "cd packages/glance_widget/example/android && ./gradlew :glance_widget_android:testDebugUnitTest --console=plain"
+else
+  echo "  skipped: no JDK on PATH"
+fi
+
+echo
 echo "Publish dry-run"
 for pkg in "${PACKAGES[@]}"; do
   [[ "$pkg" == */example ]] && continue

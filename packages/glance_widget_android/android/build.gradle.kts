@@ -76,6 +76,12 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        unitTests.all {
+            it.useJUnitPlatform()
+        }
+    }
 }
 
 kotlin {
@@ -104,4 +110,9 @@ dependencies {
 
     // WorkManager for background updates
     implementation("androidx.work:work-runtime-ktx:2.11.2")
+
+    // JVM unit tests. The routing and formatting logic is kept free of Android
+    // types on purpose, so these run without Robolectric or a device.
+    testImplementation("org.junit.jupiter:junit-jupiter:5.14.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.14.2")
 }

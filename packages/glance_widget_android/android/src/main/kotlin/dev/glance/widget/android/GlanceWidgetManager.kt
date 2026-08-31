@@ -4,7 +4,10 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.datastore.preferences.core.*
+import androidx.glance.GlanceId
+import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import android.graphics.Bitmap
@@ -156,6 +159,28 @@ object GlanceWidgetManager {
     }
 
     /**
+     * Picks the placed instances an update is addressed to.
+     *
+     * `getGlanceIds` answers with every instance of a template at once, which is
+     * why updates used to be written to all of them -- data for one widget id
+     * would overwrite another's. The id an instance carries lives in its own
+     * state under [widgetIdKey]; reading it back is what makes `widgetId` the
+     * "unique identifier for this widget instance" the API promises.
+     */
+    private suspend fun resolveTargets(
+        context: Context,
+        widgetClass: Class<out GlanceAppWidget>,
+        widgetId: String
+    ): WidgetInstanceResolver.Resolution<GlanceId> {
+        val instances = GlanceAppWidgetManager(context).getGlanceIds(widgetClass).map { glanceId ->
+            val stored =
+                getAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId)[widgetIdKey]
+            WidgetInstanceResolver.Instance(glanceId, stored)
+        }
+        return WidgetInstanceResolver.resolve(instances, widgetId)
+    }
+
+    /**
      * Updates a Simple Widget with the given data and returns a result.
      * Use this method when you need to handle errors.
      */
@@ -167,17 +192,18 @@ object GlanceWidgetManager {
     ): UpdateResult {
         return try {
             Log.d(TAG, "Updating simple widget: $widgetId")
-            val manager = GlanceAppWidgetManager(context)
-            val glanceIds = manager.getGlanceIds(SimpleGlanceWidget::class.java)
             val widget = SimpleGlanceWidget()
-
-            if (glanceIds.isEmpty()) {
-                Log.w(TAG, "No SimpleGlanceWidget instances found")
-                return UpdateResult.Error(
-                    UpdateResult.ERROR_NO_WIDGET_INSTANCE,
-                    "No SimpleGlanceWidget instances found on home screen"
-                )
-            }
+            val glanceIds =
+                when (val targets = resolveTargets(context, SimpleGlanceWidget::class.java, widgetId)) {
+                    is WidgetInstanceResolver.Resolution.NoTarget -> {
+                        Log.w(TAG, "SimpleGlanceWidget \"$widgetId\": ${targets.reason}")
+                        return UpdateResult.Error(
+                            UpdateResult.ERROR_NO_WIDGET_INSTANCE,
+                            "SimpleGlanceWidget \"$widgetId\": ${targets.reason}"
+                        )
+                    }
+                    is WidgetInstanceResolver.Resolution.Targets -> targets.handles
+                }
 
             glanceIds.forEach { glanceId ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
@@ -237,17 +263,18 @@ object GlanceWidgetManager {
     ): UpdateResult {
         return try {
             Log.d(TAG, "Updating progress widget: $widgetId")
-            val manager = GlanceAppWidgetManager(context)
-            val glanceIds = manager.getGlanceIds(ProgressGlanceWidget::class.java)
             val widget = ProgressGlanceWidget()
-
-            if (glanceIds.isEmpty()) {
-                Log.w(TAG, "No ProgressGlanceWidget instances found")
-                return UpdateResult.Error(
-                    UpdateResult.ERROR_NO_WIDGET_INSTANCE,
-                    "No ProgressGlanceWidget instances found on home screen"
-                )
-            }
+            val glanceIds =
+                when (val targets = resolveTargets(context, ProgressGlanceWidget::class.java, widgetId)) {
+                    is WidgetInstanceResolver.Resolution.NoTarget -> {
+                        Log.w(TAG, "ProgressGlanceWidget \"$widgetId\": ${targets.reason}")
+                        return UpdateResult.Error(
+                            UpdateResult.ERROR_NO_WIDGET_INSTANCE,
+                            "ProgressGlanceWidget \"$widgetId\": ${targets.reason}"
+                        )
+                    }
+                    is WidgetInstanceResolver.Resolution.Targets -> targets.handles
+                }
 
             glanceIds.forEach { glanceId ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
@@ -308,17 +335,18 @@ object GlanceWidgetManager {
     ): UpdateResult {
         return try {
             Log.d(TAG, "Updating list widget: $widgetId")
-            val manager = GlanceAppWidgetManager(context)
-            val glanceIds = manager.getGlanceIds(ListGlanceWidget::class.java)
             val widget = ListGlanceWidget()
-
-            if (glanceIds.isEmpty()) {
-                Log.w(TAG, "No ListGlanceWidget instances found")
-                return UpdateResult.Error(
-                    UpdateResult.ERROR_NO_WIDGET_INSTANCE,
-                    "No ListGlanceWidget instances found on home screen"
-                )
-            }
+            val glanceIds =
+                when (val targets = resolveTargets(context, ListGlanceWidget::class.java, widgetId)) {
+                    is WidgetInstanceResolver.Resolution.NoTarget -> {
+                        Log.w(TAG, "ListGlanceWidget \"$widgetId\": ${targets.reason}")
+                        return UpdateResult.Error(
+                            UpdateResult.ERROR_NO_WIDGET_INSTANCE,
+                            "ListGlanceWidget \"$widgetId\": ${targets.reason}"
+                        )
+                    }
+                    is WidgetInstanceResolver.Resolution.Targets -> targets.handles
+                }
 
             glanceIds.forEach { glanceId ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
@@ -378,17 +406,18 @@ object GlanceWidgetManager {
     ): UpdateResult {
         return try {
             Log.d(TAG, "Updating calendar widget: $widgetId")
-            val manager = GlanceAppWidgetManager(context)
-            val glanceIds = manager.getGlanceIds(CalendarGlanceWidget::class.java)
             val widget = CalendarGlanceWidget()
-
-            if (glanceIds.isEmpty()) {
-                Log.w(TAG, "No CalendarGlanceWidget instances found")
-                return UpdateResult.Error(
-                    UpdateResult.ERROR_NO_WIDGET_INSTANCE,
-                    "No CalendarGlanceWidget instances found on home screen"
-                )
-            }
+            val glanceIds =
+                when (val targets = resolveTargets(context, CalendarGlanceWidget::class.java, widgetId)) {
+                    is WidgetInstanceResolver.Resolution.NoTarget -> {
+                        Log.w(TAG, "CalendarGlanceWidget \"$widgetId\": ${targets.reason}")
+                        return UpdateResult.Error(
+                            UpdateResult.ERROR_NO_WIDGET_INSTANCE,
+                            "CalendarGlanceWidget \"$widgetId\": ${targets.reason}"
+                        )
+                    }
+                    is WidgetInstanceResolver.Resolution.Targets -> targets.handles
+                }
 
             glanceIds.forEach { glanceId ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
@@ -448,17 +477,18 @@ object GlanceWidgetManager {
     ): UpdateResult {
         return try {
             Log.d(TAG, "Updating image widget: $widgetId")
-            val manager = GlanceAppWidgetManager(context)
-            val glanceIds = manager.getGlanceIds(ImageGlanceWidget::class.java)
             val widget = ImageGlanceWidget()
-
-            if (glanceIds.isEmpty()) {
-                Log.w(TAG, "No ImageGlanceWidget instances found")
-                return UpdateResult.Error(
-                    UpdateResult.ERROR_NO_WIDGET_INSTANCE,
-                    "No ImageGlanceWidget instances found on home screen"
-                )
-            }
+            val glanceIds =
+                when (val targets = resolveTargets(context, ImageGlanceWidget::class.java, widgetId)) {
+                    is WidgetInstanceResolver.Resolution.NoTarget -> {
+                        Log.w(TAG, "ImageGlanceWidget \"$widgetId\": ${targets.reason}")
+                        return UpdateResult.Error(
+                            UpdateResult.ERROR_NO_WIDGET_INSTANCE,
+                            "ImageGlanceWidget \"$widgetId\": ${targets.reason}"
+                        )
+                    }
+                    is WidgetInstanceResolver.Resolution.Targets -> targets.handles
+                }
 
             glanceIds.forEach { glanceId ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
@@ -516,17 +546,18 @@ object GlanceWidgetManager {
     ): UpdateResult {
         return try {
             Log.d(TAG, "Updating chart widget: $widgetId")
-            val manager = GlanceAppWidgetManager(context)
-            val glanceIds = manager.getGlanceIds(ChartGlanceWidget::class.java)
             val widget = ChartGlanceWidget()
-
-            if (glanceIds.isEmpty()) {
-                Log.w(TAG, "No ChartGlanceWidget instances found")
-                return UpdateResult.Error(
-                    UpdateResult.ERROR_NO_WIDGET_INSTANCE,
-                    "No ChartGlanceWidget instances found on home screen"
-                )
-            }
+            val glanceIds =
+                when (val targets = resolveTargets(context, ChartGlanceWidget::class.java, widgetId)) {
+                    is WidgetInstanceResolver.Resolution.NoTarget -> {
+                        Log.w(TAG, "ChartGlanceWidget \"$widgetId\": ${targets.reason}")
+                        return UpdateResult.Error(
+                            UpdateResult.ERROR_NO_WIDGET_INSTANCE,
+                            "ChartGlanceWidget \"$widgetId\": ${targets.reason}"
+                        )
+                    }
+                    is WidgetInstanceResolver.Resolution.Targets -> targets.handles
+                }
 
             // Extract chart parameters
             val chartType = data["chartType"] as? String ?: "line"
@@ -601,17 +632,18 @@ object GlanceWidgetManager {
     ): UpdateResult {
         return try {
             Log.d(TAG, "Updating gauge widget: $widgetId")
-            val manager = GlanceAppWidgetManager(context)
-            val glanceIds = manager.getGlanceIds(GaugeGlanceWidget::class.java)
             val widget = GaugeGlanceWidget()
-
-            if (glanceIds.isEmpty()) {
-                Log.w(TAG, "No GaugeGlanceWidget instances found")
-                return UpdateResult.Error(
-                    UpdateResult.ERROR_NO_WIDGET_INSTANCE,
-                    "No GaugeGlanceWidget instances found on home screen"
-                )
-            }
+            val glanceIds =
+                when (val targets = resolveTargets(context, GaugeGlanceWidget::class.java, widgetId)) {
+                    is WidgetInstanceResolver.Resolution.NoTarget -> {
+                        Log.w(TAG, "GaugeGlanceWidget \"$widgetId\": ${targets.reason}")
+                        return UpdateResult.Error(
+                            UpdateResult.ERROR_NO_WIDGET_INSTANCE,
+                            "GaugeGlanceWidget \"$widgetId\": ${targets.reason}"
+                        )
+                    }
+                    is WidgetInstanceResolver.Resolution.Targets -> targets.handles
+                }
 
             val gaugeType = data["gaugeType"] as? String ?: "radial"
             val isDark = theme?.get("isDark") as? Boolean ?: true

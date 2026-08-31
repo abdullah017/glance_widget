@@ -11,6 +11,21 @@ returning `Future<bool>`. See the main package's
   update had been applied, so a rejected update was reported to Dart as a
   success. Handlers now await the real outcome and answer with an error when the
   platform refused.
+* Two widgets built from the same template could not hold different data. Every
+  update was written into every placed instance of that template, so updating
+  `'btc'` also overwrote a widget showing `'eth'`. Updates are now routed to the
+  instance carrying the target `widgetId`, which is what the documented "unique
+  identifier for this widget instance" always implied. A freshly placed instance
+  is claimed by the first update that finds no other home, a lone instance is
+  re-keyed rather than left unreachable, and an id that matches nothing among
+  several placed widgets is refused with `NO_WIDGET_INSTANCE` instead of
+  overwriting one at random.
+
+### Added
+
+* JVM unit tests for the plugin's Android sources, run in CI. The instance
+  routing rules live in `WidgetInstanceResolver`, deliberately free of Android
+  types so they can be tested without an emulator.
 
 # Changelog
 
