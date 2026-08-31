@@ -85,6 +85,9 @@ struct SimpleWidgetEntryView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.widgetFamily) var family
 
+    /// The layout shape this family wants. See `GlanceSystemSize`.
+    private var size: GlanceSystemSize { GlanceSystemSize(family) }
+
     private var theme: WidgetThemeData {
         entry.data.theme
             ?? WidgetStorage.shared.loadGlobalTheme()
@@ -92,6 +95,19 @@ struct SimpleWidgetEntryView: View {
     }
 
     var body: some View {
+        if let accessory = GlanceAccessorySize(family) {
+            accessoryBody(accessory)
+        } else {
+            systemBody
+        }
+    }
+
+    /// The home screen layout. A lock screen family never reaches this: it is
+    /// routed to `accessoryBody` first, because scaling this down into 58pt of
+    /// single-colour space produces something unreadable rather than something
+    /// small.
+    @ViewBuilder
+    private var systemBody: some View {
         let backgroundColor = Color(argb: theme.backgroundColor)
         let textColor = Color(argb: theme.textColor)
         let secondaryTextColor = Color(argb: theme.secondaryTextColor)
@@ -107,20 +123,20 @@ struct SimpleWidgetEntryView: View {
                     // Icon (if available)
                     if let iconName = entry.data.iconName {
                         Image(systemName: iconName)
-                            .font(.system(size: iconSize(for: family)))
+                            .font(.system(size: iconSize(for: size)))
                             .foregroundColor(Color(argb: theme.accentColor))
                     }
 
                     // Title
                     Text(entry.data.title)
-                        .font(titleFont(for: family))
+                        .font(titleFont(for: size))
                         .fontWeight(.medium)
                         .foregroundColor(secondaryTextColor)
                         .lineLimit(1)
 
                     // Value (large)
                     Text(entry.data.value)
-                        .font(valueFont(for: family))
+                        .font(valueFont(for: size))
                         .fontWeight(.bold)
                         .foregroundColor(textColor)
                         .lineLimit(1)
@@ -129,16 +145,46 @@ struct SimpleWidgetEntryView: View {
                     // Subtitle (optional)
                     if let subtitle = entry.data.subtitle {
                         Text(subtitle)
-                            .font(subtitleFont(for: family))
+                            .font(subtitleFont(for: size))
                             .fontWeight(.medium)
                             .foregroundColor(subtitleColor)
                             .lineLimit(1)
                     }
                 }
-                .padding(dynamicPadding(for: family))
+                .padding(dynamicPadding(for: size))
             }
         }
         .widgetURL(widgetURL)
+    }
+
+    // MARK: - Lock Screen
+
+    /// The lock screen and Smart Stack layouts.
+    ///
+    /// The theme is deliberately not consulted here. The system renders an
+    /// accessory family in a single tint of its own choosing, so a view that
+    /// passed `theme.accentColor` through would read as if the colour worked
+    /// while changing nothing on screen.
+    @ViewBuilder
+    private func accessoryBody(_ accessory: GlanceAccessorySize) -> some View {
+        switch accessory {
+        case .circular:
+            GlanceCircularText(value: entry.data.value)
+        case .rectangular:
+            GlanceRectangularStack(title: entry.data.title) {
+                Text(entry.data.value)
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .minimumScaleFactor(0.5)
+                    .lineLimit(1)
+                if let subtitle = entry.data.subtitle {
+                    Text(subtitle)
+                        .font(.system(size: 12))
+                        .lineLimit(1)
+                }
+            }
+        case .inline:
+            Text("\(entry.data.title) \(entry.data.value)")
+        }
     }
 
     // MARK: - Computed Properties
@@ -159,55 +205,47 @@ struct SimpleWidgetEntryView: View {
 
     // MARK: - Dynamic Sizing
 
-    private func titleFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func titleFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption
-        case .systemMedium:
+        case .medium:
             return .subheadline
-        case .systemLarge:
+        case .large:
             return .headline
-        @unknown default:
-            return .subheadline
         }
     }
 
-    private func valueFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func valueFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .title2
-        case .systemMedium:
+        case .medium:
             return .largeTitle
-        case .systemLarge:
+        case .large:
             return .system(size: 48, weight: .bold)
-        @unknown default:
-            return .title
         }
     }
 
-    private func subtitleFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func subtitleFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption2
-        case .systemMedium:
+        case .medium:
             return .subheadline
-        case .systemLarge:
+        case .large:
             return .headline
-        @unknown default:
-            return .subheadline
         }
     }
 
-    private func iconSize(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func iconSize(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 20
-        case .systemMedium:
+        case .medium:
             return 28
-        case .systemLarge:
+        case .large:
             return 36
-        @unknown default:
-            return 24
         }
     }
 
@@ -215,16 +253,14 @@ struct SimpleWidgetEntryView: View {
         return min(size.width, size.height) * 0.04
     }
 
-    private func dynamicPadding(for family: WidgetFamily) -> EdgeInsets {
-        switch family {
-        case .systemSmall:
+    private func dynamicPadding(for size: GlanceSystemSize) -> EdgeInsets {
+        switch size {
+        case .small:
             return EdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
-        case .systemMedium:
+        case .medium:
             return EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
-        case .systemLarge:
+        case .large:
             return EdgeInsets(top: 20, leading: 20, bottom: 20, trailing: 20)
-        @unknown default:
-            return EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
         }
     }
 }
@@ -241,14 +277,14 @@ struct SimpleWidget: Widget {
             provider: SimpleWidgetProvider()
         ) { entry in
             SimpleWidgetEntryView(entry: entry)
-                .containerBackground(for: .widget) {
+                .glanceContainerBackground(
                     Color(argb: entry.data.theme?.backgroundColor
                           ?? WidgetThemeData.defaultDark.backgroundColor)
-                }
+                )
         }
         .configurationDisplayName("Simple Widget")
         .description("Display a value with title and optional subtitle. Perfect for prices, stats, or metrics.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
 

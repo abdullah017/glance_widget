@@ -45,7 +45,7 @@ widgets.
 - **Background Updates** - Android widgets update even when app is closed (WorkManager)
 - **Timeline Refresh** - iOS widgets refresh periodically via WidgetKit timeline policy
 - **iOS 26+ Push Updates** - Server-triggered widget updates via APNs
-- **Lock Screen Widgets** - Android widgets on home screen and lock screen
+- **Lock Screen Widgets** - Android keyguard widgets, and iOS accessory families (circular, rectangular, inline) on the lock screen and in the Smart Stack
 - **Real-time Data** - Debounced controller for high-frequency updates (crypto, stocks)
 - **Widget Configuration** - Handle widget setup flow when users add widgets
 - **In-App Preview** - `GlancePreview` draws the widget in the app, per platform, so you can iterate on hot reload
@@ -57,9 +57,38 @@ widgets.
 | Update Speed | < 1 second | < 1 second (app foreground) |
 | Background Updates | WorkManager (15 min+) | Timeline-based (.after policy) |
 | Server Push | N/A | iOS 26+ (APNs) |
-| Lock Screen | Supported (keyguard) | N/A |
+| Lock Screen | Supported (keyguard) | Accessory families (all templates except Image) |
 | Interactive Actions | ActionCallback | URL-based actions |
 | Min Version | Android 8.0 (API 26) | iOS 17.0 |
+
+## Lock Screen and Smart Stack (iOS)
+
+Six of the seven templates render in the iOS accessory families as well as on
+the home screen. Adding one is the same call you already make -- the template
+picks its own layout from the family the system asks for:
+
+| Family | Where it appears | What the templates draw |
+|--------|------------------|-------------------------|
+| `.accessoryCircular` | Lock screen, Smart Stack | One value, or a progress ring |
+| `.accessoryRectangular` | Lock screen, Smart Stack | Title plus two lines, a bar, or a sparkline |
+| `.accessoryInline` | Beside the lock screen clock | One line of text |
+
+**ImageWidget has no accessory layouts.** The system draws these families in a
+single tint at roughly 58pt across; a photo reduced to that is a smear, and
+offering the family would put an unreadable widget in the picker. It stays a
+home screen template.
+
+Two more things the lock screen changes, both deliberate:
+
+- **`GlanceTheme` colours are ignored.** The system tints an accessory widget
+  itself. The templates do not pass `accentColor` through, because doing so
+  would read like it worked while changing nothing on screen.
+- **The background is transparent.** An accessory widget sits on the user's
+  wallpaper. The parts that need a backdrop ask for the system's own dimmed one.
+
+`GlancePreview` renders the home screen layouts. There is no preview for the
+accessory families yet -- the tint and vibrancy come from the lock screen
+compositor, so a faithful in-app copy is not currently possible.
 
 ## Widget Templates
 

@@ -85,6 +85,9 @@ struct ListWidgetEntryView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.widgetFamily) var family
 
+    /// The layout shape this family wants. See `GlanceSystemSize`.
+    private var size: GlanceSystemSize { GlanceSystemSize(family) }
+
     private var theme: WidgetThemeData {
         entry.data.theme
             ?? WidgetStorage.shared.loadGlobalTheme()
@@ -92,19 +95,30 @@ struct ListWidgetEntryView: View {
     }
 
     private var maxItemsToShow: Int {
-        switch family {
-        case .systemSmall:
+        switch size {
+        case .small:
             return min(3, entry.data.maxItems)
-        case .systemMedium:
+        case .medium:
             return min(4, entry.data.maxItems)
-        case .systemLarge:
+        case .large:
             return min(8, entry.data.maxItems)
-        @unknown default:
-            return entry.data.maxItems
         }
     }
 
     var body: some View {
+        if let accessory = GlanceAccessorySize(family) {
+            accessoryBody(accessory)
+        } else {
+            systemBody
+        }
+    }
+
+    /// The home screen layout. A lock screen family never reaches this: it is
+    /// routed to `accessoryBody` first, because scaling this down into 58pt of
+    /// single-colour space produces something unreadable rather than something
+    /// small.
+    @ViewBuilder
+    private var systemBody: some View {
         let backgroundColor = Color(argb: theme.backgroundColor)
         let textColor = Color(argb: theme.textColor)
         let secondaryTextColor = Color(argb: theme.secondaryTextColor)
@@ -141,9 +155,70 @@ struct ListWidgetEntryView: View {
                         )
                     }
                 }
-                .padding(dynamicPadding(for: family))
+                .padding(dynamicPadding(for: size))
             }
         }
+    }
+
+    // MARK: - Lock Screen
+
+    /// The lock screen and Smart Stack layouts.
+    ///
+    /// The theme is deliberately not consulted here. The system renders an
+    /// accessory family in a single tint of its own choosing, so a view that
+    /// passed `theme.accentColor` through would read as if the colour worked
+    /// while changing nothing on screen.
+    @ViewBuilder
+    private func accessoryBody(_ accessory: GlanceAccessorySize) -> some View {
+        switch accessory {
+        case .circular:
+            GlanceCircularText(
+                value: "\(accessoryCount)",
+                caption: entry.data.showCheckboxes ? "left" : "items"
+            )
+        case .rectangular:
+            GlanceRectangularStack(title: entry.data.title) {
+                if entry.data.items.isEmpty {
+                    Text("No items")
+                        .font(.system(size: 12))
+                } else {
+                    ForEach(Array(entry.data.items.prefix(2).enumerated()), id: \.offset) { _, item in
+                        Text(accessoryLine(for: item))
+                            .font(.system(size: 12))
+                            .lineLimit(1)
+                    }
+                }
+            }
+        case .inline:
+            Text(accessoryInlineText)
+        }
+    }
+
+    /// How many items the circular slot counts: the ones still to do when the
+    /// list is a checklist, and every item when it is not.
+    private var accessoryCount: Int {
+        entry.data.showCheckboxes
+            ? entry.data.items.filter { !$0.checked }.count
+            : entry.data.items.count
+    }
+
+    /// One item on one line, marked done or not when the list is a checklist.
+    ///
+    /// A drawn checkbox is what the home screen layout uses, but at this size
+    /// the box is a smudge, so the state goes into the text where it survives
+    /// being tinted flat.
+    private func accessoryLine(for item: ListItemData) -> String {
+        guard entry.data.showCheckboxes else { return item.text }
+        return (item.checked ? "\u{2713} " : "\u{25CB} ") + item.text
+    }
+
+    /// The next thing to do, or the list's name when there is nothing left.
+    private var accessoryInlineText: String {
+        let next = entry.data.showCheckboxes
+            ? entry.data.items.first(where: { !$0.checked })
+            : entry.data.items.first
+        guard let next else { return entry.data.title }
+        return "\(entry.data.title): \(next.text)"
     }
 
     // MARK: - Subviews
@@ -152,7 +227,7 @@ struct ListWidgetEntryView: View {
     private func headerView(textColor: Color, secondaryTextColor: Color) -> some View {
         HStack {
             Text(entry.data.title)
-                .font(titleFont(for: family))
+                .font(titleFont(for: size))
                 .fontWeight(.bold)
                 .foregroundColor(textColor)
                 .lineLimit(1)
@@ -160,7 +235,7 @@ struct ListWidgetEntryView: View {
             Spacer()
 
             Text("\(entry.data.items.count)")
-                .font(countFont(for: family))
+                .font(countFont(for: size))
                 .foregroundColor(secondaryTextColor)
         }
     }
@@ -171,7 +246,7 @@ struct ListWidgetEntryView: View {
         HStack {
             Spacer()
             Text("No items")
-                .font(itemFont(for: family))
+                .font(itemFont(for: size))
                 .foregroundColor(secondaryTextColor)
             Spacer()
         }
@@ -184,7 +259,7 @@ struct ListWidgetEntryView: View {
         secondaryTextColor: Color,
         accentColor: Color
     ) -> some View {
-        VStack(alignment: .leading, spacing: itemSpacing(for: family)) {
+        VStack(alignment: .leading, spacing: itemSpacing(for: size)) {
             ForEach(Array(entry.data.items.prefix(maxItemsToShow).enumerated()), id: \.offset) { index, item in
                 itemRowView(
                     item: item,
@@ -217,7 +292,7 @@ struct ListWidgetEntryView: View {
             if entry.data.showCheckboxes {
                 Link(destination: checkboxToggleURL(index: index, currentValue: item.checked)) {
                     Image(systemName: item.checked ? "checkmark.circle.fill" : "circle")
-                        .font(checkboxFont(for: family))
+                        .font(checkboxFont(for: size))
                         .foregroundColor(item.checked ? accentColor : secondaryTextColor)
                 }
             }
@@ -228,21 +303,21 @@ struct ListWidgetEntryView: View {
                     // Icon (if provided)
                     if let iconName = item.iconName {
                         Image(systemName: iconName)
-                            .font(iconFont(for: family))
+                            .font(iconFont(for: size))
                             .foregroundColor(accentColor)
                     }
 
                     // Text content
                     VStack(alignment: .leading, spacing: 2) {
                         Text(item.text)
-                            .font(itemFont(for: family))
+                            .font(itemFont(for: size))
                             .foregroundColor(item.checked && entry.data.showCheckboxes ? secondaryTextColor : textColor)
                             .strikethrough(item.checked && entry.data.showCheckboxes)
                             .lineLimit(1)
 
                         if let secondary = item.secondaryText, !secondary.isEmpty {
                             Text(secondary)
-                                .font(secondaryFont(for: family))
+                                .font(secondaryFont(for: size))
                                 .foregroundColor(secondaryTextColor)
                                 .lineLimit(1)
                         }
@@ -273,107 +348,91 @@ struct ListWidgetEntryView: View {
 
     // MARK: - Dynamic Sizing
 
-    private func titleFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func titleFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .subheadline
-        case .systemMedium:
+        case .medium:
             return .headline
-        case .systemLarge:
+        case .large:
             return .title3
-        @unknown default:
+        }
+    }
+
+    private func countFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
+            return .caption2
+        case .medium:
+            return .subheadline
+        case .large:
             return .headline
         }
     }
 
-    private func countFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
-            return .caption2
-        case .systemMedium:
-            return .subheadline
-        case .systemLarge:
-            return .headline
-        @unknown default:
-            return .subheadline
-        }
-    }
-
-    private func itemFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func itemFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption
-        case .systemMedium:
+        case .medium:
             return .subheadline
-        case .systemLarge:
+        case .large:
             return .body
-        @unknown default:
-            return .subheadline
         }
     }
 
-    private func secondaryFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func secondaryFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption2
-        case .systemMedium:
+        case .medium:
             return .caption
-        case .systemLarge:
+        case .large:
             return .subheadline
-        @unknown default:
-            return .caption
         }
     }
 
-    private func checkboxFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func checkboxFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption
-        case .systemMedium:
+        case .medium:
             return .body
-        case .systemLarge:
+        case .large:
             return .title3
-        @unknown default:
-            return .body
         }
     }
 
-    private func iconFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func iconFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption
-        case .systemMedium:
+        case .medium:
             return .subheadline
-        case .systemLarge:
+        case .large:
             return .body
-        @unknown default:
-            return .subheadline
         }
     }
 
-    private func itemSpacing(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func itemSpacing(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 4
-        case .systemMedium:
+        case .medium:
             return 6
-        case .systemLarge:
+        case .large:
             return 8
-        @unknown default:
-            return 6
         }
     }
 
-    private func dynamicPadding(for family: WidgetFamily) -> EdgeInsets {
-        switch family {
-        case .systemSmall:
+    private func dynamicPadding(for size: GlanceSystemSize) -> EdgeInsets {
+        switch size {
+        case .small:
             return EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
-        case .systemMedium:
+        case .medium:
             return EdgeInsets(top: 14, leading: 14, bottom: 14, trailing: 14)
-        case .systemLarge:
+        case .large:
             return EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
-        @unknown default:
-            return EdgeInsets(top: 14, leading: 14, bottom: 14, trailing: 14)
         }
     }
 }
@@ -390,14 +449,14 @@ struct ListWidget: Widget {
             provider: ListWidgetProvider()
         ) { entry in
             ListWidgetEntryView(entry: entry)
-                .containerBackground(for: .widget) {
+                .glanceContainerBackground(
                     Color(argb: entry.data.theme?.backgroundColor
                           ?? WidgetThemeData.defaultDark.backgroundColor)
-                }
+                )
         }
         .configurationDisplayName("List Widget")
         .description("Display a list of items with optional checkboxes. Perfect for todos, shopping lists, or quick notes.")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
 

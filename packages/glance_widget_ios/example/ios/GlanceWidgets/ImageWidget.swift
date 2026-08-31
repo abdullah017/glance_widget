@@ -88,6 +88,9 @@ struct ImageWidgetEntryView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.widgetFamily) var family
 
+    /// The layout shape this family wants. See `GlanceSystemSize`.
+    private var size: GlanceSystemSize { GlanceSystemSize(family) }
+
     private var theme: WidgetThemeData {
         entry.data.theme
             ?? WidgetStorage.shared.loadGlobalTheme()
@@ -141,7 +144,7 @@ struct ImageWidgetEntryView: View {
 
     @ViewBuilder
     private func imageView(geometry: GeometryProxy) -> some View {
-        let imageHeight = imageAreaHeight(for: family, geometry: geometry)
+        let imageHeight = imageAreaHeight(for: size, geometry: geometry)
 
         if let uiImage = decodedImage {
             Image(uiImage: uiImage)
@@ -157,7 +160,7 @@ struct ImageWidgetEntryView: View {
 
                 VStack(spacing: 4) {
                     Image(systemName: "photo")
-                        .font(placeholderIconFont(for: family))
+                        .font(placeholderIconFont(for: size))
                         .foregroundColor(Color(argb: theme.secondaryTextColor).opacity(0.4))
 
                     if let imageUrl = entry.data.imageUrl, !imageUrl.isEmpty {
@@ -179,20 +182,20 @@ struct ImageWidgetEntryView: View {
     private func textOverlayView(textColor: Color, secondaryTextColor: Color) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(entry.data.title)
-                .font(titleFont(for: family))
+                .font(titleFont(for: size))
                 .fontWeight(.bold)
                 .foregroundColor(textColor)
                 .lineLimit(1)
 
             if let subtitle = entry.data.subtitle, !subtitle.isEmpty {
                 Text(subtitle)
-                    .font(subtitleFont(for: family))
+                    .font(subtitleFont(for: size))
                     .foregroundColor(secondaryTextColor)
-                    .lineLimit(family == .systemLarge ? 2 : 1)
+                    .lineLimit(size == .large ? 2 : 1)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(textPadding(for: family))
+        .padding(textPadding(for: size))
     }
 
     // MARK: - Computed Properties
@@ -217,68 +220,58 @@ struct ImageWidgetEntryView: View {
 
     // MARK: - Dynamic Sizing
 
-    private func imageAreaHeight(for family: WidgetFamily, geometry: GeometryProxy) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func imageAreaHeight(for size: GlanceSystemSize, geometry: GeometryProxy) -> CGFloat {
+        switch size {
+        case .small:
             return geometry.size.height * 0.6
-        case .systemMedium:
+        case .medium:
             return geometry.size.height * 0.6
-        case .systemLarge:
+        case .large:
             return geometry.size.height * 0.7
-        @unknown default:
-            return geometry.size.height * 0.6
         }
     }
 
-    private func titleFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func titleFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption
-        case .systemMedium:
+        case .medium:
             return .subheadline
-        case .systemLarge:
+        case .large:
             return .headline
-        @unknown default:
-            return .subheadline
         }
     }
 
-    private func subtitleFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func subtitleFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption2
-        case .systemMedium:
+        case .medium:
             return .caption
-        case .systemLarge:
+        case .large:
             return .subheadline
-        @unknown default:
-            return .caption
         }
     }
 
-    private func placeholderIconFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func placeholderIconFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .title3
-        case .systemMedium:
+        case .medium:
             return .title2
-        case .systemLarge:
+        case .large:
             return .title
-        @unknown default:
-            return .title2
         }
     }
 
-    private func textPadding(for family: WidgetFamily) -> EdgeInsets {
-        switch family {
-        case .systemSmall:
+    private func textPadding(for size: GlanceSystemSize) -> EdgeInsets {
+        switch size {
+        case .small:
             return EdgeInsets(top: 6, leading: 10, bottom: 8, trailing: 10)
-        case .systemMedium:
+        case .medium:
             return EdgeInsets(top: 8, leading: 14, bottom: 10, trailing: 14)
-        case .systemLarge:
+        case .large:
             return EdgeInsets(top: 10, leading: 16, bottom: 12, trailing: 16)
-        @unknown default:
-            return EdgeInsets(top: 8, leading: 14, bottom: 10, trailing: 14)
         }
     }
 }

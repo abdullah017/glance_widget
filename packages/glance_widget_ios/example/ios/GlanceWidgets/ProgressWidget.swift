@@ -85,6 +85,9 @@ struct ProgressWidgetEntryView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.widgetFamily) var family
 
+    /// The layout shape this family wants. See `GlanceSystemSize`.
+    private var size: GlanceSystemSize { GlanceSystemSize(family) }
+
     private var theme: WidgetThemeData {
         entry.data.theme
             ?? WidgetStorage.shared.loadGlobalTheme()
@@ -92,6 +95,19 @@ struct ProgressWidgetEntryView: View {
     }
 
     var body: some View {
+        if let accessory = GlanceAccessorySize(family) {
+            accessoryBody(accessory)
+        } else {
+            systemBody
+        }
+    }
+
+    /// The home screen layout. A lock screen family never reaches this: it is
+    /// routed to `accessoryBody` first, because scaling this down into 58pt of
+    /// single-colour space produces something unreadable rather than something
+    /// small.
+    @ViewBuilder
+    private var systemBody: some View {
         let backgroundColor = Color(argb: theme.backgroundColor)
         let textColor = Color(argb: theme.textColor)
         let secondaryTextColor = Color(argb: theme.secondaryTextColor)
@@ -110,7 +126,7 @@ struct ProgressWidgetEntryView: View {
                 VStack(spacing: 12) {
                     // Title
                     Text(entry.data.title)
-                        .font(titleFont(for: family))
+                        .font(titleFont(for: size))
                         .fontWeight(.medium)
                         .foregroundColor(secondaryTextColor)
                         .lineLimit(1)
@@ -138,15 +154,44 @@ struct ProgressWidgetEntryView: View {
                     // Subtitle (optional)
                     if let subtitle = entry.data.subtitle {
                         Text(subtitle)
-                            .font(subtitleFont(for: family))
+                            .font(subtitleFont(for: size))
                             .foregroundColor(secondaryTextColor)
                             .lineLimit(1)
                     }
                 }
-                .padding(dynamicPadding(for: family))
+                .padding(dynamicPadding(for: size))
             }
         }
         .widgetURL(widgetURL)
+    }
+
+    // MARK: - Lock Screen
+
+    /// The lock screen and Smart Stack layouts.
+    ///
+    /// The theme is deliberately not consulted here. The system renders an
+    /// accessory family in a single tint of its own choosing, so a view that
+    /// passed `theme.accentColor` through would read as if the colour worked
+    /// while changing nothing on screen.
+    @ViewBuilder
+    private func accessoryBody(_ accessory: GlanceAccessorySize) -> some View {
+        switch accessory {
+        case .circular:
+            GlanceCircularGauge(
+                progress: entry.data.progress,
+                label: GlanceAccessoryFormat.percent(entry.data.progress)
+            )
+        case .rectangular:
+            GlanceRectangularStack(title: entry.data.title) {
+                GlanceRectangularGauge(
+                    progress: entry.data.progress,
+                    label: entry.data.subtitle ?? "",
+                    value: GlanceAccessoryFormat.percent(entry.data.progress)
+                )
+            }
+        case .inline:
+            Text("\(entry.data.title) \(GlanceAccessoryFormat.percent(entry.data.progress))")
+        }
     }
 
     // MARK: - Progress Views
@@ -159,8 +204,8 @@ struct ProgressWidgetEntryView: View {
         textColor: Color,
         geometry: GeometryProxy
     ) -> some View {
-        let size = circularSize(for: family, geometry: geometry)
-        let lineWidth = circularLineWidth(for: family)
+        let diameter = circularSize(for: size, geometry: geometry)
+        let lineWidth = circularLineWidth(for: size)
 
         ZStack {
             // Track
@@ -179,11 +224,11 @@ struct ProgressWidgetEntryView: View {
 
             // Percentage text
             Text("\(Int(progress * 100))%")
-                .font(percentageFont(for: family))
+                .font(percentageFont(for: size))
                 .fontWeight(.bold)
                 .foregroundColor(textColor)
         }
-        .frame(width: size, height: size)
+        .frame(width: diameter, height: diameter)
     }
 
     @ViewBuilder
@@ -197,7 +242,7 @@ struct ProgressWidgetEntryView: View {
         VStack(spacing: 8) {
             // Percentage
             Text("\(Int(progress * 100))%")
-                .font(percentageFont(for: family))
+                .font(percentageFont(for: size))
                 .fontWeight(.bold)
                 .foregroundColor(textColor)
 
@@ -215,7 +260,7 @@ struct ProgressWidgetEntryView: View {
                         .animation(.easeInOut(duration: 0.3), value: progress)
                 }
             }
-            .frame(height: linearBarHeight(for: family))
+            .frame(height: linearBarHeight(for: size))
         }
     }
 
@@ -230,95 +275,81 @@ struct ProgressWidgetEntryView: View {
 
     // MARK: - Dynamic Sizing
 
-    private func titleFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func titleFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption
-        case .systemMedium:
+        case .medium:
             return .subheadline
-        case .systemLarge:
+        case .large:
             return .headline
-        @unknown default:
-            return .subheadline
         }
     }
 
-    private func subtitleFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func subtitleFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption2
-        case .systemMedium:
+        case .medium:
             return .caption
-        case .systemLarge:
+        case .large:
             return .subheadline
-        @unknown default:
-            return .caption
         }
     }
 
-    private func percentageFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func percentageFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption
-        case .systemMedium:
+        case .medium:
             return .title3
-        case .systemLarge:
+        case .large:
             return .title
-        @unknown default:
-            return .title3
         }
     }
 
-    private func circularSize(for family: WidgetFamily, geometry: GeometryProxy) -> CGFloat {
+    private func circularSize(for size: GlanceSystemSize, geometry: GeometryProxy) -> CGFloat {
         let minDimension = min(geometry.size.width, geometry.size.height)
-        switch family {
-        case .systemSmall:
+        switch size {
+        case .small:
             return minDimension * 0.45
-        case .systemMedium:
+        case .medium:
             return minDimension * 0.5
-        case .systemLarge:
+        case .large:
             return minDimension * 0.35
-        @unknown default:
-            return 80
         }
     }
 
-    private func circularLineWidth(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func circularLineWidth(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 6
-        case .systemMedium:
+        case .medium:
             return 8
-        case .systemLarge:
+        case .large:
             return 10
-        @unknown default:
-            return 8
         }
     }
 
-    private func linearBarHeight(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func linearBarHeight(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 8
-        case .systemMedium:
+        case .medium:
             return 12
-        case .systemLarge:
+        case .large:
             return 16
-        @unknown default:
-            return 12
         }
     }
 
-    private func dynamicPadding(for family: WidgetFamily) -> EdgeInsets {
-        switch family {
-        case .systemSmall:
+    private func dynamicPadding(for size: GlanceSystemSize) -> EdgeInsets {
+        switch size {
+        case .small:
             return EdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
-        case .systemMedium:
+        case .medium:
             return EdgeInsets(top: 16, leading: 20, bottom: 16, trailing: 20)
-        case .systemLarge:
+        case .large:
             return EdgeInsets(top: 20, leading: 24, bottom: 20, trailing: 24)
-        @unknown default:
-            return EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
         }
     }
 }
@@ -335,14 +366,14 @@ struct ProgressWidget: Widget {
             provider: ProgressWidgetProvider()
         ) { entry in
             ProgressWidgetEntryView(entry: entry)
-                .containerBackground(for: .widget) {
+                .glanceContainerBackground(
                     Color(argb: entry.data.theme?.backgroundColor
                           ?? WidgetThemeData.defaultDark.backgroundColor)
-                }
+                )
         }
         .configurationDisplayName("Progress Widget")
         .description("Display progress with circular or linear indicator. Great for goals, downloads, or completion status.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
 

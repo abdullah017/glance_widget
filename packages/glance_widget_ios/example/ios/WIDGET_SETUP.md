@@ -62,6 +62,9 @@ keep the intent and pass `configuration.widgetId` into `load...Widget(widgetId:)
 
 Copy these files from the `glance_widget_ios/example/ios/GlanceWidgets/` directory to your widget extension:
 
+Copy **all** of them. The templates share the last three files, so a build
+that omits one fails to compile rather than quietly losing a feature.
+
 ```
 GlanceWidgets/
 ├── GlanceWidgets.swift      # Widget bundle entry point
@@ -69,6 +72,12 @@ GlanceWidgets/
 ├── SimpleWidget.swift       # Simple widget template
 ├── ProgressWidget.swift     # Progress widget template
 ├── ListWidget.swift         # List widget template
+├── CalendarWidget.swift     # Calendar widget template
+├── ImageWidget.swift        # Image widget template
+├── ChartWidget.swift        # Chart widget template
+├── GaugeWidget.swift        # Gauge widget template
+├── GlanceFamily.swift       # Widget family classification (shared)
+├── AccessoryViews.swift     # Lock screen building blocks (shared)
 ├── Info.plist               # Extension info
 └── GlanceWidgets.entitlements
 ```
