@@ -114,6 +114,34 @@ jobs:
         working-directory: packages/glance_widget/example
         run: flutter build apk --debug
 
+  android-unit-tests:
+    name: Kotlin unit tests (glance_widget_android)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      # The plugin has no Gradle wrapper of its own; it is built as a module of
+      # whichever app includes it, so the example app's wrapper is the entry
+      # point here too.
+      - name: Run JVM unit tests
+        working-directory: packages/glance_widget/example/android
+        run: ./gradlew :glance_widget_android:testDebugUnitTest --console=plain
+      - name: Upload test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-unit-test-report
+          path: packages/glance_widget/example/build/glance_widget_android/reports/tests/
+
   ios-build:
     name: Build example (iOS)
     runs-on: macos-latest
