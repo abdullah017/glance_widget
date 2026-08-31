@@ -14,6 +14,9 @@ than a boolean.
 
 ### Fixed
 
+* `ImageWidgetData` accepted a widget with neither `imageUrl` nor `imageBase64`,
+  despite documenting that at least one is required, and drew a blank box.
+  `validate()` now refuses it.
 * `ChartWidgetData` and `GaugeWidgetData` were silently not `const`: a
   `List.length` assert in a `const` constructor is not const-evaluable, so every
   `const ChartWidgetData(...)` was a `const_eval_property_access` error at the

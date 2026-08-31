@@ -185,7 +185,7 @@ void main() {
       test('sends theme when provided', () async {
         await platform.updateImageWidget(
           widgetId: 'image_widget',
-          data: const ImageWidgetData(title: 'Photo'),
+          data: const ImageWidgetData(title: 'Photo', imageBase64: 'AAAA'),
           theme: GlanceTheme.dark(),
         );
 
@@ -198,7 +198,7 @@ void main() {
       test('sends null theme when not provided', () async {
         await platform.updateImageWidget(
           widgetId: 'image_widget',
-          data: const ImageWidgetData(title: 'Photo'),
+          data: const ImageWidgetData(title: 'Photo', imageBase64: 'AAAA'),
         );
 
         expect(log.length, 1);
@@ -209,7 +209,11 @@ void main() {
       test('sends fit parameter', () async {
         await platform.updateImageWidget(
           widgetId: 'image_widget',
-          data: const ImageWidgetData(title: 'Photo', fit: ImageFit.contain),
+          data: const ImageWidgetData(
+            title: 'Photo',
+            imageBase64: 'AAAA',
+            fit: ImageFit.contain,
+          ),
         );
 
         expect(log.length, 1);

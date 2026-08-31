@@ -93,6 +93,7 @@ object GlanceWidgetManager {
 
     // Image keys
     val imageBase64Key = stringPreferencesKey("imageBase64")
+    val imagePathKey = stringPreferencesKey("imagePath")
     val imageFitKey = stringPreferencesKey("imageFit")
 
     // Chart keys
@@ -228,6 +229,11 @@ object GlanceWidgetManager {
             trackWidgetId(context, widgetId)
             Log.d(TAG, "Simple widget updated successfully: $widgetId")
             UpdateResult.Success
+        } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to update simple widget: $widgetId", e)
             UpdateResult.Error(
@@ -300,6 +306,11 @@ object GlanceWidgetManager {
             trackWidgetId(context, widgetId)
             Log.d(TAG, "Progress widget updated successfully: $widgetId")
             UpdateResult.Success
+        } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to update progress widget: $widgetId", e)
             UpdateResult.Error(
@@ -372,6 +383,11 @@ object GlanceWidgetManager {
             trackWidgetId(context, widgetId)
             Log.d(TAG, "List widget updated successfully: $widgetId")
             UpdateResult.Success
+        } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to update list widget: $widgetId", e)
             UpdateResult.Error(
@@ -443,6 +459,11 @@ object GlanceWidgetManager {
             trackWidgetId(context, widgetId)
             Log.d(TAG, "Calendar widget updated successfully: $widgetId")
             UpdateResult.Success
+        } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to update calendar widget: $widgetId", e)
             UpdateResult.Error(
@@ -477,6 +498,21 @@ object GlanceWidgetManager {
     ): UpdateResult {
         return try {
             Log.d(TAG, "Updating image widget: $widgetId")
+
+            // Resolved here rather than in the template: `imageUrl` needs the
+            // network and every picture needs downsampling, and a Glance
+            // composition runs in the host's process on the host's schedule.
+            val stored = ImageStore.store(
+                context,
+                widgetId,
+                data["imageBase64"] as? String,
+                data["imageUrl"] as? String
+            )
+            if (stored is ImageStore.Result.Failed) {
+                Log.w(TAG, "Image widget \"$widgetId\": ${stored.reason}")
+                return UpdateResult.Error(UpdateResult.ERROR_INVALID_DATA, stored.reason)
+            }
+
             val widget = ImageGlanceWidget()
             val glanceIds =
                 when (val targets = resolveTargets(context, ImageGlanceWidget::class.java, widgetId)) {
@@ -496,8 +532,15 @@ object GlanceWidgetManager {
                         this[widgetIdKey] = widgetId
                         this[titleKey] = data["title"] as? String ?: ""
                         data["subtitle"]?.let { this[subtitleKey] = it as String }
-                        data["imageBase64"]?.let { this[imageBase64Key] = it as String }
-                        data["imageFit"]?.let { this[imageFitKey] = it as String }
+                        when (stored) {
+                            is ImageStore.Result.Stored -> this[imagePathKey] = stored.path
+                            // A widget that used to show a picture and no longer
+                            // has one must stop showing the old one.
+                            else -> remove(imagePathKey)
+                        }
+                        // Dart sends `fit`; this read `imageFit`, so the setting
+                        // silently never applied.
+                        data["fit"]?.let { this[imageFitKey] = it as String }
                         data["deepLinkUri"]?.let { this[deepLinkUriKey] = it as String }
                         this[timestampKey] = System.currentTimeMillis()
 
@@ -511,6 +554,11 @@ object GlanceWidgetManager {
             trackWidgetId(context, widgetId)
             Log.d(TAG, "Image widget updated successfully: $widgetId")
             UpdateResult.Success
+        } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to update image widget: $widgetId", e)
             UpdateResult.Error(
@@ -596,6 +644,11 @@ object GlanceWidgetManager {
             trackWidgetId(context, widgetId)
             Log.d(TAG, "Chart widget updated successfully: $widgetId")
             UpdateResult.Success
+        } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to update chart widget: $widgetId", e)
             UpdateResult.Error(
@@ -688,6 +741,11 @@ object GlanceWidgetManager {
             trackWidgetId(context, widgetId)
             Log.d(TAG, "Gauge widget updated successfully: $widgetId")
             UpdateResult.Success
+        } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to update gauge widget: $widgetId", e)
             UpdateResult.Error(
@@ -728,7 +786,12 @@ object GlanceWidgetManager {
                     }
                 }
                 Log.d(TAG, "Global theme set successfully")
-            } catch (e: Exception) {
+            } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
+        } catch (e: Exception) {
                 Log.e(TAG, "Failed to set global theme", e)
             }
         }
@@ -757,7 +820,12 @@ object GlanceWidgetManager {
                     }
                 }
                 Log.d(TAG, "All widgets refreshed successfully")
-            } catch (e: Exception) {
+            } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
+        } catch (e: Exception) {
                 Log.e(TAG, "Failed to force refresh all widgets", e)
             }
         }
@@ -789,7 +857,12 @@ object GlanceWidgetManager {
                 try {
                     eventSink?.success(event)
                     Log.d(TAG, "Action event sent: $actionType for widget $widgetId")
-                } catch (e: Exception) {
+                } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
+        } catch (e: Exception) {
                     Log.e(TAG, "Failed to send action event", e)
                 }
             }
@@ -811,6 +884,11 @@ object GlanceWidgetManager {
     private fun serializeItems(items: List<Map<String, Any?>>): String {
         return try {
             gson.toJson(items)
+        } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to serialize items", e)
             "[]"
@@ -828,6 +906,11 @@ object GlanceWidgetManager {
                 val type = object : TypeToken<List<Map<String, Any?>>>() {}.type
                 gson.fromJson(json, type) ?: emptyList()
             }
+        } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to deserialize items", e)
             emptyList()
@@ -865,7 +948,12 @@ object GlanceWidgetManager {
                     gson.toJson(activeWidgetIds.toList())
                 }
                 prefs.edit().putString(ACTIVE_WIDGETS_KEY, json).apply()
-            } catch (e: Exception) {
+            } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
+        } catch (e: Exception) {
                 Log.e(TAG, "Failed to persist active widget IDs", e)
             }
         }
@@ -885,6 +973,11 @@ object GlanceWidgetManager {
                 activeWidgetIds.addAll(ids)
             }
             Log.d(TAG, "Loaded ${ids.size} active widget IDs")
+        } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to load active widget IDs", e)
         }
@@ -1120,6 +1213,11 @@ object GlanceWidgetManager {
             val bytes = outputStream.toByteArray()
             bitmap.recycle()
             Base64.encodeToString(bytes, Base64.NO_WRAP)
+        } catch (e: CancellationException) {
+            // Cancellation is not an update failure. Swallowing it here would
+            // report a cancelled coroutine as a rejected update and break
+            // structured concurrency for every caller upstream.
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Failed to encode bitmap to base64", e)
             ""

@@ -2,10 +2,7 @@ package dev.glance.widget.android.templates
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.net.Uri
-import android.util.Base64
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,6 +22,7 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import androidx.compose.ui.graphics.Color
 import dev.glance.widget.android.GlanceWidgetManager
+import dev.glance.widget.android.ImageCache
 
 /**
  * Image Widget - displays a title, an image (from base64), and optional subtitle.
@@ -47,7 +45,8 @@ private fun ImageWidgetContent(prefs: Preferences) {
     val widgetId = prefs[GlanceWidgetManager.widgetIdKey] ?: "image"
     val title = prefs[GlanceWidgetManager.titleKey] ?: ""
     val subtitle = prefs[GlanceWidgetManager.subtitleKey]
-    val imageBase64 = prefs[GlanceWidgetManager.imageBase64Key] ?: ""
+    val imagePath = prefs[GlanceWidgetManager.imagePathKey]
+    val stamp = prefs[GlanceWidgetManager.timestampKey] ?: 0L
     val imageFit = prefs[GlanceWidgetManager.imageFitKey] ?: "cover"
     val deepLinkUri = prefs[GlanceWidgetManager.deepLinkUriKey]
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
@@ -100,8 +99,10 @@ private fun ImageWidgetContent(prefs: Preferences) {
         }
 
         // Image
-        if (imageBase64.isNotEmpty()) {
-            val bitmap = decodeBase64ToBitmap(imageBase64)
+        if (imagePath != null) {
+            // Decoded once and held, rather than re-decoded on every
+            // recomposition. The picture was already downsampled at update time.
+            val bitmap = ImageCache.get(imagePath, stamp)
             if (bitmap != null) {
                 Image(
                     provider = ImageProvider(bitmap),
@@ -167,20 +168,6 @@ private fun ImageWidgetContent(prefs: Preferences) {
                 )
             }
         }
-    }
-}
-
-/**
- * Decodes a base64 string to an Android Bitmap.
- * Returns null if decoding fails.
- */
-private fun decodeBase64ToBitmap(base64String: String): android.graphics.Bitmap? {
-    return try {
-        val decodedBytes = Base64.decode(base64String, Base64.DEFAULT)
-        BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-    } catch (e: Exception) {
-        Log.e("ImageGlanceWidget", "Failed to decode base64 image", e)
-        null
     }
 }
 
