@@ -32,11 +32,13 @@ migrate_working_dir/
 **/coverage/
 
 # Android related
-**/android/**/gradle-wrapper.jar
+# The Gradle wrapper (gradlew, gradlew.bat, gradle-wrapper.jar) is deliberately
+# checked in, against the Flutter template's default: it pins the Gradle version
+# this plugin is built and tested against, and CI needs it to run the Android
+# module's unit tests. Do not re-add ignore rules for it -- `dart pub publish`
+# rejects a package whose checked-in files are gitignored.
 **/.gradle
 **/android/**/captures/
-**/android/**/gradlew
-**/android/**/gradlew.bat
 **/android/**/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 **/android/**/*.keystore
