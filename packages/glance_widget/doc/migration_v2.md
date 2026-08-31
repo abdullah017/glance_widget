@@ -106,17 +106,19 @@ way; in 1.x the controllers bypassed the guard entirely and threw
 
 ## 6. iOS requires a deployment target of 17.0
 
-Up from 16.0. Set it in `ios/Podfile`:
+Up from 16.0. Set it in Xcode under Runner → General → Minimum Deployments,
+and in `ios/Podfile` too if you still use CocoaPods:
 
 ```ruby
 platform :ios, '17.0'
 ```
 
-Set it there even if your project has no pods left. Flutter generates
-`FlutterGeneratedPluginSwiftPackage` from that line, and a commented-out one
-pins the generated package to Flutter's default whatever the Xcode target says,
-so the build stops with `requires minimum platform version 17.0 for the iOS
-platform`.
+Under Swift Package Manager the Xcode value is what counts, but it reaches
+`FlutterGeneratedPluginSwiftPackage` only through `flutter build ios`
+(`--config-only` is enough): `flutter pub get` rewrites that manifest at
+Flutter's own 15.0 default. Going straight from `pub get` to `xcodebuild` stops
+with `requires minimum platform version 17.0 for the iOS platform`, so run a
+build first.
 
 The reason is the fix below: `AppIntentConfiguration` is the only widget
 configuration that carries a per-instance parameter, and it needs iOS 17.
