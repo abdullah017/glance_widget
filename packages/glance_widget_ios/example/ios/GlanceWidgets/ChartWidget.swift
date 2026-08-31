@@ -85,6 +85,9 @@ struct ChartWidgetEntryView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.widgetFamily) var family
 
+    /// The layout shape this family wants. See `GlanceSystemSize`.
+    private var size: GlanceSystemSize { GlanceSystemSize(family) }
+
     private var theme: WidgetThemeData {
         entry.data.theme
             ?? WidgetStorage.shared.loadGlobalTheme()
@@ -96,6 +99,19 @@ struct ChartWidgetEntryView: View {
     }
 
     var body: some View {
+        if let accessory = GlanceAccessorySize(family) {
+            accessoryBody(accessory)
+        } else {
+            systemBody
+        }
+    }
+
+    /// The home screen layout. A lock screen family never reaches this: it is
+    /// routed to `accessoryBody` first, because scaling this down into 58pt of
+    /// single-colour space produces something unreadable rather than something
+    /// small.
+    @ViewBuilder
+    private var systemBody: some View {
         let backgroundColor = Color(argb: theme.backgroundColor)
         let textColor = Color(argb: theme.textColor)
         let secondaryTextColor = Color(argb: theme.secondaryTextColor)
@@ -107,7 +123,7 @@ struct ChartWidgetEntryView: View {
                     .fill(backgroundColor)
 
                 // Content
-                VStack(alignment: .leading, spacing: contentSpacing(for: family)) {
+                VStack(alignment: .leading, spacing: contentSpacing(for: size)) {
                     // Header
                     if entry.data.chartType != "sparkline" {
                         headerView(textColor: textColor, secondaryTextColor: secondaryTextColor)
@@ -121,10 +137,53 @@ struct ChartWidgetEntryView: View {
                         sparklineFooter(textColor: textColor, secondaryTextColor: secondaryTextColor)
                     }
                 }
-                .padding(dynamicPadding(for: family))
+                .padding(dynamicPadding(for: size))
             }
         }
         .widgetURL(widgetURL)
+    }
+
+    // MARK: - Lock Screen
+
+    /// The lock screen and Smart Stack layouts.
+    ///
+    /// The theme is deliberately not consulted here. The system renders an
+    /// accessory family in a single tint of its own choosing, so a view that
+    /// passed `theme.accentColor` through would read as if the colour worked
+    /// while changing nothing on screen.
+    @ViewBuilder
+    private func accessoryBody(_ accessory: GlanceAccessorySize) -> some View {
+        switch accessory {
+        case .circular:
+            GlanceCircularText(value: accessoryLastValue)
+        case .rectangular:
+            GlanceRectangularStack(title: entry.data.title) {
+                if entry.data.dataPoints.count > 1 {
+                    HStack(spacing: 6) {
+                        GlanceSparkline(dataPoints: entry.data.dataPoints)
+                            .stroke(
+                                style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round)
+                            )
+                        Text(accessoryLastValue)
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    Text("No chart data")
+                        .font(.system(size: 12))
+                }
+            }
+        case .inline:
+            Text("\(entry.data.title) \(accessoryLastValue)")
+        }
+    }
+
+    /// The most recent reading, which is the one number the small slots have
+    /// room for. The shape goes in the rectangular slot; a circle gets this.
+    private var accessoryLastValue: String {
+        guard let last = entry.data.dataPoints.last else { return "--" }
+        return GlanceAccessoryFormat.value(last)
     }
 
     // MARK: - Subviews
@@ -133,14 +192,14 @@ struct ChartWidgetEntryView: View {
     private func headerView(textColor: Color, secondaryTextColor: Color) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(entry.data.title)
-                .font(titleFont(for: family))
+                .font(titleFont(for: size))
                 .fontWeight(.bold)
                 .foregroundColor(textColor)
                 .lineLimit(1)
 
             if let subtitle = entry.data.subtitle, !subtitle.isEmpty {
                 Text(subtitle)
-                    .font(subtitleFont(for: family))
+                    .font(subtitleFont(for: size))
                     .foregroundColor(secondaryTextColor)
                     .lineLimit(1)
             }
@@ -151,7 +210,7 @@ struct ChartWidgetEntryView: View {
     private func sparklineFooter(textColor: Color, secondaryTextColor: Color) -> some View {
         HStack {
             Text(entry.data.title)
-                .font(titleFont(for: family))
+                .font(titleFont(for: size))
                 .fontWeight(.bold)
                 .foregroundColor(textColor)
                 .lineLimit(1)
@@ -160,7 +219,7 @@ struct ChartWidgetEntryView: View {
 
             if let subtitle = entry.data.subtitle, !subtitle.isEmpty {
                 Text(subtitle)
-                    .font(subtitleFont(for: family))
+                    .font(subtitleFont(for: size))
                     .foregroundColor(secondaryTextColor)
                     .lineLimit(1)
             }
@@ -190,7 +249,7 @@ struct ChartWidgetEntryView: View {
                 VStack {
                     Spacer()
                     Text("No data")
-                        .font(subtitleFont(for: family))
+                        .font(subtitleFont(for: size))
                         .foregroundColor(Color(argb: theme.secondaryTextColor))
                     Spacer()
                 }
@@ -246,7 +305,7 @@ struct ChartWidgetEntryView: View {
                         path.addLine(to: CGPoint(x: x, y: y))
                     }
                 }
-                .stroke(chartColor, style: StrokeStyle(lineWidth: lineWidth(for: family), lineCap: .round, lineJoin: .round))
+                .stroke(chartColor, style: StrokeStyle(lineWidth: lineWidth(for: size), lineCap: .round, lineJoin: .round))
 
                 // Data point dots
                 if points.count <= 12 {
@@ -255,7 +314,7 @@ struct ChartWidgetEntryView: View {
                         let y = height - CGFloat((value - minVal) / range) * height
                         Circle()
                             .fill(chartColor)
-                            .frame(width: dotRadius(for: family), height: dotRadius(for: family))
+                            .frame(width: dotRadius(for: size), height: dotRadius(for: size))
                             .position(x: x, y: y)
                     }
                 }
@@ -270,14 +329,14 @@ struct ChartWidgetEntryView: View {
             let points = entry.data.dataPoints
             let maxVal = points.max() ?? 1
             let barCount = CGFloat(points.count)
-            let totalSpacing = barSpacing(for: family) * (barCount - 1)
+            let totalSpacing = barSpacing(for: size) * (barCount - 1)
             let barWidth = max(2, (geo.size.width - totalSpacing) / barCount)
 
-            HStack(alignment: .bottom, spacing: barSpacing(for: family)) {
+            HStack(alignment: .bottom, spacing: barSpacing(for: size)) {
                 ForEach(Array(points.enumerated()), id: \.offset) { index, value in
                     let barHeight = maxVal > 0 ? CGFloat(value / maxVal) * geo.size.height : 0
 
-                    RoundedRectangle(cornerRadius: barCornerRadius(for: family))
+                    RoundedRectangle(cornerRadius: barCornerRadius(for: size))
                         .fill(chartColor)
                         .frame(width: barWidth, height: max(2, barHeight))
                 }
@@ -309,7 +368,7 @@ struct ChartWidgetEntryView: View {
                     path.addLine(to: CGPoint(x: x, y: y))
                 }
             }
-            .stroke(chartColor, style: StrokeStyle(lineWidth: sparklineWidth(for: family), lineCap: .round, lineJoin: .round))
+            .stroke(chartColor, style: StrokeStyle(lineWidth: sparklineWidth(for: size), lineCap: .round, lineJoin: .round))
         }
     }
 
@@ -324,120 +383,102 @@ struct ChartWidgetEntryView: View {
 
     // MARK: - Dynamic Sizing
 
-    private func titleFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func titleFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption
-        case .systemMedium:
+        case .medium:
             return .subheadline
-        case .systemLarge:
+        case .large:
             return .headline
-        @unknown default:
-            return .subheadline
         }
     }
 
-    private func subtitleFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func subtitleFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption2
-        case .systemMedium:
+        case .medium:
             return .caption
-        case .systemLarge:
+        case .large:
             return .subheadline
-        @unknown default:
-            return .caption
         }
     }
 
-    private func lineWidth(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func lineWidth(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 1.5
-        case .systemMedium:
+        case .medium:
             return 2
-        case .systemLarge:
+        case .large:
             return 2.5
-        @unknown default:
-            return 2
         }
     }
 
-    private func sparklineWidth(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func sparklineWidth(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 1.5
-        case .systemMedium:
+        case .medium:
             return 2
-        case .systemLarge:
+        case .large:
             return 2.5
-        @unknown default:
-            return 2
         }
     }
 
-    private func dotRadius(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func dotRadius(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 4
-        case .systemMedium:
+        case .medium:
             return 5
-        case .systemLarge:
+        case .large:
             return 6
-        @unknown default:
-            return 5
         }
     }
 
-    private func barSpacing(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func barSpacing(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 2
-        case .systemMedium:
+        case .medium:
             return 3
-        case .systemLarge:
+        case .large:
             return 4
-        @unknown default:
-            return 3
         }
     }
 
-    private func barCornerRadius(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func barCornerRadius(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 2
-        case .systemMedium:
+        case .medium:
             return 3
-        case .systemLarge:
+        case .large:
             return 4
-        @unknown default:
-            return 3
         }
     }
 
-    private func contentSpacing(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func contentSpacing(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 6
-        case .systemMedium:
+        case .medium:
             return 8
-        case .systemLarge:
+        case .large:
             return 10
-        @unknown default:
-            return 8
         }
     }
 
-    private func dynamicPadding(for family: WidgetFamily) -> EdgeInsets {
-        switch family {
-        case .systemSmall:
+    private func dynamicPadding(for size: GlanceSystemSize) -> EdgeInsets {
+        switch size {
+        case .small:
             return EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
-        case .systemMedium:
+        case .medium:
             return EdgeInsets(top: 14, leading: 14, bottom: 14, trailing: 14)
-        case .systemLarge:
+        case .large:
             return EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
-        @unknown default:
-            return EdgeInsets(top: 14, leading: 14, bottom: 14, trailing: 14)
         }
     }
 }
@@ -454,14 +495,14 @@ struct ChartWidget: Widget {
             provider: ChartWidgetProvider()
         ) { entry in
             ChartWidgetEntryView(entry: entry)
-                .containerBackground(for: .widget) {
+                .glanceContainerBackground(
                     Color(argb: entry.data.theme?.backgroundColor
                           ?? WidgetThemeData.defaultDark.backgroundColor)
-                }
+                )
         }
         .configurationDisplayName("Chart Widget")
         .description("Display data as line, bar, or sparkline charts. Perfect for trends, analytics, and metrics visualization.")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
 

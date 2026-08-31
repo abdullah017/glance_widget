@@ -85,6 +85,9 @@ struct CalendarWidgetEntryView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.widgetFamily) var family
 
+    /// The layout shape this family wants. See `GlanceSystemSize`.
+    private var size: GlanceSystemSize { GlanceSystemSize(family) }
+
     private var theme: WidgetThemeData {
         entry.data.theme
             ?? WidgetStorage.shared.loadGlobalTheme()
@@ -92,15 +95,13 @@ struct CalendarWidgetEntryView: View {
     }
 
     private var maxEventsToShow: Int {
-        switch family {
-        case .systemSmall:
+        switch size {
+        case .small:
             return min(2, entry.data.maxEvents)
-        case .systemMedium:
+        case .medium:
             return min(3, entry.data.maxEvents)
-        case .systemLarge:
+        case .large:
             return min(8, entry.data.maxEvents)
-        @unknown default:
-            return entry.data.maxEvents
         }
     }
 
@@ -116,6 +117,19 @@ struct CalendarWidgetEntryView: View {
     }
 
     var body: some View {
+        if let accessory = GlanceAccessorySize(family) {
+            accessoryBody(accessory)
+        } else {
+            systemBody
+        }
+    }
+
+    /// The home screen layout. A lock screen family never reaches this: it is
+    /// routed to `accessoryBody` first, because scaling this down into 58pt of
+    /// single-colour space produces something unreadable rather than something
+    /// small.
+    @ViewBuilder
+    private var systemBody: some View {
         let backgroundColor = Color(argb: theme.backgroundColor)
         let textColor = Color(argb: theme.textColor)
         let secondaryTextColor = Color(argb: theme.secondaryTextColor)
@@ -128,7 +142,7 @@ struct CalendarWidgetEntryView: View {
                     .fill(backgroundColor)
 
                 // Content
-                VStack(alignment: .leading, spacing: contentSpacing(for: family)) {
+                VStack(alignment: .leading, spacing: contentSpacing(for: size)) {
                     // Date header
                     dateHeaderView(
                         textColor: textColor,
@@ -153,10 +167,55 @@ struct CalendarWidgetEntryView: View {
                         )
                     }
                 }
-                .padding(dynamicPadding(for: family))
+                .padding(dynamicPadding(for: size))
             }
         }
         .widgetURL(widgetURL)
+    }
+
+    // MARK: - Lock Screen
+
+    /// The lock screen and Smart Stack layouts.
+    ///
+    /// The theme is deliberately not consulted here. The system renders an
+    /// accessory family in a single tint of its own choosing, so a view that
+    /// passed `theme.accentColor` through would read as if the colour worked
+    /// while changing nothing on screen.
+    @ViewBuilder
+    private func accessoryBody(_ accessory: GlanceAccessorySize) -> some View {
+        switch accessory {
+        case .circular:
+            GlanceCircularText(value: dayNumber, caption: dayOfWeek)
+        case .rectangular:
+            GlanceRectangularStack(title: entry.data.title) {
+                if entry.data.events.isEmpty {
+                    Text("No events")
+                        .font(.system(size: 12))
+                } else {
+                    ForEach(Array(entry.data.events.prefix(2).enumerated()), id: \.offset) { _, event in
+                        Text(accessoryLine(for: event))
+                            .font(.system(size: 12))
+                            .lineLimit(1)
+                    }
+                }
+            }
+        case .inline:
+            Text(accessoryInlineText)
+        }
+    }
+
+    /// One event on one line, the way the home screen layout splits it.
+    private func accessoryLine(for event: CalendarEventData) -> String {
+        let when = event.isAllDay ? "All day" : event.time
+        return "\(when)  \(event.title)"
+    }
+
+    /// The next event, or the date itself when the day is empty.
+    private var accessoryInlineText: String {
+        guard let next = entry.data.events.first else {
+            return "\(dayOfWeek) \(dayNumber)"
+        }
+        return accessoryLine(for: next)
     }
 
     // MARK: - Subviews
@@ -167,26 +226,26 @@ struct CalendarWidgetEntryView: View {
             // Day number
             VStack(spacing: 2) {
                 Text(dayOfWeek)
-                    .font(dayOfWeekFont(for: family))
+                    .font(dayOfWeekFont(for: size))
                     .fontWeight(.medium)
                     .foregroundColor(accentColor)
                     .textCase(.uppercase)
 
                 Text(dayNumber)
-                    .font(dayNumberFont(for: family))
+                    .font(dayNumberFont(for: size))
                     .fontWeight(.bold)
                     .foregroundColor(textColor)
             }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.data.title)
-                    .font(titleFont(for: family))
+                    .font(titleFont(for: size))
                     .fontWeight(.bold)
                     .foregroundColor(textColor)
                     .lineLimit(1)
 
                 Text(monthYear)
-                    .font(subtitleFont(for: family))
+                    .font(subtitleFont(for: size))
                     .foregroundColor(secondaryTextColor)
                     .lineLimit(1)
             }
@@ -202,10 +261,10 @@ struct CalendarWidgetEntryView: View {
             Spacer()
             VStack(spacing: 4) {
                 Image(systemName: "calendar")
-                    .font(emptyIconFont(for: family))
+                    .font(emptyIconFont(for: size))
                     .foregroundColor(secondaryTextColor.opacity(0.5))
                 Text("No events")
-                    .font(eventTitleFont(for: family))
+                    .font(eventTitleFont(for: size))
                     .foregroundColor(secondaryTextColor)
             }
             Spacer()
@@ -215,7 +274,7 @@ struct CalendarWidgetEntryView: View {
 
     @ViewBuilder
     private func eventsListView(textColor: Color, secondaryTextColor: Color, accentColor: Color) -> some View {
-        VStack(alignment: .leading, spacing: eventSpacing(for: family)) {
+        VStack(alignment: .leading, spacing: eventSpacing(for: size)) {
             ForEach(Array(entry.data.events.prefix(maxEventsToShow).enumerated()), id: \.offset) { index, event in
                 eventRowView(
                     event: event,
@@ -247,17 +306,17 @@ struct CalendarWidgetEntryView: View {
             // Color dot
             Circle()
                 .fill(event.color.map { Color(argb: $0) } ?? accentColor)
-                .frame(width: dotSize(for: family), height: dotSize(for: family))
+                .frame(width: dotSize(for: size), height: dotSize(for: size))
 
             // Event details
             VStack(alignment: .leading, spacing: 1) {
                 Text(event.title)
-                    .font(eventTitleFont(for: family))
+                    .font(eventTitleFont(for: size))
                     .foregroundColor(textColor)
                     .lineLimit(1)
 
                 Text(event.isAllDay ? "All day" : event.time)
-                    .font(eventTimeFont(for: family))
+                    .font(eventTimeFont(for: size))
                     .foregroundColor(secondaryTextColor)
                     .lineLimit(1)
             }
@@ -295,146 +354,124 @@ struct CalendarWidgetEntryView: View {
 
     // MARK: - Dynamic Sizing
 
-    private func titleFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func titleFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .subheadline
-        case .systemMedium:
+        case .medium:
             return .headline
-        case .systemLarge:
+        case .large:
             return .title3
-        @unknown default:
-            return .headline
         }
     }
 
-    private func subtitleFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func subtitleFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption2
-        case .systemMedium:
+        case .medium:
             return .caption
-        case .systemLarge:
+        case .large:
             return .subheadline
-        @unknown default:
-            return .caption
         }
     }
 
-    private func dayOfWeekFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func dayOfWeekFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption2
-        case .systemMedium:
+        case .medium:
             return .caption
-        case .systemLarge:
+        case .large:
             return .subheadline
-        @unknown default:
-            return .caption
         }
     }
 
-    private func dayNumberFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func dayNumberFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .title3
-        case .systemMedium:
+        case .medium:
             return .title2
-        case .systemLarge:
+        case .large:
             return .title
-        @unknown default:
-            return .title2
         }
     }
 
-    private func eventTitleFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func eventTitleFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption
-        case .systemMedium:
+        case .medium:
             return .subheadline
-        case .systemLarge:
+        case .large:
             return .body
-        @unknown default:
-            return .subheadline
         }
     }
 
-    private func eventTimeFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func eventTimeFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption2
-        case .systemMedium:
+        case .medium:
             return .caption
-        case .systemLarge:
+        case .large:
             return .subheadline
-        @unknown default:
-            return .caption
         }
     }
 
-    private func emptyIconFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func emptyIconFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .title3
-        case .systemMedium:
+        case .medium:
             return .title2
-        case .systemLarge:
+        case .large:
             return .title
-        @unknown default:
-            return .title2
         }
     }
 
-    private func dotSize(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func dotSize(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 6
-        case .systemMedium:
+        case .medium:
             return 8
-        case .systemLarge:
+        case .large:
             return 10
-        @unknown default:
-            return 8
         }
     }
 
-    private func contentSpacing(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func contentSpacing(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 6
-        case .systemMedium:
+        case .medium:
             return 8
-        case .systemLarge:
+        case .large:
             return 10
-        @unknown default:
-            return 8
         }
     }
 
-    private func eventSpacing(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func eventSpacing(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 4
-        case .systemMedium:
+        case .medium:
             return 6
-        case .systemLarge:
+        case .large:
             return 8
-        @unknown default:
-            return 6
         }
     }
 
-    private func dynamicPadding(for family: WidgetFamily) -> EdgeInsets {
-        switch family {
-        case .systemSmall:
+    private func dynamicPadding(for size: GlanceSystemSize) -> EdgeInsets {
+        switch size {
+        case .small:
             return EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
-        case .systemMedium:
+        case .medium:
             return EdgeInsets(top: 14, leading: 14, bottom: 14, trailing: 14)
-        case .systemLarge:
+        case .large:
             return EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
-        @unknown default:
-            return EdgeInsets(top: 14, leading: 14, bottom: 14, trailing: 14)
         }
     }
 }
@@ -451,14 +488,14 @@ struct CalendarWidget: Widget {
             provider: CalendarWidgetProvider()
         ) { entry in
             CalendarWidgetEntryView(entry: entry)
-                .containerBackground(for: .widget) {
+                .glanceContainerBackground(
                     Color(argb: entry.data.theme?.backgroundColor
                           ?? WidgetThemeData.defaultDark.backgroundColor)
-                }
+                )
         }
         .configurationDisplayName("Calendar Widget")
         .description("Display upcoming events with date header and colored indicators. Perfect for schedules and agendas.")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
 

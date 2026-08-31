@@ -1,5 +1,12 @@
 ## 2.0.0
 
+**Added:** iOS lock screen and Smart Stack widgets. Six of the seven templates
+now render in the `.accessoryCircular`, `.accessoryRectangular` and
+`.accessoryInline` families. No API change: the same `updateSimpleWidget` call
+feeds a home screen widget and a lock screen one. See the README for what the
+lock screen changes -- theme colours are ignored there, and `ImageWidget` does
+not offer the families at all.
+
 **Breaking:** widget updates now report failures instead of hiding them. See
 [doc/migration_v2.md](doc/migration_v2.md) for the full migration.
 

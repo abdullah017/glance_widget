@@ -85,6 +85,9 @@ struct GaugeWidgetEntryView: View {
     @Environment(\.colorScheme) var colorScheme
     @Environment(\.widgetFamily) var family
 
+    /// The layout shape this family wants. See `GlanceSystemSize`.
+    private var size: GlanceSystemSize { GlanceSystemSize(family) }
+
     private var theme: WidgetThemeData {
         entry.data.theme
             ?? WidgetStorage.shared.loadGlobalTheme()
@@ -92,6 +95,19 @@ struct GaugeWidgetEntryView: View {
     }
 
     var body: some View {
+        if let accessory = GlanceAccessorySize(family) {
+            accessoryBody(accessory)
+        } else {
+            systemBody
+        }
+    }
+
+    /// The home screen layout. A lock screen family never reaches this: it is
+    /// routed to `accessoryBody` first, because scaling this down into 58pt of
+    /// single-colour space produces something unreadable rather than something
+    /// small.
+    @ViewBuilder
+    private var systemBody: some View {
         let backgroundColor = Color(argb: theme.backgroundColor)
         let textColor = Color(argb: theme.textColor)
         let secondaryTextColor = Color(argb: theme.secondaryTextColor)
@@ -103,10 +119,10 @@ struct GaugeWidgetEntryView: View {
                     .fill(backgroundColor)
 
                 // Content
-                VStack(spacing: contentSpacing(for: family)) {
+                VStack(spacing: contentSpacing(for: size)) {
                     // Title
                     Text(entry.data.title)
-                        .font(titleFont(for: family))
+                        .font(titleFont(for: size))
                         .fontWeight(.bold)
                         .foregroundColor(textColor)
                         .lineLimit(1)
@@ -127,10 +143,71 @@ struct GaugeWidgetEntryView: View {
                         )
                     }
                 }
-                .padding(dynamicPadding(for: family))
+                .padding(dynamicPadding(for: size))
             }
         }
         .widgetURL(widgetURL)
+    }
+
+    // MARK: - Lock Screen
+
+    /// The lock screen and Smart Stack layouts.
+    ///
+    /// The theme is deliberately not consulted here. The system renders an
+    /// accessory family in a single tint of its own choosing, so a view that
+    /// passed `theme.accentColor` through would read as if the colour worked
+    /// while changing nothing on screen.
+    @ViewBuilder
+    private func accessoryBody(_ accessory: GlanceAccessorySize) -> some View {
+        switch accessory {
+        case .circular:
+            if let metric = entry.data.metrics.first {
+                GlanceCircularGauge(
+                    progress: accessoryFraction(metric),
+                    label: accessoryReading(metric)
+                )
+            } else {
+                GlanceCircularText(value: "--")
+            }
+        case .rectangular:
+            GlanceRectangularStack(title: entry.data.title) {
+                if entry.data.metrics.isEmpty {
+                    Text("No metrics")
+                        .font(.system(size: 12))
+                } else {
+                    ForEach(Array(entry.data.metrics.prefix(2).enumerated()), id: \.offset) { _, metric in
+                        GlanceRectangularGauge(
+                            progress: accessoryFraction(metric),
+                            label: metric.label,
+                            value: accessoryReading(metric)
+                        )
+                    }
+                }
+            }
+        case .inline:
+            Text(accessoryInlineText)
+        }
+    }
+
+    /// How full [metric] is, 0 to 1.
+    ///
+    /// A `maxValue` of zero is what an unset field decodes to, and dividing by
+    /// it yields an infinity that a `Gauge` refuses to draw; it reads as empty
+    /// instead, which is the truthful answer for a metric with no scale.
+    private func accessoryFraction(_ metric: GaugeMetricData) -> Double {
+        guard metric.maxValue > 0 else { return 0 }
+        return metric.value / metric.maxValue
+    }
+
+    /// [metric]'s value with its unit, short enough for a ring.
+    private func accessoryReading(_ metric: GaugeMetricData) -> String {
+        GlanceAccessoryFormat.value(metric.value) + (metric.unit ?? "")
+    }
+
+    /// The first metric, named, or the widget's own title when there are none.
+    private var accessoryInlineText: String {
+        guard let metric = entry.data.metrics.first else { return entry.data.title }
+        return "\(metric.label) \(accessoryReading(metric))"
     }
 
     // MARK: - Empty State
@@ -141,7 +218,7 @@ struct GaugeWidgetEntryView: View {
         HStack {
             Spacer()
             Text("No metrics")
-                .font(metricLabelFont(for: family))
+                .font(metricLabelFont(for: size))
                 .foregroundColor(secondaryTextColor)
             Spacer()
         }
@@ -153,23 +230,23 @@ struct GaugeWidgetEntryView: View {
     @ViewBuilder
     private func radialView(textColor: Color, secondaryTextColor: Color, geometry: GeometryProxy) -> some View {
         let metricsToShow = metricsForRadial
-        let gaugeSize = radialGaugeSize(for: family, geometry: geometry, count: metricsToShow.count)
+        let gaugeSize = radialGaugeSize(for: size, geometry: geometry, count: metricsToShow.count)
 
         if metricsToShow.count == 1 {
             // Single large gauge
             singleRadialGauge(
                 metric: metricsToShow[0],
-                size: gaugeSize,
+                diameter: gaugeSize,
                 textColor: textColor,
                 secondaryTextColor: secondaryTextColor
             )
         } else {
             // Multiple gauges in a row
-            HStack(spacing: gaugeSpacing(for: family)) {
+            HStack(spacing: gaugeSpacing(for: size)) {
                 ForEach(Array(metricsToShow.enumerated()), id: \.offset) { _, metric in
                     singleRadialGauge(
                         metric: metric,
-                        size: gaugeSize,
+                        diameter: gaugeSize,
                         textColor: textColor,
                         secondaryTextColor: secondaryTextColor
                     )
@@ -179,19 +256,19 @@ struct GaugeWidgetEntryView: View {
     }
 
     @ViewBuilder
-    private func singleRadialGauge(metric: GaugeMetricData, size: CGFloat, textColor: Color, secondaryTextColor: Color) -> some View {
+    private func singleRadialGauge(metric: GaugeMetricData, diameter: CGFloat, textColor: Color, secondaryTextColor: Color) -> some View {
         let progress = metric.maxValue > 0 ? min(metric.value / metric.maxValue, 1.0) : 0
         let gaugeColor = metric.color.map { Color(argb: $0) } ?? Color(argb: theme.accentColor)
         let trackColor = secondaryTextColor.opacity(0.3)
-        let arcLineWidth = arcWidth(for: family)
+        let arcLineWidth = arcWidth(for: size)
 
         VStack(spacing: 4) {
             ZStack {
                 // Track arc (270 degrees, starting from bottom-left)
                 Path { path in
                     path.addArc(
-                        center: CGPoint(x: size / 2, y: size / 2),
-                        radius: (size - arcLineWidth) / 2,
+                        center: CGPoint(x: diameter / 2, y: diameter / 2),
+                        radius: (diameter - arcLineWidth) / 2,
                         startAngle: .degrees(135),
                         endAngle: .degrees(405),
                         clockwise: false
@@ -202,8 +279,8 @@ struct GaugeWidgetEntryView: View {
                 // Progress arc
                 Path { path in
                     path.addArc(
-                        center: CGPoint(x: size / 2, y: size / 2),
-                        radius: (size - arcLineWidth) / 2,
+                        center: CGPoint(x: diameter / 2, y: diameter / 2),
+                        radius: (diameter - arcLineWidth) / 2,
                         startAngle: .degrees(135),
                         endAngle: .degrees(135 + 270 * progress),
                         clockwise: false
@@ -214,22 +291,22 @@ struct GaugeWidgetEntryView: View {
                 // Value text
                 VStack(spacing: 0) {
                     Text(formattedValue(metric.value))
-                        .font(gaugeValueFont(for: family))
+                        .font(gaugeValueFont(for: size))
                         .fontWeight(.bold)
                         .foregroundColor(textColor)
 
                     if let unit = metric.unit, !unit.isEmpty {
                         Text(unit)
-                            .font(gaugeUnitFont(for: family))
+                            .font(gaugeUnitFont(for: size))
                             .foregroundColor(secondaryTextColor)
                     }
                 }
             }
-            .frame(width: size, height: size)
+            .frame(width: diameter, height: diameter)
 
             // Label
             Text(metric.label)
-                .font(metricLabelFont(for: family))
+                .font(metricLabelFont(for: size))
                 .foregroundColor(secondaryTextColor)
                 .lineLimit(1)
         }
@@ -241,8 +318,8 @@ struct GaugeWidgetEntryView: View {
     private func dashboardView(textColor: Color, secondaryTextColor: Color, geometry: GeometryProxy) -> some View {
         let metricsToShow = metricsForDashboard
 
-        if family == .systemSmall {
-            VStack(spacing: dashboardSpacing(for: family)) {
+        if size == .small {
+            VStack(spacing: dashboardSpacing(for: size)) {
                 ForEach(Array(metricsToShow.enumerated()), id: \.offset) { _, metric in
                     dashboardMetricCard(
                         metric: metric,
@@ -253,12 +330,12 @@ struct GaugeWidgetEntryView: View {
                 }
             }
         } else {
-            let columns = family == .systemLarge ? 2 : 2
+            let columns = size == .large ? 2 : 2
             let rows = metricsToShow.chunked(into: columns)
 
-            VStack(spacing: dashboardSpacing(for: family)) {
+            VStack(spacing: dashboardSpacing(for: size)) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-                    HStack(spacing: dashboardSpacing(for: family)) {
+                    HStack(spacing: dashboardSpacing(for: size)) {
                         ForEach(Array(row.enumerated()), id: \.offset) { _, metric in
                             dashboardMetricCard(
                                 metric: metric,
@@ -286,7 +363,7 @@ struct GaugeWidgetEntryView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(metric.label)
-                    .font(metricLabelFont(for: family))
+                    .font(metricLabelFont(for: size))
                     .foregroundColor(secondaryTextColor)
                     .lineLimit(1)
 
@@ -294,13 +371,13 @@ struct GaugeWidgetEntryView: View {
 
                 HStack(spacing: 2) {
                     Text(formattedValue(metric.value))
-                        .font(metricValueFont(for: family))
+                        .font(metricValueFont(for: size))
                         .fontWeight(.semibold)
                         .foregroundColor(textColor)
 
                     if let unit = metric.unit, !unit.isEmpty {
                         Text(unit)
-                            .font(metricUnitFont(for: family))
+                            .font(metricUnitFont(for: size))
                             .foregroundColor(secondaryTextColor)
                     }
                 }
@@ -317,7 +394,7 @@ struct GaugeWidgetEntryView: View {
                         .frame(width: barGeometry.size.width * CGFloat(progress))
                 }
             }
-            .frame(height: dashboardBarHeight(for: family))
+            .frame(height: dashboardBarHeight(for: size))
         }
     }
 
@@ -325,30 +402,26 @@ struct GaugeWidgetEntryView: View {
 
     private var metricsForRadial: [GaugeMetricData] {
         let maxCount: Int
-        switch family {
-        case .systemSmall:
+        switch size {
+        case .small:
             maxCount = 1
-        case .systemMedium:
+        case .medium:
             maxCount = 3
-        case .systemLarge:
+        case .large:
             maxCount = 4
-        @unknown default:
-            maxCount = 3
         }
         return Array(entry.data.metrics.prefix(maxCount))
     }
 
     private var metricsForDashboard: [GaugeMetricData] {
         let maxCount: Int
-        switch family {
-        case .systemSmall:
+        switch size {
+        case .small:
             maxCount = 3
-        case .systemMedium:
+        case .medium:
             maxCount = 4
-        case .systemLarge:
+        case .large:
             maxCount = 8
-        @unknown default:
-            maxCount = 4
         }
         return Array(entry.data.metrics.prefix(maxCount))
     }
@@ -371,175 +444,149 @@ struct GaugeWidgetEntryView: View {
 
     // MARK: - Dynamic Sizing
 
-    private func titleFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func titleFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption
-        case .systemMedium:
+        case .medium:
             return .subheadline
-        case .systemLarge:
+        case .large:
             return .headline
-        @unknown default:
-            return .subheadline
         }
     }
 
-    private func gaugeValueFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func gaugeValueFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .title3
-        case .systemMedium:
+        case .medium:
             return .title3
-        case .systemLarge:
+        case .large:
             return .title2
-        @unknown default:
-            return .title3
         }
     }
 
-    private func gaugeUnitFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func gaugeUnitFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption2
-        case .systemMedium:
+        case .medium:
             return .caption
-        case .systemLarge:
+        case .large:
             return .subheadline
-        @unknown default:
-            return .caption
         }
     }
 
-    private func metricLabelFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func metricLabelFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption2
-        case .systemMedium:
+        case .medium:
             return .caption
-        case .systemLarge:
+        case .large:
             return .subheadline
-        @unknown default:
-            return .caption
         }
     }
 
-    private func metricValueFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func metricValueFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption
-        case .systemMedium:
+        case .medium:
             return .subheadline
-        case .systemLarge:
+        case .large:
             return .body
-        @unknown default:
-            return .subheadline
         }
     }
 
-    private func metricUnitFont(for family: WidgetFamily) -> Font {
-        switch family {
-        case .systemSmall:
+    private func metricUnitFont(for size: GlanceSystemSize) -> Font {
+        switch size {
+        case .small:
             return .caption2
-        case .systemMedium:
+        case .medium:
             return .caption
-        case .systemLarge:
+        case .large:
             return .subheadline
-        @unknown default:
-            return .caption
         }
     }
 
-    private func radialGaugeSize(for family: WidgetFamily, geometry: GeometryProxy, count: Int) -> CGFloat {
+    private func radialGaugeSize(for size: GlanceSystemSize, geometry: GeometryProxy, count: Int) -> CGFloat {
         let available = min(geometry.size.width, geometry.size.height)
-        switch family {
-        case .systemSmall:
+        switch size {
+        case .small:
             return available * 0.55
-        case .systemMedium:
-            let maxPerGauge = (geometry.size.width - CGFloat(count - 1) * gaugeSpacing(for: family)) / CGFloat(count)
+        case .medium:
+            let maxPerGauge = (geometry.size.width - CGFloat(count - 1) * gaugeSpacing(for: size)) / CGFloat(count)
             return min(available * 0.55, maxPerGauge * 0.85)
-        case .systemLarge:
-            let maxPerGauge = (geometry.size.width - CGFloat(count - 1) * gaugeSpacing(for: family)) / CGFloat(count)
+        case .large:
+            let maxPerGauge = (geometry.size.width - CGFloat(count - 1) * gaugeSpacing(for: size)) / CGFloat(count)
             return min(available * 0.35, maxPerGauge * 0.85)
-        @unknown default:
-            return 70
         }
     }
 
-    private func arcWidth(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func arcWidth(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 6
-        case .systemMedium:
+        case .medium:
             return 7
-        case .systemLarge:
+        case .large:
             return 8
-        @unknown default:
-            return 7
         }
     }
 
-    private func gaugeSpacing(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func gaugeSpacing(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 8
-        case .systemMedium:
+        case .medium:
             return 12
-        case .systemLarge:
+        case .large:
             return 16
-        @unknown default:
-            return 12
         }
     }
 
-    private func dashboardSpacing(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func dashboardSpacing(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 6
-        case .systemMedium:
+        case .medium:
             return 8
-        case .systemLarge:
+        case .large:
             return 10
-        @unknown default:
-            return 8
         }
     }
 
-    private func dashboardBarHeight(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func dashboardBarHeight(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 4
-        case .systemMedium:
+        case .medium:
             return 6
-        case .systemLarge:
+        case .large:
             return 8
-        @unknown default:
-            return 6
         }
     }
 
-    private func contentSpacing(for family: WidgetFamily) -> CGFloat {
-        switch family {
-        case .systemSmall:
+    private func contentSpacing(for size: GlanceSystemSize) -> CGFloat {
+        switch size {
+        case .small:
             return 6
-        case .systemMedium:
+        case .medium:
             return 8
-        case .systemLarge:
+        case .large:
             return 10
-        @unknown default:
-            return 8
         }
     }
 
-    private func dynamicPadding(for family: WidgetFamily) -> EdgeInsets {
-        switch family {
-        case .systemSmall:
+    private func dynamicPadding(for size: GlanceSystemSize) -> EdgeInsets {
+        switch size {
+        case .small:
             return EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
-        case .systemMedium:
+        case .medium:
             return EdgeInsets(top: 14, leading: 14, bottom: 14, trailing: 14)
-        case .systemLarge:
+        case .large:
             return EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
-        @unknown default:
-            return EdgeInsets(top: 14, leading: 14, bottom: 14, trailing: 14)
         }
     }
 }
@@ -566,14 +613,14 @@ struct GaugeWidget: Widget {
             provider: GaugeWidgetProvider()
         ) { entry in
             GaugeWidgetEntryView(entry: entry)
-                .containerBackground(for: .widget) {
+                .glanceContainerBackground(
                     Color(argb: entry.data.theme?.backgroundColor
                           ?? WidgetThemeData.defaultDark.backgroundColor)
-                }
+                )
         }
         .configurationDisplayName("Gauge Widget")
         .description("Display metrics as radial gauges or a dashboard grid. Perfect for system stats, health metrics, or KPIs.")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
 

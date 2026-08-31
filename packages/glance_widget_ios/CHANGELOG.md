@@ -1,5 +1,27 @@
 ## 2.0.0
 
+**Added:** the widget templates now support the iOS accessory families --
+`.accessoryCircular`, `.accessoryRectangular` and `.accessoryInline` -- so six
+of the seven render on the lock screen and in the Smart Stack. Each template
+draws a layout built for the space rather than a scaled-down home screen one.
+`ImageWidget` deliberately does not offer them: the system tints an accessory
+widget one colour at roughly 58pt across, and a photo at that size is a smear.
+
+**Fixed:** `.systemExtraLarge` -- the iPad family -- was laid out with
+`.systemMedium`'s fonts and padding. Every template switched on `WidgetFamily`
+with an `@unknown default` arm, and the iPad family, which is not unknown, fell
+into it. The families are now classified once in `GlanceFamily.swift`, which
+makes those switches exhaustive: a family added by a future iOS is a compile
+error in one file rather than a wrong number in seven.
+
+**Fixed:** an accessory family no longer paints the theme's background colour
+behind itself. Accessory widgets sit on the user's wallpaper and are expected
+to be transparent.
+
+Two files are new and shared by every template -- `GlanceFamily.swift` and
+`AccessoryViews.swift`. Copy both into your widget extension alongside the
+templates; `WIDGET_SETUP.md` lists the full set.
+
 **Breaking:** matches `glance_widget_platform_interface` 2.0.0. Update methods
 return `Future<void>` and throw `GlanceWidgetException` on failure instead of
 returning `Future<bool>`. See the main package's
