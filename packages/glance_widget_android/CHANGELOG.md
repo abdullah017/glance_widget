@@ -38,6 +38,12 @@ returning `Future<bool>`. See the main package's
   died. Images are now downsampled to fit a 512 px budget before decoding, with
   the error caught as a backstop.
 
+* Every `catch (e: Exception)` in the widget manager swallowed
+  `CancellationException`, which is an `Exception` in Kotlin. A cancelled
+  coroutine was reported to Dart as a rejected update, and structured
+  concurrency broke for callers upstream. Cancellation is now rethrown at all
+  15 sites.
+
 ### Security
 
 * Only `http` and `https` image URLs are fetched. A widget update carries an
