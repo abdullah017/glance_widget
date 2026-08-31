@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:glance_widget_platform_interface/src/types/glance_exception.dart';
+
 /// Base class for all widget data models.
 /// Sealed — cannot be extended outside this library.
 sealed class WidgetData {
@@ -14,6 +16,39 @@ sealed class WidgetData {
 
   /// Serializes this data for platform channel communication.
   Map<String, dynamic> toMap();
+
+  /// Checks the invariants that must hold before this data crosses to the
+  /// native side, throwing [GlanceWidgetValidationException] when one does not.
+  ///
+  /// The constructors also assert most of these, which turns a mistake in a
+  /// `const` literal into a compile error -- the earliest and cheapest place to
+  /// catch it. Asserts are stripped from release builds and cannot examine a
+  /// list's length at all without silently making the constructor non-const, so
+  /// they are not enough on their own. This runs on every build, for data
+  /// assembled at runtime from a server response just as much as for a literal.
+  void validate() {}
+
+  /// Throws unless [value] is a non-empty string.
+  static void checkNotEmpty(String value, String field) {
+    if (value.isEmpty) {
+      throw GlanceWidgetValidationException(
+        '$field cannot be empty',
+        field: field,
+        invalidValue: value,
+      );
+    }
+  }
+
+  /// Throws unless [value] holds at least one element.
+  static void checkNotEmptyList(List<Object?> value, String field) {
+    if (value.isEmpty) {
+      throw GlanceWidgetValidationException(
+        '$field cannot be empty',
+        field: field,
+        invalidValue: value,
+      );
+    }
+  }
 }
 
 /// Widget template types.
@@ -77,6 +112,12 @@ class SimpleWidgetData extends WidgetData {
   final String? iconBase64;
 
   @override
+  void validate() {
+    WidgetData.checkNotEmpty(title, 'title');
+    WidgetData.checkNotEmpty(value, 'value');
+  }
+
+  @override
   GlanceTemplate get template => GlanceTemplate.simple;
 
   @override
@@ -138,6 +179,18 @@ class ProgressWidgetData extends WidgetData {
 
   /// Optional background color for the progress track.
   final Color? trackColor;
+
+  @override
+  void validate() {
+    WidgetData.checkNotEmpty(title, 'title');
+    if (progress < 0.0 || progress > 1.0 || progress.isNaN) {
+      throw GlanceWidgetValidationException(
+        'progress must be between 0.0 and 1.0',
+        field: 'progress',
+        invalidValue: progress,
+      );
+    }
+  }
 
   @override
   GlanceTemplate get template => GlanceTemplate.progress;
@@ -217,6 +270,18 @@ class ListWidgetData extends WidgetData {
   final int maxItems;
 
   @override
+  void validate() {
+    WidgetData.checkNotEmpty(title, 'title');
+    if (maxItems < 1 || maxItems > 20) {
+      throw GlanceWidgetValidationException(
+        'maxItems must be between 1 and 20',
+        field: 'maxItems',
+        invalidValue: maxItems,
+      );
+    }
+  }
+
+  @override
   GlanceTemplate get template => GlanceTemplate.list;
 
   @override
@@ -273,6 +338,11 @@ class ImageWidgetData extends WidgetData {
   final ImageFit fit;
 
   @override
+  void validate() {
+    WidgetData.checkNotEmpty(title, 'title');
+  }
+
+  @override
   GlanceTemplate get template => GlanceTemplate.image;
 
   @override
@@ -302,9 +372,10 @@ enum ChartType {
 class ChartWidgetData extends WidgetData {
   /// Creates a ChartWidgetData with required title and data points.
   ///
-  /// Throws [AssertionError] if:
-  /// - [title] is empty
-  /// - [dataPoints] is empty
+  /// Throws [AssertionError] in debug builds if [title] is empty. An empty
+  /// [dataPoints] is rejected by [validate] when the data is dispatched: a
+  /// `List.length` check in a `const` constructor would silently make this
+  /// class non-const.
   const ChartWidgetData({
     required this.title,
     required this.dataPoints,
@@ -312,8 +383,7 @@ class ChartWidgetData extends WidgetData {
     this.color,
     this.subtitle,
     super.deepLinkUri,
-  }) : assert(title.length > 0, 'title cannot be empty'),
-       assert(dataPoints.length > 0, 'dataPoints cannot be empty');
+  }) : assert(title.length > 0, 'title cannot be empty');
 
   /// The title of the widget.
   final String title;
@@ -329,6 +399,12 @@ class ChartWidgetData extends WidgetData {
 
   /// Optional subtitle text.
   final String? subtitle;
+
+  @override
+  void validate() {
+    WidgetData.checkNotEmpty(title, 'title');
+    WidgetData.checkNotEmptyList(dataPoints, 'dataPoints');
+  }
 
   @override
   GlanceTemplate get template => GlanceTemplate.chart;
@@ -407,6 +483,18 @@ class CalendarWidgetData extends WidgetData {
   final int maxEvents;
 
   @override
+  void validate() {
+    WidgetData.checkNotEmpty(title, 'title');
+    if (maxEvents < 1 || maxEvents > 10) {
+      throw GlanceWidgetValidationException(
+        'maxEvents must be between 1 and 10',
+        field: 'maxEvents',
+        invalidValue: maxEvents,
+      );
+    }
+  }
+
+  @override
   GlanceTemplate get template => GlanceTemplate.calendar;
 
   @override
@@ -470,16 +558,16 @@ class GaugeMetric {
 class GaugeWidgetData extends WidgetData {
   /// Creates a GaugeWidgetData with required title and metrics.
   ///
-  /// Throws [AssertionError] if:
-  /// - [title] is empty
-  /// - [metrics] is empty
+  /// Throws [AssertionError] in debug builds if [title] is empty. An empty
+  /// [metrics] is rejected by [validate] when the data is dispatched: a
+  /// `List.length` check in a `const` constructor would silently make this
+  /// class non-const.
   const GaugeWidgetData({
     required this.title,
     required this.metrics,
     this.gaugeType = GaugeType.radial,
     super.deepLinkUri,
-  }) : assert(title.length > 0, 'title cannot be empty'),
-       assert(metrics.length > 0, 'metrics cannot be empty');
+  }) : assert(title.length > 0, 'title cannot be empty');
 
   /// The title of the widget.
   final String title;
@@ -489,6 +577,21 @@ class GaugeWidgetData extends WidgetData {
 
   /// The type of gauge display.
   final GaugeType gaugeType;
+
+  @override
+  void validate() {
+    WidgetData.checkNotEmpty(title, 'title');
+    WidgetData.checkNotEmptyList(metrics, 'metrics');
+    for (final metric in metrics) {
+      if (metric.maxValue <= 0) {
+        throw GlanceWidgetValidationException(
+          'maxValue must be greater than 0',
+          field: 'metrics.maxValue',
+          invalidValue: metric.maxValue,
+        );
+      }
+    }
+  }
 
   @override
   GlanceTemplate get template => GlanceTemplate.gauge;

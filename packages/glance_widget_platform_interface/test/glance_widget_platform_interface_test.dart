@@ -179,7 +179,7 @@ void main() {
 
   group('ChartWidgetData', () {
     test('toMap includes required fields', () {
-      final data = ChartWidgetData(
+      const data = ChartWidgetData(
         title: 'Sales',
         dataPoints: [10.0, 20.0, 30.0],
       );
@@ -191,21 +191,21 @@ void main() {
     });
 
     test('toMap serializes all chart types', () {
-      final lineData = ChartWidgetData(
+      const lineData = ChartWidgetData(
         title: 'T',
         dataPoints: [1.0],
         chartType: ChartType.line,
       );
       expect(lineData.toMap()['chartType'], 'line');
 
-      final barData = ChartWidgetData(
+      const barData = ChartWidgetData(
         title: 'T',
         dataPoints: [1.0],
         chartType: ChartType.bar,
       );
       expect(barData.toMap()['chartType'], 'bar');
 
-      final sparklineData = ChartWidgetData(
+      const sparklineData = ChartWidgetData(
         title: 'T',
         dataPoints: [1.0],
         chartType: ChartType.sparkline,
@@ -214,10 +214,10 @@ void main() {
     });
 
     test('toMap includes color when provided', () {
-      final data = ChartWidgetData(
+      const data = ChartWidgetData(
         title: 'Sales',
         dataPoints: [10.0],
-        color: const Color(0xFF00FF00),
+        color: Color(0xFF00FF00),
       );
       final map = data.toMap();
 
@@ -225,7 +225,7 @@ void main() {
     });
 
     test('toMap includes subtitle when provided', () {
-      final data = ChartWidgetData(
+      const data = ChartWidgetData(
         title: 'Sales',
         dataPoints: [10.0],
         subtitle: 'Monthly revenue',
@@ -236,7 +236,7 @@ void main() {
     });
 
     test('toMap has null values for optional fields when not set', () {
-      final data = ChartWidgetData(title: 'Sales', dataPoints: [1.0]);
+      const data = ChartWidgetData(title: 'Sales', dataPoints: [1.0]);
       final map = data.toMap();
 
       expect(map['color'], isNull);
@@ -244,7 +244,7 @@ void main() {
     });
 
     test('default chartType is line', () {
-      final data = ChartWidgetData(title: 'T', dataPoints: [1.0]);
+      const data = ChartWidgetData(title: 'T', dataPoints: [1.0]);
       expect(data.chartType, ChartType.line);
     });
   });
@@ -353,10 +353,10 @@ void main() {
 
   group('GaugeWidgetData', () {
     test('toMap includes required fields', () {
-      final data = GaugeWidgetData(
+      const data = GaugeWidgetData(
         title: 'Performance',
         metrics: [
-          const GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
+          GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
         ],
       );
       final map = data.toMap();
@@ -368,33 +368,33 @@ void main() {
     });
 
     test('toMap serializes all gauge types', () {
-      final radialData = GaugeWidgetData(
+      const radialData = GaugeWidgetData(
         title: 'T',
-        metrics: [const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+        metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
         gaugeType: GaugeType.radial,
       );
       expect(radialData.toMap()['gaugeType'], 'radial');
 
-      final dashboardData = GaugeWidgetData(
+      const dashboardData = GaugeWidgetData(
         title: 'T',
-        metrics: [const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+        metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
         gaugeType: GaugeType.dashboard,
       );
       expect(dashboardData.toMap()['gaugeType'], 'dashboard');
     });
 
     test('toMap serializes metrics correctly', () {
-      final data = GaugeWidgetData(
+      const data = GaugeWidgetData(
         title: 'System',
         metrics: [
-          const GaugeMetric(
+          GaugeMetric(
             label: 'CPU',
             value: 75.0,
             maxValue: 100.0,
             color: Color(0xFFFF0000),
             unit: '%',
           ),
-          const GaugeMetric(
+          GaugeMetric(
             label: 'RAM',
             value: 8.0,
             maxValue: 16.0,
@@ -416,9 +416,9 @@ void main() {
     });
 
     test('default gaugeType is radial', () {
-      final data = GaugeWidgetData(
+      const data = GaugeWidgetData(
         title: 'T',
-        metrics: [const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
+        metrics: [GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0)],
       );
       expect(data.gaugeType, GaugeType.radial);
     });

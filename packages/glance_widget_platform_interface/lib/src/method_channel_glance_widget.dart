@@ -16,7 +16,8 @@ import 'package:logging/logging.dart';
 /// no success flag to inspect: the native plugins answer with an error whenever
 /// a widget could not be updated -- no widget instance on the home screen,
 /// unreachable App Group storage, a failed write -- and those arrive here as
-/// exceptions.
+/// exceptions. Data that could not render at all is rejected before the call is
+/// made, with a [GlanceWidgetValidationException] naming the offending field.
 class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
   /// Logger for this class.
   static final _log = Logger('GlanceWidget');
@@ -59,25 +60,43 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
     await _invoke<bool>(method, context, arguments);
   }
 
-  Map<String, Object?> _payload(
+  /// Validates and dispatches a template update.
+  ///
+  /// `async` on purpose: [WidgetData.validate] throws, and a rejection from an
+  /// `async` method arrives as a failed future rather than an exception raised
+  /// before the future exists. A caller writing `update(...).catchError(...)`
+  /// would never see a synchronous throw.
+  Future<void> _updateWidget(
+    String method,
+    String context,
     String widgetId,
     WidgetData data,
     GlanceTheme? theme,
-  ) => <String, Object?>{
-    'widgetId': widgetId,
-    'data': data.toMap(),
-    'theme': theme?.toMap(),
-  };
+  ) async {
+    // Validated here rather than in the constructors because this is the last
+    // point before the data leaves Dart, it runs in release builds, and it
+    // covers data assembled at runtime from a server response as much as a
+    // literal written by hand.
+    WidgetData.checkNotEmpty(widgetId, 'widgetId');
+    data.validate();
+    await _mutate(method, context, <String, Object?>{
+      'widgetId': widgetId,
+      'data': data.toMap(),
+      'theme': theme?.toMap(),
+    });
+  }
 
   @override
   Future<void> updateSimpleWidget({
     required String widgetId,
     required SimpleWidgetData data,
     GlanceTheme? theme,
-  }) => _mutate(
+  }) => _updateWidget(
     'updateSimpleWidget',
     'Failed to update simple widget',
-    _payload(widgetId, data, theme),
+    widgetId,
+    data,
+    theme,
   );
 
   @override
@@ -85,10 +104,12 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
     required String widgetId,
     required ProgressWidgetData data,
     GlanceTheme? theme,
-  }) => _mutate(
+  }) => _updateWidget(
     'updateProgressWidget',
     'Failed to update progress widget',
-    _payload(widgetId, data, theme),
+    widgetId,
+    data,
+    theme,
   );
 
   @override
@@ -96,10 +117,12 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
     required String widgetId,
     required ListWidgetData data,
     GlanceTheme? theme,
-  }) => _mutate(
+  }) => _updateWidget(
     'updateListWidget',
     'Failed to update list widget',
-    _payload(widgetId, data, theme),
+    widgetId,
+    data,
+    theme,
   );
 
   @override
@@ -107,10 +130,12 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
     required String widgetId,
     required ImageWidgetData data,
     GlanceTheme? theme,
-  }) => _mutate(
+  }) => _updateWidget(
     'updateImageWidget',
     'Failed to update image widget',
-    _payload(widgetId, data, theme),
+    widgetId,
+    data,
+    theme,
   );
 
   @override
@@ -118,10 +143,12 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
     required String widgetId,
     required ChartWidgetData data,
     GlanceTheme? theme,
-  }) => _mutate(
+  }) => _updateWidget(
     'updateChartWidget',
     'Failed to update chart widget',
-    _payload(widgetId, data, theme),
+    widgetId,
+    data,
+    theme,
   );
 
   @override
@@ -129,10 +156,12 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
     required String widgetId,
     required CalendarWidgetData data,
     GlanceTheme? theme,
-  }) => _mutate(
+  }) => _updateWidget(
     'updateCalendarWidget',
     'Failed to update calendar widget',
-    _payload(widgetId, data, theme),
+    widgetId,
+    data,
+    theme,
   );
 
   @override
@@ -140,10 +169,12 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
     required String widgetId,
     required GaugeWidgetData data,
     GlanceTheme? theme,
-  }) => _mutate(
+  }) => _updateWidget(
     'updateGaugeWidget',
     'Failed to update gauge widget',
-    _payload(widgetId, data, theme),
+    widgetId,
+    data,
+    theme,
   );
 
   @override

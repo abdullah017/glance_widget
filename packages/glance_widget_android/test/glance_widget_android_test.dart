@@ -93,9 +93,9 @@ void main() {
         // `List.length`, which Dart cannot evaluate in a constant expression, so
         // those two constructors can never be used as `const`. Tracked for the
         // v2 validation rework.
-        data: ChartWidgetData(
+        data: const ChartWidgetData(
           title: 'Revenue',
-          dataPoints: const <double>[1, 2],
+          dataPoints: <double>[1, 2],
         ),
       );
       await android.updateCalendarWidget(
@@ -108,9 +108,9 @@ void main() {
       );
       await android.updateGaugeWidget(
         widgetId: 'g',
-        data: GaugeWidgetData(
+        data: const GaugeWidgetData(
           title: 'CPU',
-          metrics: const <GaugeMetric>[
+          metrics: <GaugeMetric>[
             GaugeMetric(label: 'load', value: 42, maxValue: 100),
           ],
         ),

@@ -20,6 +20,11 @@
   no-opping like the rest of the API.
 * `GlanceConfig.strictMode = true` rejected valid JSONPath expressions such as
   `$..author` and `$.book[?(@.price < 10)]`, which the native parser accepts.
+* `ChartWidgetData` and `GaugeWidgetData` could not be `const`: a `List.length`
+  assert in a `const` constructor is not const-evaluable, and the resulting
+  error pointed at the call site rather than the constructor. Both are const
+  again, and the emptiness check moved to `WidgetData.validate()` at the channel
+  boundary, where it also runs in release builds.
 
 ### Changed
 

@@ -12,6 +12,24 @@ than a boolean.
   throw on a platform failure instead of answering a default that was
   indistinguishable from a real result.
 
+### Fixed
+
+* `ChartWidgetData` and `GaugeWidgetData` were silently not `const`: a
+  `List.length` assert in a `const` constructor is not const-evaluable, so every
+  `const ChartWidgetData(...)` was a `const_eval_property_access` error at the
+  call site rather than at the constructor. Both are const again.
+* A rejected payload was thrown synchronously from an `async` method, so
+  `update(...).catchError(...)` never saw it. Rejections now arrive as a failed
+  future.
+
+### Added
+
+* `WidgetData.validate()` — checks the invariants that must hold before data
+  crosses to the native side, throwing `GlanceWidgetValidationException` naming
+  the offending field. Called at the channel boundary, so it runs in release
+  builds too; the constructor asserts it complements are stripped there and
+  cannot examine a list's length at all.
+
 ### Removed
 
 * `MethodChannelGlanceWidget.throwOnError`. Failures always throw; the original

@@ -236,7 +236,7 @@ void main() {
       test('sends correct method call', () async {
         await platform.updateChartWidget(
           widgetId: 'chart_widget',
-          data: ChartWidgetData(title: 'Sales', dataPoints: [10.0, 20.0, 30.0]),
+          data: const ChartWidgetData(title: 'Sales', dataPoints: [10.0, 20.0, 30.0]),
         );
 
         expect(log.length, 1);
@@ -251,7 +251,7 @@ void main() {
       test('sends chart type', () async {
         await platform.updateChartWidget(
           widgetId: 'chart_widget',
-          data: ChartWidgetData(
+          data: const ChartWidgetData(
             title: 'Sales',
             dataPoints: [10.0, 20.0],
             chartType: ChartType.bar,
@@ -266,7 +266,7 @@ void main() {
       test('sends theme when provided', () async {
         await platform.updateChartWidget(
           widgetId: 'chart_widget',
-          data: ChartWidgetData(title: 'Sales', dataPoints: [10.0]),
+          data: const ChartWidgetData(title: 'Sales', dataPoints: [10.0]),
           theme: GlanceTheme.light(),
         );
 
@@ -279,11 +279,11 @@ void main() {
       test('sends subtitle and color', () async {
         await platform.updateChartWidget(
           widgetId: 'chart_widget',
-          data: ChartWidgetData(
+          data: const ChartWidgetData(
             title: 'Sales',
             dataPoints: [10.0],
             subtitle: 'Monthly',
-            color: const Color(0xFFFF0000),
+            color: Color(0xFFFF0000),
           ),
         );
 
@@ -375,10 +375,10 @@ void main() {
       test('sends correct method call', () async {
         await platform.updateGaugeWidget(
           widgetId: 'gauge_widget',
-          data: GaugeWidgetData(
+          data: const GaugeWidgetData(
             title: 'Performance',
             metrics: [
-              const GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
+              GaugeMetric(label: 'CPU', value: 65.0, maxValue: 100.0),
             ],
           ),
         );
@@ -394,16 +394,16 @@ void main() {
       test('sends metrics', () async {
         await platform.updateGaugeWidget(
           widgetId: 'gauge_widget',
-          data: GaugeWidgetData(
+          data: const GaugeWidgetData(
             title: 'System',
             metrics: [
-              const GaugeMetric(
+              GaugeMetric(
                 label: 'CPU',
                 value: 75.0,
                 maxValue: 100.0,
                 unit: '%',
               ),
-              const GaugeMetric(
+              GaugeMetric(
                 label: 'RAM',
                 value: 8.0,
                 maxValue: 16.0,
@@ -427,10 +427,10 @@ void main() {
       test('sends theme when provided', () async {
         await platform.updateGaugeWidget(
           widgetId: 'gauge_widget',
-          data: GaugeWidgetData(
+          data: const GaugeWidgetData(
             title: 'Test',
             metrics: [
-              const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0),
+              GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0),
             ],
           ),
           theme: GlanceTheme.light(),
@@ -445,10 +445,10 @@ void main() {
       test('sends gauge type', () async {
         await platform.updateGaugeWidget(
           widgetId: 'gauge_widget',
-          data: GaugeWidgetData(
+          data: const GaugeWidgetData(
             title: 'Dashboard',
             metrics: [
-              const GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0),
+              GaugeMetric(label: 'X', value: 1.0, maxValue: 10.0),
             ],
             gaugeType: GaugeType.dashboard,
           ),
@@ -462,10 +462,10 @@ void main() {
       test('sends metric color', () async {
         await platform.updateGaugeWidget(
           widgetId: 'gauge_widget',
-          data: GaugeWidgetData(
+          data: const GaugeWidgetData(
             title: 'Test',
             metrics: [
-              const GaugeMetric(
+              GaugeMetric(
                 label: 'X',
                 value: 1.0,
                 maxValue: 10.0,
@@ -729,7 +729,7 @@ void main() {
           ),
           'updateChartWidget': () => platform.updateChartWidget(
             widgetId: 'w',
-            data: ChartWidgetData(title: 'T', dataPoints: const [1, 2]),
+            data: const ChartWidgetData(title: 'T', dataPoints: [1, 2]),
           ),
           'updateCalendarWidget': () => platform.updateCalendarWidget(
             widgetId: 'w',
@@ -741,9 +741,9 @@ void main() {
           ),
           'updateGaugeWidget': () => platform.updateGaugeWidget(
             widgetId: 'w',
-            data: GaugeWidgetData(
+            data: const GaugeWidgetData(
               title: 'T',
-              metrics: const [GaugeMetric(label: 'L', value: 1, maxValue: 2)],
+              metrics: [GaugeMetric(label: 'L', value: 1, maxValue: 2)],
             ),
           ),
           'setGlobalTheme': () => platform.setGlobalTheme(GlanceTheme.dark()),
