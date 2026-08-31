@@ -5,8 +5,25 @@ This guide explains how to add the Glance Widgets extension to your Flutter iOS 
 ## Prerequisites
 
 - Xcode 15.0 or higher
-- iOS 16.0+ deployment target
+- iOS 17.0+ deployment target
 - Apple Developer account (for App Groups)
+
+Set the deployment target in `ios/Podfile` (`platform :ios, '17.0'`), not only
+in Xcode. Flutter generates `FlutterGeneratedPluginSwiftPackage` from that line,
+so a commented-out one pins the generated package to Flutter's default and
+`glance_widget_ios` fails to resolve against it.
+
+## Choosing What Each Widget Shows
+
+The templates use `AppIntentConfiguration`, so a placed widget carries the
+`widgetId` it renders. Someone with two widgets from the same template
+long-presses one, taps **Edit Widget**, and picks an id under **Widget**; the
+list offers the ids your app has sent data for. An instance that has not been
+configured shows whichever id was updated most recently.
+
+`StaticConfiguration` has no per-instance parameter, so a template built on it
+makes every placed widget show the same payload. If you write your own template,
+keep the intent and pass `configuration.widgetId` into `load...Widget(widgetId:)`.
 
 ## Step 1: Create Widget Extension Target
 

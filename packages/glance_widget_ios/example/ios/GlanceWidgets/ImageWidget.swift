@@ -1,26 +1,60 @@
 #if canImport(UIKit)
 import UIKit
 #endif
+import AppIntents
 import WidgetKit
 import SwiftUI
 
+// MARK: - Configuration
+
+/// The ids this template has data for, offered when the user edits the widget.
+struct ImageWidgetIdOptions: DynamicOptionsProvider {
+    func results() async throws -> [String] {
+        WidgetStorage.shared.knownWidgetIds(prefix: "imageWidgetData_")
+    }
+}
+
+/// Carries the `widgetId` a placed instance should render.
+///
+/// `widgetId` is documented as a "unique identifier for this widget instance",
+/// and without a per-instance parameter there is nothing for the extension to
+/// key on: every placed widget read the most recently written payload, so two
+/// widgets built from this template always showed the same thing.
+struct ImageWidgetIntent: WidgetConfigurationIntent {
+    static var title: LocalizedStringResource { "Image Widget" }
+    static var description: IntentDescription {
+        IntentDescription("Choose which of your app's widgets this one shows.")
+    }
+
+    @Parameter(title: "Widget", optionsProvider: ImageWidgetIdOptions())
+    var widgetId: String?
+
+    init() {}
+
+    init(widgetId: String?) {
+        self.widgetId = widgetId
+    }
+}
+
 // MARK: - Timeline Provider
 
-struct ImageWidgetProvider: TimelineProvider {
+struct ImageWidgetProvider: AppIntentTimelineProvider {
     typealias Entry = ImageWidgetEntry
+    typealias Intent = ImageWidgetIntent
 
     func placeholder(in context: Context) -> ImageWidgetEntry {
         ImageWidgetEntry(date: Date(), data: .placeholder)
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (ImageWidgetEntry) -> Void) {
-        let data = WidgetStorage.shared.loadImageWidget() ?? .placeholder
-        completion(ImageWidgetEntry(date: Date(), data: data))
+    func snapshot(for configuration: ImageWidgetIntent, in context: Context) async -> ImageWidgetEntry {
+        ImageWidgetEntry(date: Date(), data: load(for: configuration))
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<ImageWidgetEntry>) -> Void) {
-        let data = WidgetStorage.shared.loadImageWidget() ?? .placeholder
-        let entry = ImageWidgetEntry(date: Date(), data: data)
+    func timeline(
+        for configuration: ImageWidgetIntent,
+        in context: Context
+    ) async -> Timeline<ImageWidgetEntry> {
+        let entry = ImageWidgetEntry(date: Date(), data: load(for: configuration))
 
         // Check for configured timeline refresh interval
         let refreshInterval = WidgetStorage.shared.getTimelineRefreshInterval()
@@ -30,8 +64,13 @@ struct ImageWidgetProvider: TimelineProvider {
         } else {
             policy = .never
         }
-        let timeline = Timeline(entries: [entry], policy: policy)
-        completion(timeline)
+        return Timeline(entries: [entry], policy: policy)
+    }
+
+    /// An unconfigured instance falls back to the most recently updated payload
+    /// so a freshly placed widget shows something rather than a placeholder.
+    private func load(for configuration: ImageWidgetIntent) -> ImageWidgetData {
+        WidgetStorage.shared.loadImageWidget(widgetId: configuration.widgetId) ?? .placeholder
     }
 }
 
@@ -250,16 +289,16 @@ struct ImageWidget: Widget {
     let kind: String = "ImageWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: ImageWidgetProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                ImageWidgetEntryView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        Color(argb: entry.data.theme?.backgroundColor
-                              ?? WidgetThemeData.defaultDark.backgroundColor)
-                    }
-            } else {
-                ImageWidgetEntryView(entry: entry)
-            }
+        AppIntentConfiguration(
+            kind: kind,
+            intent: ImageWidgetIntent.self,
+            provider: ImageWidgetProvider()
+        ) { entry in
+            ImageWidgetEntryView(entry: entry)
+                .containerBackground(for: .widget) {
+                    Color(argb: entry.data.theme?.backgroundColor
+                          ?? WidgetThemeData.defaultDark.backgroundColor)
+                }
         }
         .configurationDisplayName("Image Widget")
         .description("Display an image with title and subtitle. Supports base64-encoded images for reliable offline display.")

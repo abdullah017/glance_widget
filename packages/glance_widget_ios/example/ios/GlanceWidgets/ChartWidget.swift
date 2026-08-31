@@ -1,23 +1,57 @@
+import AppIntents
 import WidgetKit
 import SwiftUI
 
+// MARK: - Configuration
+
+/// The ids this template has data for, offered when the user edits the widget.
+struct ChartWidgetIdOptions: DynamicOptionsProvider {
+    func results() async throws -> [String] {
+        WidgetStorage.shared.knownWidgetIds(prefix: "chartWidgetData_")
+    }
+}
+
+/// Carries the `widgetId` a placed instance should render.
+///
+/// `widgetId` is documented as a "unique identifier for this widget instance",
+/// and without a per-instance parameter there is nothing for the extension to
+/// key on: every placed widget read the most recently written payload, so two
+/// widgets built from this template always showed the same thing.
+struct ChartWidgetIntent: WidgetConfigurationIntent {
+    static var title: LocalizedStringResource { "Chart Widget" }
+    static var description: IntentDescription {
+        IntentDescription("Choose which of your app's widgets this one shows.")
+    }
+
+    @Parameter(title: "Widget", optionsProvider: ChartWidgetIdOptions())
+    var widgetId: String?
+
+    init() {}
+
+    init(widgetId: String?) {
+        self.widgetId = widgetId
+    }
+}
+
 // MARK: - Timeline Provider
 
-struct ChartWidgetProvider: TimelineProvider {
+struct ChartWidgetProvider: AppIntentTimelineProvider {
     typealias Entry = ChartWidgetEntry
+    typealias Intent = ChartWidgetIntent
 
     func placeholder(in context: Context) -> ChartWidgetEntry {
         ChartWidgetEntry(date: Date(), data: .placeholder)
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (ChartWidgetEntry) -> Void) {
-        let data = WidgetStorage.shared.loadChartWidget() ?? .placeholder
-        completion(ChartWidgetEntry(date: Date(), data: data))
+    func snapshot(for configuration: ChartWidgetIntent, in context: Context) async -> ChartWidgetEntry {
+        ChartWidgetEntry(date: Date(), data: load(for: configuration))
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<ChartWidgetEntry>) -> Void) {
-        let data = WidgetStorage.shared.loadChartWidget() ?? .placeholder
-        let entry = ChartWidgetEntry(date: Date(), data: data)
+    func timeline(
+        for configuration: ChartWidgetIntent,
+        in context: Context
+    ) async -> Timeline<ChartWidgetEntry> {
+        let entry = ChartWidgetEntry(date: Date(), data: load(for: configuration))
 
         // Check for configured timeline refresh interval
         let refreshInterval = WidgetStorage.shared.getTimelineRefreshInterval()
@@ -27,8 +61,13 @@ struct ChartWidgetProvider: TimelineProvider {
         } else {
             policy = .never
         }
-        let timeline = Timeline(entries: [entry], policy: policy)
-        completion(timeline)
+        return Timeline(entries: [entry], policy: policy)
+    }
+
+    /// An unconfigured instance falls back to the most recently updated payload
+    /// so a freshly placed widget shows something rather than a placeholder.
+    private func load(for configuration: ChartWidgetIntent) -> ChartWidgetData {
+        WidgetStorage.shared.loadChartWidget(widgetId: configuration.widgetId) ?? .placeholder
     }
 }
 
@@ -409,16 +448,16 @@ struct ChartWidget: Widget {
     let kind: String = "ChartWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: ChartWidgetProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                ChartWidgetEntryView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        Color(argb: entry.data.theme?.backgroundColor
-                              ?? WidgetThemeData.defaultDark.backgroundColor)
-                    }
-            } else {
-                ChartWidgetEntryView(entry: entry)
-            }
+        AppIntentConfiguration(
+            kind: kind,
+            intent: ChartWidgetIntent.self,
+            provider: ChartWidgetProvider()
+        ) { entry in
+            ChartWidgetEntryView(entry: entry)
+                .containerBackground(for: .widget) {
+                    Color(argb: entry.data.theme?.backgroundColor
+                          ?? WidgetThemeData.defaultDark.backgroundColor)
+                }
         }
         .configurationDisplayName("Chart Widget")
         .description("Display data as line, bar, or sparkline charts. Perfect for trends, analytics, and metrics visualization.")

@@ -1,23 +1,57 @@
+import AppIntents
 import WidgetKit
 import SwiftUI
 
+// MARK: - Configuration
+
+/// The ids this template has data for, offered when the user edits the widget.
+struct GaugeWidgetIdOptions: DynamicOptionsProvider {
+    func results() async throws -> [String] {
+        WidgetStorage.shared.knownWidgetIds(prefix: "gaugeWidgetData_")
+    }
+}
+
+/// Carries the `widgetId` a placed instance should render.
+///
+/// `widgetId` is documented as a "unique identifier for this widget instance",
+/// and without a per-instance parameter there is nothing for the extension to
+/// key on: every placed widget read the most recently written payload, so two
+/// widgets built from this template always showed the same thing.
+struct GaugeWidgetIntent: WidgetConfigurationIntent {
+    static var title: LocalizedStringResource { "Gauge Widget" }
+    static var description: IntentDescription {
+        IntentDescription("Choose which of your app's widgets this one shows.")
+    }
+
+    @Parameter(title: "Widget", optionsProvider: GaugeWidgetIdOptions())
+    var widgetId: String?
+
+    init() {}
+
+    init(widgetId: String?) {
+        self.widgetId = widgetId
+    }
+}
+
 // MARK: - Timeline Provider
 
-struct GaugeWidgetProvider: TimelineProvider {
+struct GaugeWidgetProvider: AppIntentTimelineProvider {
     typealias Entry = GaugeWidgetEntry
+    typealias Intent = GaugeWidgetIntent
 
     func placeholder(in context: Context) -> GaugeWidgetEntry {
         GaugeWidgetEntry(date: Date(), data: .placeholder)
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (GaugeWidgetEntry) -> Void) {
-        let data = WidgetStorage.shared.loadGaugeWidget() ?? .placeholder
-        completion(GaugeWidgetEntry(date: Date(), data: data))
+    func snapshot(for configuration: GaugeWidgetIntent, in context: Context) async -> GaugeWidgetEntry {
+        GaugeWidgetEntry(date: Date(), data: load(for: configuration))
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<GaugeWidgetEntry>) -> Void) {
-        let data = WidgetStorage.shared.loadGaugeWidget() ?? .placeholder
-        let entry = GaugeWidgetEntry(date: Date(), data: data)
+    func timeline(
+        for configuration: GaugeWidgetIntent,
+        in context: Context
+    ) async -> Timeline<GaugeWidgetEntry> {
+        let entry = GaugeWidgetEntry(date: Date(), data: load(for: configuration))
 
         // Check for configured timeline refresh interval
         let refreshInterval = WidgetStorage.shared.getTimelineRefreshInterval()
@@ -27,8 +61,13 @@ struct GaugeWidgetProvider: TimelineProvider {
         } else {
             policy = .never
         }
-        let timeline = Timeline(entries: [entry], policy: policy)
-        completion(timeline)
+        return Timeline(entries: [entry], policy: policy)
+    }
+
+    /// An unconfigured instance falls back to the most recently updated payload
+    /// so a freshly placed widget shows something rather than a placeholder.
+    private func load(for configuration: GaugeWidgetIntent) -> GaugeWidgetData {
+        WidgetStorage.shared.loadGaugeWidget(widgetId: configuration.widgetId) ?? .placeholder
     }
 }
 
@@ -521,16 +560,16 @@ struct GaugeWidget: Widget {
     let kind: String = "GaugeWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: GaugeWidgetProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                GaugeWidgetEntryView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        Color(argb: entry.data.theme?.backgroundColor
-                              ?? WidgetThemeData.defaultDark.backgroundColor)
-                    }
-            } else {
-                GaugeWidgetEntryView(entry: entry)
-            }
+        AppIntentConfiguration(
+            kind: kind,
+            intent: GaugeWidgetIntent.self,
+            provider: GaugeWidgetProvider()
+        ) { entry in
+            GaugeWidgetEntryView(entry: entry)
+                .containerBackground(for: .widget) {
+                    Color(argb: entry.data.theme?.backgroundColor
+                          ?? WidgetThemeData.defaultDark.backgroundColor)
+                }
         }
         .configurationDisplayName("Gauge Widget")
         .description("Display metrics as radial gauges or a dashboard grid. Perfect for system stats, health metrics, or KPIs.")

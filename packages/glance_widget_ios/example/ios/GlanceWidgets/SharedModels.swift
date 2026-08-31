@@ -383,6 +383,29 @@ class WidgetStorage {
         return interval > 0 ? interval : nil
     }
 
+    // MARK: - Widget Ids
+
+    /// The ids the app has written data for under one template's prefix.
+    ///
+    /// This is what the configuration picker offers, so a placed widget can be
+    /// pointed at a specific id instead of rendering whatever was updated last.
+    /// It is derived from the stored payloads rather than a separate registry,
+    /// so an id that has no data to show is never offered.
+    ///
+    /// A widget extension cannot import the plugin, so the prefixes below are
+    /// typed out again here. `GlanceStorageKeys` in `glance_widget_ios` is the
+    /// side that owns them and `GlanceStorageKeysTests` pins their exact
+    /// values, so a rename there fails a test naming these templates rather
+    /// than silently emptying this list.
+    func knownWidgetIds(prefix: String) -> [String] {
+        guard let defaults = userDefaults else { return [] }
+        return defaults.dictionaryRepresentation().keys
+            .filter { $0.hasPrefix(prefix) }
+            .map { String($0.dropFirst(prefix.count)) }
+            .filter { !$0.isEmpty }
+            .sorted()
+    }
+
     // MARK: - Private Helpers
 
     private func loadData<T: Decodable>(forKey key: String) -> T? {
@@ -395,6 +418,11 @@ class WidgetStorage {
         }
     }
 
+    /// Fallback for an instance that has not been configured with an id yet --
+    /// a freshly placed widget should show something rather than a placeholder.
+    /// Every configured instance goes through `loadData(forKey:)` instead; when
+    /// this was the only path, two widgets of the same template could not show
+    /// different data.
     private func loadMostRecent<T: Decodable & Timestamped>(prefix: String) -> T? {
         guard let defaults = userDefaults else { return nil }
 

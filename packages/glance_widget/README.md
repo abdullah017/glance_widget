@@ -58,7 +58,7 @@ widgets.
 | Server Push | N/A | iOS 26+ (APNs) |
 | Lock Screen | Supported (keyguard) | N/A |
 | Interactive Actions | ActionCallback | URL-based actions |
-| Min Version | Android 8.0 (API 26) | iOS 16.0 |
+| Min Version | Android 8.0 (API 26) | iOS 17.0 |
 
 ## Widget Templates
 
@@ -91,7 +91,7 @@ automatically — you do not list them yourself.
 | Flutter | 3.32+ |
 | Dart | 3.8+ |
 | Android | API 26 (Android 8.0) |
-| iOS | 16.0 |
+| iOS | 17.0 |
 
 Both CocoaPods and Swift Package Manager are supported on iOS.
 
@@ -262,10 +262,10 @@ Copy the ready-made views from [`glance_widget_ios/example/ios/GlanceWidgets/`](
 
 ### 4. Set the Deployment Target
 
-This plugin requires iOS 16. Set the floor in `ios/Podfile`:
+This plugin requires iOS 17. Set the floor in `ios/Podfile`:
 
 ```ruby
-platform :ios, '16.0'
+platform :ios, '17.0'
 ```
 
 Set it there even on a Swift Package Manager project that has no pods left.
@@ -273,7 +273,7 @@ Flutter reads that line to generate `FlutterGeneratedPluginSwiftPackage`, and a
 commented-out line generates it at Flutter's 15.0 default no matter what the
 Xcode target says — so raising the target in Xcode under Runner → General →
 Minimum Deployments alone leaves the build failing with
-`requires minimum platform version 16.0 for the iOS platform`. Under CocoaPods
+`requires minimum platform version 17.0 for the iOS platform`. Under CocoaPods
 a lower target is instead silently tolerated until something breaks at runtime.
 
 ### 5. Configure URL Scheme
@@ -293,6 +293,25 @@ Add to `ios/Runner/Info.plist`:
 ```
 
 See the [iOS Widget Setup Guide](https://github.com/abdullahtas0/glance_widget/blob/master/packages/glance_widget_ios/example/ios/WIDGET_SETUP.md) for detailed instructions.
+
+### 6. Placing More Than One Widget of the Same Template
+
+`widgetId` identifies a widget instance, so two `SimpleWidget`s can show
+different things — one `'btc'`, one `'eth'`. On Android that routing is
+automatic. On iOS the person placing the widget chooses which id it shows,
+because only they know which of the two home-screen widgets is meant to be
+which:
+
+> Long-press the widget → **Edit Widget** → pick an id from **Widget**.
+
+The list offers the ids your app has actually sent data for. Until an instance
+is configured it shows whichever id was updated most recently, so a freshly
+placed widget is never blank.
+
+This is why the templates use `AppIntentConfiguration` rather than
+`StaticConfiguration` — the latter carries no per-instance parameter, so every
+placed widget would read the same payload. If you write your own template, keep
+the intent, and pass `configuration.widgetId` into `load...Widget(widgetId:)`.
 
 ---
 

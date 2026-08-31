@@ -1,23 +1,57 @@
+import AppIntents
 import WidgetKit
 import SwiftUI
 
+// MARK: - Configuration
+
+/// The ids this template has data for, offered when the user edits the widget.
+struct ProgressWidgetIdOptions: DynamicOptionsProvider {
+    func results() async throws -> [String] {
+        WidgetStorage.shared.knownWidgetIds(prefix: "progressWidgetData_")
+    }
+}
+
+/// Carries the `widgetId` a placed instance should render.
+///
+/// `widgetId` is documented as a "unique identifier for this widget instance",
+/// and without a per-instance parameter there is nothing for the extension to
+/// key on: every placed widget read the most recently written payload, so two
+/// widgets built from this template always showed the same thing.
+struct ProgressWidgetIntent: WidgetConfigurationIntent {
+    static var title: LocalizedStringResource { "Progress Widget" }
+    static var description: IntentDescription {
+        IntentDescription("Choose which of your app's widgets this one shows.")
+    }
+
+    @Parameter(title: "Widget", optionsProvider: ProgressWidgetIdOptions())
+    var widgetId: String?
+
+    init() {}
+
+    init(widgetId: String?) {
+        self.widgetId = widgetId
+    }
+}
+
 // MARK: - Timeline Provider
 
-struct ProgressWidgetProvider: TimelineProvider {
+struct ProgressWidgetProvider: AppIntentTimelineProvider {
     typealias Entry = ProgressWidgetEntry
+    typealias Intent = ProgressWidgetIntent
 
     func placeholder(in context: Context) -> ProgressWidgetEntry {
         ProgressWidgetEntry(date: Date(), data: .placeholder)
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (ProgressWidgetEntry) -> Void) {
-        let data = WidgetStorage.shared.loadProgressWidget() ?? .placeholder
-        completion(ProgressWidgetEntry(date: Date(), data: data))
+    func snapshot(for configuration: ProgressWidgetIntent, in context: Context) async -> ProgressWidgetEntry {
+        ProgressWidgetEntry(date: Date(), data: load(for: configuration))
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<ProgressWidgetEntry>) -> Void) {
-        let data = WidgetStorage.shared.loadProgressWidget() ?? .placeholder
-        let entry = ProgressWidgetEntry(date: Date(), data: data)
+    func timeline(
+        for configuration: ProgressWidgetIntent,
+        in context: Context
+    ) async -> Timeline<ProgressWidgetEntry> {
+        let entry = ProgressWidgetEntry(date: Date(), data: load(for: configuration))
 
         // Check for configured timeline refresh interval
         let refreshInterval = WidgetStorage.shared.getTimelineRefreshInterval()
@@ -27,8 +61,13 @@ struct ProgressWidgetProvider: TimelineProvider {
         } else {
             policy = .never
         }
-        let timeline = Timeline(entries: [entry], policy: policy)
-        completion(timeline)
+        return Timeline(entries: [entry], policy: policy)
+    }
+
+    /// An unconfigured instance falls back to the most recently updated payload
+    /// so a freshly placed widget shows something rather than a placeholder.
+    private func load(for configuration: ProgressWidgetIntent) -> ProgressWidgetData {
+        WidgetStorage.shared.loadProgressWidget(widgetId: configuration.widgetId) ?? .placeholder
     }
 }
 
@@ -290,16 +329,16 @@ struct ProgressWidget: Widget {
     let kind: String = "ProgressWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: ProgressWidgetProvider()) { entry in
-            if #available(iOS 17.0, *) {
-                ProgressWidgetEntryView(entry: entry)
-                    .containerBackground(for: .widget) {
-                        Color(argb: entry.data.theme?.backgroundColor
-                              ?? WidgetThemeData.defaultDark.backgroundColor)
-                    }
-            } else {
-                ProgressWidgetEntryView(entry: entry)
-            }
+        AppIntentConfiguration(
+            kind: kind,
+            intent: ProgressWidgetIntent.self,
+            provider: ProgressWidgetProvider()
+        ) { entry in
+            ProgressWidgetEntryView(entry: entry)
+                .containerBackground(for: .widget) {
+                    Color(argb: entry.data.theme?.backgroundColor
+                          ?? WidgetThemeData.defaultDark.backgroundColor)
+                }
         }
         .configurationDisplayName("Progress Widget")
         .description("Display progress with circular or linear indicator. Great for goals, downloads, or completion status.")
