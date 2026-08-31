@@ -5,12 +5,12 @@
 # Glance Widget Receivers
 # ============================================
 # Keep all widget receivers (they are referenced in AndroidManifest.xml)
--keep class com.example.glance_widget_android.templates.**Receiver {
+-keep class dev.glance.widget.android.templates.**Receiver {
     <init>();
 }
 
 # Keep all GlanceAppWidget implementations
--keep class com.example.glance_widget_android.templates.** extends androidx.glance.appwidget.GlanceAppWidget {
+-keep class dev.glance.widget.android.templates.** extends androidx.glance.appwidget.GlanceAppWidget {
     <init>();
 }
 
@@ -18,13 +18,13 @@
 # Flutter Plugin
 # ============================================
 # Keep the plugin class
--keep class com.example.glance_widget_android.GlanceWidgetPlugin {
+-keep class dev.glance.widget.android.GlanceWidgetPlugin {
     <init>();
     public *;
 }
 
 # Keep the manager object
--keep class com.example.glance_widget_android.GlanceWidgetManager {
+-keep class dev.glance.widget.android.GlanceWidgetManager {
     public *;
 }
 

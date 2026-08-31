@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.glance_widget_android">
-
-    <!-- Receivers are defined in example app's manifest -->
-
+<!-- The namespace lives in build.gradle.kts; the `package` attribute here was
+     removed in AGP 8. Widget receivers are declared by the host application's
+     manifest, not by this library. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 </manifest>

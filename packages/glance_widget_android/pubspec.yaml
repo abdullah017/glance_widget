@@ -16,7 +16,7 @@ flutter:
     implements: glance_widget
     platforms:
       android:
-        package: com.example.glance_widget_android
+        package: dev.glance.widget.android
         pluginClass: GlanceWidgetPlugin
 
 dependencies:

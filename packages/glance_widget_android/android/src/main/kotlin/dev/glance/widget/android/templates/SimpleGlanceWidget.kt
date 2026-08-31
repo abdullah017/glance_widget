@@ -1,4 +1,4 @@
-package com.example.glance_widget_android.templates
+package dev.glance.widget.android.templates
 
 import android.content.Context
 import android.content.Intent
@@ -21,7 +21,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import androidx.compose.ui.graphics.Color
-import com.example.glance_widget_android.GlanceWidgetManager
+import dev.glance.widget.android.GlanceWidgetManager
 
 /**
  * Simple Widget - displays title, value, and optional subtitle.

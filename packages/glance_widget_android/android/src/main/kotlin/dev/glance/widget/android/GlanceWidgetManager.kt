@@ -1,4 +1,4 @@
-package com.example.glance_widget_android
+package dev.glance.widget.android
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -13,13 +13,13 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.util.Base64
-import com.example.glance_widget_android.templates.CalendarGlanceWidget
-import com.example.glance_widget_android.templates.ChartGlanceWidget
-import com.example.glance_widget_android.templates.GaugeGlanceWidget
-import com.example.glance_widget_android.templates.ImageGlanceWidget
-import com.example.glance_widget_android.templates.ListGlanceWidget
-import com.example.glance_widget_android.templates.ProgressGlanceWidget
-import com.example.glance_widget_android.templates.SimpleGlanceWidget
+import dev.glance.widget.android.templates.CalendarGlanceWidget
+import dev.glance.widget.android.templates.ChartGlanceWidget
+import dev.glance.widget.android.templates.GaugeGlanceWidget
+import dev.glance.widget.android.templates.ImageGlanceWidget
+import dev.glance.widget.android.templates.ListGlanceWidget
+import dev.glance.widget.android.templates.ProgressGlanceWidget
+import dev.glance.widget.android.templates.SimpleGlanceWidget
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.flutter.plugin.common.EventChannel

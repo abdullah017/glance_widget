@@ -93,7 +93,7 @@ Add widget receivers to `android/app/src/main/AndroidManifest.xml`:
 <application>
     <!-- Simple Widget -->
     <receiver
-        android:name="com.example.glance_widget_android.templates.SimpleWidgetReceiver"
+        android:name="dev.glance.widget.android.templates.SimpleWidgetReceiver"
         android:exported="true">
         <intent-filter>
             <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -105,7 +105,7 @@ Add widget receivers to `android/app/src/main/AndroidManifest.xml`:
 
     <!-- Progress Widget -->
     <receiver
-        android:name="com.example.glance_widget_android.templates.ProgressWidgetReceiver"
+        android:name="dev.glance.widget.android.templates.ProgressWidgetReceiver"
         android:exported="true">
         <intent-filter>
             <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -117,7 +117,7 @@ Add widget receivers to `android/app/src/main/AndroidManifest.xml`:
 
     <!-- List Widget -->
     <receiver
-        android:name="com.example.glance_widget_android.templates.ListWidgetReceiver"
+        android:name="dev.glance.widget.android.templates.ListWidgetReceiver"
         android:exported="true">
         <intent-filter>
             <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -129,7 +129,7 @@ Add widget receivers to `android/app/src/main/AndroidManifest.xml`:
 
     <!-- Image Widget -->
     <receiver
-        android:name="com.example.glance_widget_android.templates.ImageWidgetReceiver"
+        android:name="dev.glance.widget.android.templates.ImageWidgetReceiver"
         android:exported="true">
         <intent-filter>
             <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -141,7 +141,7 @@ Add widget receivers to `android/app/src/main/AndroidManifest.xml`:
 
     <!-- Chart Widget -->
     <receiver
-        android:name="com.example.glance_widget_android.templates.ChartWidgetReceiver"
+        android:name="dev.glance.widget.android.templates.ChartWidgetReceiver"
         android:exported="true">
         <intent-filter>
             <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -153,7 +153,7 @@ Add widget receivers to `android/app/src/main/AndroidManifest.xml`:
 
     <!-- Calendar Widget -->
     <receiver
-        android:name="com.example.glance_widget_android.templates.CalendarWidgetReceiver"
+        android:name="dev.glance.widget.android.templates.CalendarWidgetReceiver"
         android:exported="true">
         <intent-filter>
             <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -165,7 +165,7 @@ Add widget receivers to `android/app/src/main/AndroidManifest.xml`:
 
     <!-- Gauge Widget -->
     <receiver
-        android:name="com.example.glance_widget_android.templates.GaugeWidgetReceiver"
+        android:name="dev.glance.widget.android.templates.GaugeWidgetReceiver"
         android:exported="true">
         <intent-filter>
             <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

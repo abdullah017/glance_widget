@@ -1,4 +1,4 @@
-package com.example.glance_widget_android
+package dev.glance.widget.android
 
 import android.content.Context
 import io.flutter.embedding.engine.plugins.FlutterPlugin

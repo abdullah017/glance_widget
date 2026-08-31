@@ -1,4 +1,4 @@
-package com.example.glance_widget_android.templates
+package dev.glance.widget.android.templates
 
 import android.content.Context
 import android.content.Intent
@@ -24,33 +24,31 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import androidx.compose.ui.graphics.Color
-import com.example.glance_widget_android.GlanceWidgetManager
+import dev.glance.widget.android.GlanceWidgetManager
 
 /**
- * Chart Widget - displays a chart rendered as a bitmap.
- * Supports line, bar, and sparkline chart types.
- * The chart is pre-rendered to a bitmap by GlanceWidgetManager using Android Canvas API
- * because Glance does not support direct Canvas drawing.
+ * Image Widget - displays a title, an image (from base64), and optional subtitle.
+ * Perfect for photo displays, album art, thumbnail previews, etc.
  */
-class ChartGlanceWidget : GlanceAppWidget() {
+class ImageGlanceWidget : GlanceAppWidget() {
 
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
             val prefs = currentState<Preferences>()
-            ChartWidgetContent(prefs)
+            ImageWidgetContent(prefs)
         }
     }
 }
 
 @Composable
-private fun ChartWidgetContent(prefs: Preferences) {
-    val widgetId = prefs[GlanceWidgetManager.widgetIdKey] ?: "chart"
+private fun ImageWidgetContent(prefs: Preferences) {
+    val widgetId = prefs[GlanceWidgetManager.widgetIdKey] ?: "image"
     val title = prefs[GlanceWidgetManager.titleKey] ?: ""
     val subtitle = prefs[GlanceWidgetManager.subtitleKey]
-    val chartBitmapBase64 = prefs[GlanceWidgetManager.chartBitmapKey] ?: ""
-    val chartType = prefs[GlanceWidgetManager.chartTypeKey] ?: "line"
+    val imageBase64 = prefs[GlanceWidgetManager.imageBase64Key] ?: ""
+    val imageFit = prefs[GlanceWidgetManager.imageFitKey] ?: "cover"
     val deepLinkUri = prefs[GlanceWidgetManager.deepLinkUriKey]
     val isDark = prefs[GlanceWidgetManager.isDarkKey] ?: true
 
@@ -67,6 +65,14 @@ private fun ChartWidgetContent(prefs: Preferences) {
         ?.let { ColorProvider(Color(it.toInt())) }
         ?: ColorProvider(Color(if (isDark) 0xFFB0B0B0.toInt() else 0xFF757575.toInt()))
 
+    // Determine content scale from imageFit
+    val contentScale = when (imageFit) {
+        "contain" -> ContentScale.Fit
+        "fill" -> ContentScale.FillBounds
+        "fitWidth" -> ContentScale.FillBounds
+        else -> ContentScale.Crop // "cover" default
+    }
+
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
@@ -80,50 +86,33 @@ private fun ChartWidgetContent(prefs: Preferences) {
             }
             .padding(16.dp)
     ) {
-        // Title header
+        // Title (if not empty)
         if (title.isNotEmpty()) {
-            Row(
-                modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = title,
-                    style = TextStyle(
-                        color = textColor,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+            Text(
+                text = title,
+                style = TextStyle(
+                    color = textColor,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
                 )
-
-                Spacer(modifier = GlanceModifier.fillMaxWidth())
-
-                // Chart type label
-                Text(
-                    text = chartType.replaceFirstChar { it.uppercase() },
-                    style = TextStyle(
-                        color = secondaryTextColor,
-                        fontSize = 12.sp
-                    )
-                )
-            }
+            )
+            Spacer(modifier = GlanceModifier.height(8.dp))
         }
 
-        // Chart bitmap
-        if (chartBitmapBase64.isNotEmpty()) {
-            val bitmap = decodeChartBitmap(chartBitmapBase64)
+        // Image
+        if (imageBase64.isNotEmpty()) {
+            val bitmap = decodeBase64ToBitmap(imageBase64)
             if (bitmap != null) {
                 Image(
                     provider = ImageProvider(bitmap),
-                    contentDescription = "$title chart",
+                    contentDescription = title.ifEmpty { "Widget image" },
                     modifier = GlanceModifier
                         .fillMaxWidth()
                         .fillMaxHeight(),
-                    contentScale = ContentScale.FillBounds
+                    contentScale = contentScale
                 )
             } else {
-                // Fallback when bitmap decode fails
+                // Fallback when image decode fails
                 Box(
                     modifier = GlanceModifier
                         .fillMaxWidth()
@@ -134,7 +123,7 @@ private fun ChartWidgetContent(prefs: Preferences) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Chart unavailable",
+                        text = "Image unavailable",
                         style = TextStyle(
                             color = secondaryTextColor,
                             fontSize = 12.sp
@@ -143,7 +132,7 @@ private fun ChartWidgetContent(prefs: Preferences) {
                 }
             }
         } else {
-            // No chart data placeholder
+            // No image provided placeholder
             Box(
                 modifier = GlanceModifier
                     .fillMaxWidth()
@@ -154,7 +143,7 @@ private fun ChartWidgetContent(prefs: Preferences) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No chart data",
+                    text = "No image",
                     style = TextStyle(
                         color = secondaryTextColor,
                         fontSize = 12.sp
@@ -174,7 +163,7 @@ private fun ChartWidgetContent(prefs: Preferences) {
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal
                     ),
-                    maxLines = 1
+                    maxLines = 2
                 )
             }
         }
@@ -182,21 +171,22 @@ private fun ChartWidgetContent(prefs: Preferences) {
 }
 
 /**
- * Decodes a base64-encoded chart bitmap.
+ * Decodes a base64 string to an Android Bitmap.
+ * Returns null if decoding fails.
  */
-private fun decodeChartBitmap(base64String: String): android.graphics.Bitmap? {
+private fun decodeBase64ToBitmap(base64String: String): android.graphics.Bitmap? {
     return try {
         val decodedBytes = Base64.decode(base64String, Base64.DEFAULT)
         BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
     } catch (e: Exception) {
-        Log.e("ChartGlanceWidget", "Failed to decode chart bitmap", e)
+        Log.e("ImageGlanceWidget", "Failed to decode base64 image", e)
         null
     }
 }
 
 /**
- * Receiver for Chart Widget.
+ * Receiver for Image Widget.
  */
-class ChartWidgetReceiver : GlanceAppWidgetReceiver() {
-    override val glanceAppWidget: GlanceAppWidget = ChartGlanceWidget()
+class ImageWidgetReceiver : GlanceAppWidgetReceiver() {
+    override val glanceAppWidget: GlanceAppWidget = ImageGlanceWidget()
 }

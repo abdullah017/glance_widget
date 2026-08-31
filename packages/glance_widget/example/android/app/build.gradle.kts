@@ -1,14 +1,12 @@
 plugins {
     id("com.android.application")
-    id("kotlin-android")
-    id("org.jetbrains.kotlin.plugin.compose")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {
     namespace = "com.example.glance_widget_example"
-    compileSdk = 36
+    compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -16,18 +14,13 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
-
-    buildFeatures {
-        compose = true
-    }
-
     defaultConfig {
         applicationId = "com.example.glance_widget_example"
+        // Jetpack Glance app widgets require API 26; glance_widget enforces the
+        // same floor. Everything else follows the Flutter defaults so this file
+        // stays a faithful copy of what a real consumer app looks like.
         minSdk = 26
-        targetSdk = 36
+        targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -39,12 +32,12 @@ android {
     }
 }
 
-flutter {
-    source = "../.."
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+    }
 }
 
-dependencies {
-    // Compose Runtime required for Kotlin Compose plugin
-    implementation(platform("androidx.compose:compose-bom:2024.12.01"))
-    implementation("androidx.compose.runtime:runtime")
+flutter {
+    source = "../.."
 }
