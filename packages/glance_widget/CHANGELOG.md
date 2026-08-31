@@ -1,5 +1,16 @@
 ## 2.0.0
 
+**Added:** `dart run glance_widget:doctor` checks a project's native setup and
+names what will stop a widget working. Almost every way to get this wrong fails
+quietly -- a receiver with `exported="false"` installs and never reaches the
+picker, a missing `GlanceWidgetAppGroup` leaves every update silently dropped,
+two Info.plists naming different groups give you two working stores that are
+not the same store. It reads files rather than building, so it needs neither
+Xcode nor the Android SDK, and it exits 1 only on findings that would actually
+break something, which makes it usable as a CI step. Where it cannot tell, it
+says so instead of guessing: a platform it could not inspect is reported
+separately and never counted as a pass.
+
 **Fixed:** on iOS, widget updates silently did nothing unless your App Group
 happened to be the example's. Both targets now read the group from the
 `GlanceWidgetAppGroup` key in their `Info.plist` -- see the updated App Groups

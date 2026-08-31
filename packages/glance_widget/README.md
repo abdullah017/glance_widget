@@ -454,6 +454,43 @@ the intent, and pass `configuration.widgetId` into `load...Widget(widgetId:)`.
 
 ---
 
+## Checking your setup
+
+Run this from your project root once the setup above is done:
+
+```sh
+dart run glance_widget:doctor
+```
+
+It reads your manifest, Gradle config, `Info.plist` files and entitlements, and
+reports what will stop a widget working. It needs neither Xcode nor the Android
+SDK and finishes in well under a second.
+
+It exists because almost every way to get this wrong fails **quietly**:
+
+| Mistake | What you see without the doctor |
+|---|---|
+| `android:exported="false"` on a receiver | App installs, widget never appears in the picker |
+| No `APPWIDGET_UPDATE` intent filter | Widget can be placed, then never updates |
+| `minSdk` below 26 | Build fails with a `uses-sdk` merger error that never says "widget" |
+| `GlanceWidgetAppGroup` missing | Every update silently does nothing |
+| The two `Info.plist` files naming different groups | Both stores work; they are just not the same store |
+| A group the target has no entitlement for | `UserDefaults(suiteName:)` returns nil, no error raised |
+
+The doctor exits `1` when it finds something that will actually break, and `0`
+for warnings alone, so it works as a CI step:
+
+```yaml
+- run: dart run glance_widget:doctor
+```
+
+It stays silent when it cannot tell — an unreadable `minSdk` expression, a
+platform directory that is not there — and says so separately rather than
+counting it as a pass. A platform it could not inspect is never reported as
+healthy.
+
+---
+
 ## Usage
 
 ### Simple Widget

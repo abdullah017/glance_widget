@@ -61,6 +61,15 @@ jobs:
         working-directory: ${{ matrix.package }}
         run: flutter test --reporter=expanded --exclude-tags golden
 
+      # Runs the shipped CLI against the shipped example. The unit tests cover
+      # the checks against synthetic input; this covers the entry point and the
+      # file discovery, and holds the example to the advice the README gives.
+      # It exits 1 only on findings that would actually break a widget.
+      - name: Doctor (example app)
+        if: matrix.package == 'packages/glance_widget'
+        working-directory: packages/glance_widget
+        run: dart run bin/doctor.dart example
+
   publishable:
     name: Publish dry-run (${{ matrix.package }})
     runs-on: ubuntu-latest
