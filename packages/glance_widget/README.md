@@ -317,7 +317,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  glance_widget: ^1.0.0
+  glance_widget: ^2.0.0
 ```
 
 The Android and iOS implementations are endorsed, so they come along
@@ -630,7 +630,7 @@ await GlanceWidget.simple(
 );
 ```
 
-### Type-Safe Controllers (v1.0)
+### Type-Safe Controllers
 
 For advanced use cases, use generic type-safe controllers:
 
