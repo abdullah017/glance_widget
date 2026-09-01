@@ -1,3 +1,11 @@
+## 2.0.1
+
+**Added:** an `example/README.md` next to the Swift templates that were
+already shipped in `example/ios/GlanceWidgets/`, explaining why the SwiftUI has
+to live in your own Xcode target and naming the two settings that fail silently
+when they are wrong: the `GlanceWidgetAppGroup` key and the iOS 17.0 minimum.
+No code change.
+
 ## 2.0.0
 
 **Added:** `getWidgetData`. Every update now writes a record of the payload
