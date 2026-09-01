@@ -274,7 +274,6 @@ class _HomePageState extends State<HomePage>
       _priceChange = (change / _cryptoPrice) * 100;
     });
 
-    // v1.0: Use type-safe SimpleWidgetController with update()
     await _simpleController?.update(
       SimpleWidgetData(
         title: 'Bitcoin',
@@ -319,7 +318,6 @@ class _HomePageState extends State<HomePage>
     ) async {
       setState(() => _downloadProgress += 0.02);
 
-      // v1.0: Use type-safe ProgressWidgetController with update()
       await _progressController?.update(
         ProgressWidgetData(
           title: 'Downloading...',
@@ -350,7 +348,6 @@ class _HomePageState extends State<HomePage>
   // ── List Widget ──
 
   Future<void> _updateListWidget() async {
-    // v1.0: Use type-safe ListWidgetController with update()
     await _listController?.update(
       ListWidgetData(
         title: "Today's Tasks",
@@ -380,7 +377,6 @@ class _HomePageState extends State<HomePage>
     // Generate a simple gradient image as base64
     final base64Image = await _generateSampleImage();
 
-    // v1.0: Use type-safe ImageWidgetController with update()
     await _imageController?.update(
       ImageWidgetData(
         title: 'Photo of the Day',
@@ -420,7 +416,6 @@ class _HomePageState extends State<HomePage>
   // ── Chart Widget ──
 
   Future<void> _updateChartWidget() async {
-    // v1.0: Use type-safe ChartWidgetController with update()
     await _chartController?.update(
       ChartWidgetData(
         title: 'Revenue',
@@ -444,7 +439,6 @@ class _HomePageState extends State<HomePage>
   // ── Calendar Widget ──
 
   Future<void> _updateCalendarWidget() async {
-    // v1.0: Use type-safe CalendarWidgetController with update()
     await _calendarController?.update(
       CalendarWidgetData(
         title: "Today's Events",
@@ -459,7 +453,6 @@ class _HomePageState extends State<HomePage>
   // ── Gauge Widget ──
 
   Future<void> _updateGaugeWidget() async {
-    // v1.0: Use type-safe GaugeWidgetController with update()
     await _gaugeController?.update(
       GaugeWidgetData(
         title: 'System Monitor',
