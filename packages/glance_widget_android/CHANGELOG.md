@@ -1,3 +1,12 @@
+## 2.0.1
+
+**Added:** an `example/`. This package is endorsed, so an app never calls it
+directly and the runnable example belongs to `glance_widget`; what is specific
+to Android is the manifest, and that is what the example points at -- including
+the `android:exported="true"` receiver declaration, which installs without
+complaint when it is wrong and then never reaches the widget picker. No code
+change.
+
 ## 2.0.0
 
 **Added:** `getWidgetData`. Every update now writes a record of the payload

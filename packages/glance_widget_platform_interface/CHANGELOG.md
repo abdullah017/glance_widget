@@ -1,3 +1,11 @@
+## 2.0.1
+
+**Added:** an `example/`. This package is not depended on by apps -- it is
+the contract `glance_widget` and its implementations agree on -- so the example
+is aimed at the person who has a reason to be here: someone writing a new
+platform implementation, or reading a stored record back through
+`GlanceWidgetSnapshot.decode`. No code change.
+
 ## 2.0.0
 
 **Added:** `getWidgetData` on the platform interface, plus
