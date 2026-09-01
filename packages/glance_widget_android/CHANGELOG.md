@@ -1,5 +1,12 @@
 ## 2.0.0
 
+**Added:** `getWidgetData`. Every update now writes a record of the payload
+under the app's own widget id, alongside the tracked id and with the same
+lifetime, so `forgetWidget` and the home screen removal from #13 drop both. The
+payload is stored exactly as it arrived rather than rebuilt from the Glance
+state it was spread across, which would have meant a second copy of the field
+mapping here. See #37.
+
 **Unchanged, deliberately:** the Live Activity methods added in this release
 are not implemented here. The plugin answers them with `notImplemented`, which
 Dart turns into an `UnsupportedError`. Android 16's Live Updates

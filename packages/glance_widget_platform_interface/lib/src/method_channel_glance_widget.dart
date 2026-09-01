@@ -7,6 +7,7 @@ import 'package:glance_widget_platform_interface/src/types/glance_widget_update.
 import 'package:glance_widget_platform_interface/src/types/live_activity.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_action.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_data.dart';
+import 'package:glance_widget_platform_interface/src/types/widget_snapshot.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_theme.dart';
 import 'package:logging/logging.dart';
 
@@ -258,6 +259,25 @@ class MethodChannelGlanceWidget extends GlanceWidgetPlatform {
       'Failed to get active widget IDs',
     );
     return result?.cast<String>() ?? <String>[];
+  }
+
+  @override
+  Future<GlanceWidgetSnapshot?> getWidgetData(String widgetId) async {
+    WidgetData.checkNotEmpty(widgetId, 'widgetId');
+    // The record crosses as a JSON string rather than as a map. Android stores
+    // it through Gson, which hands every number back as a Double once the
+    // static type is Object, and the standard codec nests maps as
+    // `Map<Object?, Object?>`; decoding the string in Dart sidesteps both and
+    // gives the two platforms one format to agree on instead of two.
+    final record = await _invoke<String>(
+      'getWidgetData',
+      'Failed to read widget data',
+      <String, Object?>{'widgetId': widgetId},
+    );
+    if (record == null) {
+      return null;
+    }
+    return GlanceWidgetSnapshot.decode(record);
   }
 
   @override

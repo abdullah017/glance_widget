@@ -59,6 +59,8 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
             handleForceRefreshAll(result: result)
         case "getActiveWidgetIds":
             handleGetActiveWidgetIds(result: result)
+        case "getWidgetData":
+            handleGetWidgetData(call, result: result)
         case "forgetWidget":
             handleForgetWidget(call, result: result)
         case "getWidgetPushToken":
@@ -405,6 +407,31 @@ public class GlanceWidgetIosPlugin: NSObject, FlutterPlugin, FlutterStreamHandle
     private func handleGetActiveWidgetIds(result: @escaping FlutterResult) {
         let ids = widgetManager.getActiveWidgetIds()
         result(ids)
+    }
+
+    /// Answers with the record of what one widget is showing, as text.
+    ///
+    /// A JSON string rather than a dictionary: the standard codec would nest it
+    /// as `Map<Object?, Object?>` on the Dart side, and Android's JSON reader
+    /// hands back every number as a `Double`. One string both platforms write
+    /// the same way leaves Dart with one parser instead of two.
+    ///
+    /// `nil` means there is no record -- never written, or forgotten. It is not
+    /// the answer for a record that cannot be read; that one reaches Dart
+    /// intact and fails there, loudly.
+    private func handleGetWidgetData(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        guard let args = call.arguments as? [String: Any],
+              let widgetId = args["widgetId"] as? String,
+              !widgetId.isEmpty else {
+            result(FlutterError(
+                code: "INVALID_ARGUMENTS",
+                message: "getWidgetData requires a non-empty widgetId",
+                details: nil
+            ))
+            return
+        }
+
+        result(widgetManager.widgetRecord(widgetId))
     }
 
     private func handleForgetWidget(_ call: FlutterMethodCall, result: @escaping FlutterResult) {

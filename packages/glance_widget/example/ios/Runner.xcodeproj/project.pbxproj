@@ -11,6 +11,7 @@
 		095FCB8D8E3718213F1F7BC3 /* GlanceInteractive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E57BF49D7D837AEA7A8AB5 /* GlanceInteractive.swift */; };
 		0E36DBD8DA5C6EE5FEE828FC /* ChartWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3BBF8CA3D8D4A530192392E /* ChartWidget.swift */; };
 		1070CDC9F2018EAD34C2FBC8 /* SharedModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D16FACB8A66C653D0D50C6A4 /* SharedModels.swift */; };
+		13F53B429941990342A2114D /* GlanceWidgetRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68EA636C8AAF3F284D4B929B /* GlanceWidgetRecordTests.swift */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		36F823EE8E181CBF782F8920 /* SimpleWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 169E791C1A90F1C74EE3B381 /* SimpleWidget.swift */; };
@@ -117,6 +118,7 @@
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		51C85A0FF04414226244D042 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		594939FF96D034239C67062C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		68EA636C8AAF3F284D4B929B /* GlanceWidgetRecordTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GlanceWidgetRecordTests.swift; sourceTree = "<group>"; };
 		6FBF5FDA2DB831798FAFFDC0 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -227,6 +229,7 @@
 				A11CE0AA2F0000000000E014 /* GlanceInteractive.swift */,
 				C0CDFF641B8C517A46BA3CA7 /* ImageWidgetFitTests.swift */,
 				009AEAA30CDBFC4480C05CC4 /* GlanceLiveActivityTests.swift */,
+				68EA636C8AAF3F284D4B929B /* GlanceWidgetRecordTests.swift */,
 			);
 			path = RunnerTests;
 			sourceTree = "<group>";
@@ -578,6 +581,7 @@
 				F3D4A0130095ED57FBC5DD61 /* ImageWidgetFitTests.swift in Sources */,
 				3CF5C90D282148B9FB4E74FE /* GlanceLiveActivityWidget.swift in Sources */,
 				E481DDEBADFECA125B86610B /* GlanceLiveActivityTests.swift in Sources */,
+				13F53B429941990342A2114D /* GlanceWidgetRecordTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

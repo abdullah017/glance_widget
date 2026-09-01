@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:glance_widget_platform_interface/src/types/map_reader.dart';
+
 /// Theme configuration for Glance Widgets.
 class GlanceTheme {
   /// Creates a theme describing how a widget should be painted natively.
@@ -31,6 +33,18 @@ class GlanceTheme {
     accentColor: Color(0xFFFFA726),
     borderRadius: 16.0,
     isDark: true,
+  );
+
+  /// Rebuilds a theme from a map [toMap] produced.
+  factory GlanceTheme.fromReader(MapReader reader) => GlanceTheme(
+    backgroundColor: reader.color('backgroundColor') ?? const Color(0xFFFFFFFF),
+    textColor: reader.color('textColor') ?? const Color(0xFF212121),
+    secondaryTextColor:
+        reader.color('secondaryTextColor') ?? const Color(0xFF9E9E9E),
+    accentColor: reader.color('accentColor') ?? const Color(0xFF2196F3),
+    borderRadius: reader.requireDouble('borderRadius'),
+    isDark: reader.boolOr('isDark', false),
+    useDynamicColor: reader.boolOr('useDynamicColor', false),
   );
 
   /// Background color of the widget.

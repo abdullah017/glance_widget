@@ -144,7 +144,7 @@ public class GlanceWidgetManager {
                           message: "Failed to save widget data to App Group storage")
         }
 
-        trackWidgetId(widgetId)
+        recordWidget(widgetId, kind: .simple, data: data, theme: theme)
 
         // Trigger widget refresh
         // When app is in foreground, this is INSTANT and has NO budget limit!
@@ -183,7 +183,7 @@ public class GlanceWidgetManager {
                           message: "Failed to save widget data to App Group storage")
         }
 
-        trackWidgetId(widgetId)
+        recordWidget(widgetId, kind: .progress, data: data, theme: theme)
         WidgetCenter.shared.reloadTimelines(ofKind: "ProgressWidget")
         return .success
     }
@@ -219,7 +219,7 @@ public class GlanceWidgetManager {
                           message: "Failed to save widget data to App Group storage")
         }
 
-        trackWidgetId(widgetId)
+        recordWidget(widgetId, kind: .list, data: data, theme: theme)
         WidgetCenter.shared.reloadTimelines(ofKind: "ListWidget")
         return .success
     }
@@ -255,7 +255,7 @@ public class GlanceWidgetManager {
                           message: "Failed to save widget data to App Group storage")
         }
 
-        trackWidgetId(widgetId)
+        recordWidget(widgetId, kind: .calendar, data: data, theme: theme)
         WidgetCenter.shared.reloadTimelines(ofKind: "CalendarWidget")
         return .success
     }
@@ -336,7 +336,7 @@ public class GlanceWidgetManager {
                 return
             }
 
-            self.trackWidgetId(widgetId)
+            self.recordWidget(widgetId, kind: .image, data: data, theme: theme)
             WidgetCenter.shared.reloadTimelines(ofKind: "ImageWidget")
             completion(.success)
         }
@@ -373,7 +373,7 @@ public class GlanceWidgetManager {
                           message: "Failed to save widget data to App Group storage")
         }
 
-        trackWidgetId(widgetId)
+        recordWidget(widgetId, kind: .chart, data: data, theme: theme)
         WidgetCenter.shared.reloadTimelines(ofKind: "ChartWidget")
         return .success
     }
@@ -409,7 +409,7 @@ public class GlanceWidgetManager {
                           message: "Failed to save widget data to App Group storage")
         }
 
-        trackWidgetId(widgetId)
+        recordWidget(widgetId, kind: .gauge, data: data, theme: theme)
         WidgetCenter.shared.reloadTimelines(ofKind: "GaugeWidget")
         return .success
     }
@@ -461,6 +461,7 @@ public class GlanceWidgetManager {
         for key in GlanceStorageKeys.allKeys(forWidgetId: widgetId) {
             storage.remove(forKey: key)
         }
+        storage.remove(forKey: GlanceStorageKeys.recordKey(widgetId: widgetId))
 
         if let container = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: GlanceWidgetManager.appGroupId
@@ -597,6 +598,38 @@ public class GlanceWidgetManager {
     }
 
     // MARK: - Private Helpers
+
+    /// Marks `widgetId` as live and stores what it is now showing.
+    ///
+    /// The two are written together because they have to die together --
+    /// `forgetWidget` drops both -- and `data` here is the payload as it
+    /// arrived. The image path rewrites its copy on the way to storage,
+    /// dropping the base64 bytes and adding a resolved file path; a record
+    /// built from that would hand the caller back fields it never sent and
+    /// lose the one it did.
+    private func recordWidget(
+        _ widgetId: String,
+        kind: GlanceWidgetKind,
+        data: [String: Any],
+        theme: [String: Any]?
+    ) {
+        trackWidgetId(widgetId)
+        let updatedAt = Int(Date().timeIntervalSince1970 * 1000)
+        guard let record = GlanceWidgetRecord.encode(
+            widgetId: widgetId, kind: kind, data: data, theme: theme, updatedAt: updatedAt
+        ) else {
+            // Logged inside `encode`. Not a failure of the update: the widget
+            // has already changed, and only the read-back is stale until the
+            // next write.
+            return
+        }
+        storage.save(record, forKey: GlanceStorageKeys.recordKey(widgetId: widgetId))
+    }
+
+    /// The record of what `widgetId` is showing, or nil when there is none.
+    public func widgetRecord(_ widgetId: String) -> String? {
+        storage.loadString(forKey: GlanceStorageKeys.recordKey(widgetId: widgetId))
+    }
 
     private func trackWidgetId(_ widgetId: String) {
         activeWidgetIds.insert(widgetId)
