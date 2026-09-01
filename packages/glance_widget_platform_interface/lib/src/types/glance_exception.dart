@@ -90,6 +90,31 @@ class GlanceWidgetValidationException extends GlanceWidgetException {
   }
 }
 
+/// Exception thrown when a record the plugin stored cannot be read back.
+///
+/// This is deliberately not the same answer as "no record". A widget that was
+/// never written, or was forgotten, has nothing to say and reads as `null`; a
+/// record written by a newer plugin than the one reading it says something the
+/// reader does not understand. Only the first of those means "safe to
+/// overwrite without looking", so they cannot share a return value.
+class GlanceWidgetFormatException extends GlanceWidgetException {
+  /// Creates a new [GlanceWidgetFormatException] for [field].
+  const GlanceWidgetFormatException(super.message, {this.field})
+    : super(code: 'UNREADABLE_RECORD');
+
+  /// Dotted path of the field that could not be read, e.g. `simple.progress`.
+  final String? field;
+
+  @override
+  String toString() {
+    final buffer = StringBuffer('GlanceWidgetFormatException: $message');
+    if (field != null) {
+      buffer.write(' (field: $field)');
+    }
+    return buffer.toString();
+  }
+}
+
 /// The outcome of one widget's update inside a batch that partly failed.
 class GlanceWidgetBatchFailure {
   /// Records that [widgetId] could not be updated, and why.

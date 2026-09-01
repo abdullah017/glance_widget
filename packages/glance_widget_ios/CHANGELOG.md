@@ -1,5 +1,12 @@
 ## 2.0.0
 
+**Added:** `getWidgetData`. Every update now writes a record of the payload
+under `widgetRecord_<widgetId>` -- deliberately outside the
+`<template>WidgetData_` family the configuration picker scans -- and
+`forgetWidget` drops it. The image path records the payload as it arrived, not
+the copy it rewrites on the way to storage with a resolved file path and
+without the base64 bytes. See #37.
+
 **Added:** Live Activities, on iOS 16.2+. The plugin owns
 `GlanceActivityAttributes` and requests activities itself; the extension
 declares its own copy, and `GlanceLiveActivityWidget.swift` is a new template

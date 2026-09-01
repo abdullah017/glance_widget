@@ -41,6 +41,8 @@ widgets.
 - **7 Widget Templates** - Simple, Progress, List, Image, Chart, Calendar, and Gauge
 - **Theme Support** - Light/Dark themes with full customization, plus opt-in
   Material You on Android 12+
+- **Read a widget back** - `getWidgetData` answers what a widget is currently
+  showing, typed, and it survives the app being killed
 - **Deep Links** - All widgets support custom deep link URIs
 - **Interactive Actions** - Tap, checkbox toggle, item tap handling. Ticking a
   checkbox never launches the app on either platform, and taps survive being
@@ -67,6 +69,7 @@ widgets.
 | Wallpaper colours | `useDynamicColor`, Android 12+ only | Not available |
 | Adapts to slot size | All templates | All templates |
 | Live Activities | Not available (throws `UnsupportedError`) | iOS 16.2+, Lock Screen + Dynamic Island |
+| Reading a widget back | `getWidgetData`, dropped with the widget | `getWidgetData`, dropped by `forgetWidget` |
 
 ## Material You (Android 12+)
 
@@ -860,6 +863,50 @@ await GlanceWidget.simple(
   deepLinkUri: 'myapp://crypto/btc',  // Opens when widget is tapped
 );
 ```
+
+---
+
+## Reading a widget back
+
+`getWidgetData` answers what a widget is currently showing. It reads the
+widget's own copy, not your app's memory of it, so it survives the app being
+killed and answers after a reinstall.
+
+```dart
+final snapshot = await GlanceWidget.getWidgetData('btc-price');
+
+if (snapshot == null) {
+  // Never written, or forgotten. Nothing is on that widget.
+} else {
+  print(snapshot.updatedAt);          // when the plugin last pushed
+  switch (snapshot.data) {
+    case SimpleWidgetData(:final value):
+      if (value == latestPrice) return;   // already showing it; skip the write
+    case _:
+      break;
+  }
+}
+```
+
+`snapshot.data` is the sealed `WidgetData` that was sent, so a `switch` over it
+is checked for exhaustiveness by the compiler. `updatedAt` and `theme` sit on
+the snapshot rather than inside the data, because they were never part of it.
+
+**Three answers, not two.** `null` means there is no record. A record this
+version of the plugin cannot read -- written by a newer one -- throws
+`GlanceWidgetFormatException` instead. Only the first of those means the widget
+is blank and safe to overwrite unseen, so they cannot share a return value.
+
+The record is dropped wherever the id is: by `forgetWidget` on both platforms,
+and on Android also when the last widget carrying the id leaves the home
+screen.
+
+**When the record is written differs by platform**, the same way
+`getActiveWidgetIds` does. iOS writes on every update, whether or not a widget
+has ever been placed, because WidgetKit gives an extension no way to ask what
+is on the home screen. Android writes only when the update reaches a placed
+widget: with nothing carrying the id on the home screen the update fails with
+`NO_WIDGET_INSTANCE`, nothing is showing, and `getWidgetData` answers `null`.
 
 ---
 

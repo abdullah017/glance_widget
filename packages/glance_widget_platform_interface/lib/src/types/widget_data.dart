@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:glance_widget_platform_interface/src/types/glance_exception.dart';
+import 'package:glance_widget_platform_interface/src/types/map_reader.dart';
 
 /// Base class for all widget data models.
 /// Sealed — cannot be extended outside this library.
@@ -16,6 +17,30 @@ sealed class WidgetData {
 
   /// Serializes this data for platform channel communication.
   Map<String, dynamic> toMap();
+
+  /// Rebuilds the data of a [template] from a map that [toMap] produced.
+  ///
+  /// The plugin stores what it sent and reads it back through here, so the
+  /// mapping between wire fields and Dart classes exists in one place rather
+  /// than being written a second time in Kotlin and a third time in Swift.
+  ///
+  /// Throws [GlanceWidgetFormatException] if a field is missing or has the
+  /// wrong type.
+  static WidgetData fromMap(
+    GlanceTemplate template,
+    Map<Object?, Object?> map,
+  ) {
+    final reader = MapReader(map, template.name);
+    return switch (template) {
+      GlanceTemplate.simple => SimpleWidgetData.fromReader(reader),
+      GlanceTemplate.progress => ProgressWidgetData.fromReader(reader),
+      GlanceTemplate.list => ListWidgetData.fromReader(reader),
+      GlanceTemplate.image => ImageWidgetData.fromReader(reader),
+      GlanceTemplate.chart => ChartWidgetData.fromReader(reader),
+      GlanceTemplate.calendar => CalendarWidgetData.fromReader(reader),
+      GlanceTemplate.gauge => GaugeWidgetData.fromReader(reader),
+    };
+  }
 
   /// Checks the invariants that must hold before this data crosses to the
   /// native side, throwing [GlanceWidgetValidationException] when one does not.
@@ -93,6 +118,17 @@ class SimpleWidgetData extends WidgetData {
   }) : assert(title.length > 0, 'title cannot be empty'),
        assert(value.length > 0, 'value cannot be empty');
 
+  /// Rebuilds this data from a map [toMap] produced.
+  factory SimpleWidgetData.fromReader(MapReader reader) => SimpleWidgetData(
+    title: reader.requireString('title'),
+    value: reader.requireString('value'),
+    subtitle: reader.optionalString('subtitle'),
+    subtitleColor: reader.color('subtitleColor'),
+    iconName: reader.optionalString('iconName'),
+    iconBase64: reader.optionalString('iconBase64'),
+    deepLinkUri: reader.optionalString('deepLinkUri'),
+  );
+
   /// The main title of the widget.
   final String title;
 
@@ -162,6 +198,17 @@ class ProgressWidgetData extends WidgetData {
          'progress must be between 0.0 and 1.0',
        );
 
+  /// Rebuilds this data from a map [toMap] produced.
+  factory ProgressWidgetData.fromReader(MapReader reader) => ProgressWidgetData(
+    title: reader.requireString('title'),
+    progress: reader.requireDouble('progress'),
+    subtitle: reader.optionalString('subtitle'),
+    progressType: reader.enumByName('progressType', ProgressType.values),
+    progressColor: reader.color('progressColor'),
+    trackColor: reader.color('trackColor'),
+    deepLinkUri: reader.optionalString('deepLinkUri'),
+  );
+
   /// The title of the widget.
   final String title;
 
@@ -217,6 +264,14 @@ class GlanceListItem {
     this.iconName,
   });
 
+  /// Rebuilds one row from a map [toMap] produced.
+  factory GlanceListItem.fromReader(MapReader reader) => GlanceListItem(
+    text: reader.requireString('text'),
+    checked: reader.boolOr('checked', false),
+    secondaryText: reader.optionalString('secondaryText'),
+    iconName: reader.optionalString('iconName'),
+  );
+
   /// The text content of the item.
   final String text;
 
@@ -256,6 +311,15 @@ class ListWidgetData extends WidgetData {
          maxItems >= 1 && maxItems <= 20,
          'maxItems must be between 1 and 20',
        );
+
+  /// Rebuilds this data from a map [toMap] produced.
+  factory ListWidgetData.fromReader(MapReader reader) => ListWidgetData(
+    title: reader.requireString('title'),
+    items: reader.readers('items').map(GlanceListItem.fromReader).toList(),
+    showCheckboxes: reader.boolOr('showCheckboxes', false),
+    maxItems: reader.intOr('maxItems', 5),
+    deepLinkUri: reader.optionalString('deepLinkUri'),
+  );
 
   /// The title of the widget.
   final String title;
@@ -321,6 +385,16 @@ class ImageWidgetData extends WidgetData {
     this.fit = ImageFit.cover,
     super.deepLinkUri,
   }) : assert(title.length > 0, 'title cannot be empty');
+
+  /// Rebuilds this data from a map [toMap] produced.
+  factory ImageWidgetData.fromReader(MapReader reader) => ImageWidgetData(
+    title: reader.requireString('title'),
+    imageUrl: reader.optionalString('imageUrl'),
+    imageBase64: reader.optionalString('imageBase64'),
+    subtitle: reader.optionalString('subtitle'),
+    fit: reader.enumByName('fit', ImageFit.values),
+    deepLinkUri: reader.optionalString('deepLinkUri'),
+  );
 
   /// The title of the widget.
   final String title;
@@ -394,6 +468,16 @@ class ChartWidgetData extends WidgetData {
     super.deepLinkUri,
   }) : assert(title.length > 0, 'title cannot be empty');
 
+  /// Rebuilds this data from a map [toMap] produced.
+  factory ChartWidgetData.fromReader(MapReader reader) => ChartWidgetData(
+    title: reader.requireString('title'),
+    dataPoints: reader.doubles('dataPoints'),
+    chartType: reader.enumByName('chartType', ChartType.values),
+    color: reader.color('color'),
+    subtitle: reader.optionalString('subtitle'),
+    deepLinkUri: reader.optionalString('deepLinkUri'),
+  );
+
   /// The title of the widget.
   final String title;
 
@@ -439,6 +523,14 @@ class CalendarEvent {
     this.isAllDay = false,
   });
 
+  /// Rebuilds one event from a map [toMap] produced.
+  factory CalendarEvent.fromReader(MapReader reader) => CalendarEvent(
+    time: reader.requireString('time'),
+    title: reader.requireString('title'),
+    color: reader.color('color'),
+    isAllDay: reader.boolOr('isAllDay', false),
+  );
+
   /// Time string (e.g. "09:00" or "All Day").
   final String time;
 
@@ -478,6 +570,15 @@ class CalendarWidgetData extends WidgetData {
          maxEvents >= 1 && maxEvents <= 10,
          'maxEvents must be between 1 and 10',
        );
+
+  /// Rebuilds this data from a map [toMap] produced.
+  factory CalendarWidgetData.fromReader(MapReader reader) => CalendarWidgetData(
+    title: reader.requireString('title'),
+    date: reader.dateTime('date'),
+    events: reader.readers('events').map(CalendarEvent.fromReader).toList(),
+    maxEvents: reader.intOr('maxEvents', 5),
+    deepLinkUri: reader.optionalString('deepLinkUri'),
+  );
 
   /// The title of the widget (e.g. "Today's Events").
   final String title;
@@ -538,6 +639,15 @@ class GaugeMetric {
     this.unit,
   }) : assert(maxValue > 0, 'maxValue must be greater than 0');
 
+  /// Rebuilds one metric from a map [toMap] produced.
+  factory GaugeMetric.fromReader(MapReader reader) => GaugeMetric(
+    label: reader.requireString('label'),
+    value: reader.requireDouble('value'),
+    maxValue: reader.requireDouble('maxValue'),
+    color: reader.color('color'),
+    unit: reader.optionalString('unit'),
+  );
+
   /// Label for the metric.
   final String label;
 
@@ -577,6 +687,14 @@ class GaugeWidgetData extends WidgetData {
     this.gaugeType = GaugeType.radial,
     super.deepLinkUri,
   }) : assert(title.length > 0, 'title cannot be empty');
+
+  /// Rebuilds this data from a map [toMap] produced.
+  factory GaugeWidgetData.fromReader(MapReader reader) => GaugeWidgetData(
+    title: reader.requireString('title'),
+    metrics: reader.readers('metrics').map(GaugeMetric.fromReader).toList(),
+    gaugeType: reader.enumByName('gaugeType', GaugeType.values),
+    deepLinkUri: reader.optionalString('deepLinkUri'),
+  );
 
   /// The title of the widget.
   final String title;

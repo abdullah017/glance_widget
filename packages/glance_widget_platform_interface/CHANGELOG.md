@@ -1,5 +1,13 @@
 ## 2.0.0
 
+**Added:** `getWidgetData` on the platform interface, plus
+`GlanceWidgetSnapshot`, `GlanceWidgetFormatException`, `MapReader` and a
+`fromReader` factory on every widget data type and its nested rows. The record
+crosses as a JSON string: Android's JSON reader hands back every number as a
+double once the static type is `Object`, and the standard codec would nest the
+maps as `Map<Object?, Object?>`, so numbers are read as `num` throughout. See
+#37.
+
 **Added:** `startLiveActivity`, `updateLiveActivity`, `endLiveActivity`,
 `isLiveActivityRunning` and `areLiveActivitiesEnabled`, with
 `LiveActivityContent` and `LiveActivityDismissal`. A platform that answers

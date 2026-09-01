@@ -4,6 +4,7 @@ import 'package:glance_widget_platform_interface/src/types/glance_widget_update.
 import 'package:glance_widget_platform_interface/src/types/live_activity.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_action.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_data.dart';
+import 'package:glance_widget_platform_interface/src/types/widget_snapshot.dart';
 import 'package:glance_widget_platform_interface/src/types/widget_theme.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
@@ -129,6 +130,17 @@ abstract class GlanceWidgetPlatform extends PlatformInterface {
   /// Gets the list of active widget IDs.
   Future<List<String>> getActiveWidgetIds() {
     throw UnimplementedError('getActiveWidgetIds() has not been implemented.');
+  }
+
+  /// Reads back what [widgetId] is currently showing.
+  ///
+  /// Returns null when the platform has no record for that id -- it was never
+  /// written, or it was forgotten. Throws [GlanceWidgetFormatException] when
+  /// there is a record but this version of the plugin cannot read it, because
+  /// "nothing there" and "something I do not understand" are different answers
+  /// and only the first means the widget is safe to overwrite unseen.
+  Future<GlanceWidgetSnapshot?> getWidgetData(String widgetId) {
+    throw UnimplementedError('getWidgetData() has not been implemented.');
   }
 
   /// Drops everything stored for [widgetId].

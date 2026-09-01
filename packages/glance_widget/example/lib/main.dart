@@ -287,6 +287,28 @@ class _HomePageState extends State<HomePage>
     );
   }
 
+  /// Reads the widget's own copy back and reports what it says.
+  ///
+  /// Not this page's state -- the record the plugin stored next to what the
+  /// home screen draws from. It survives the app being killed, which is the
+  /// whole point of asking.
+  Future<void> _readSimpleWidgetBack() async {
+    try {
+      final snapshot = await GlanceWidget.getWidgetData('crypto_btc');
+      if (snapshot == null) {
+        _showSnackBar('Widget shows: nothing yet', Colors.orange);
+        return;
+      }
+      final showing = switch (snapshot.data) {
+        SimpleWidgetData(:final value) => value,
+        final other => other.template.name,
+      };
+      _showSnackBar('Widget shows: $showing', Colors.green);
+    } on GlanceWidgetException catch (e) {
+      _showSnackBar('Could not read the widget: ${e.message}', Colors.red);
+    }
+  }
+
   // ── Progress Widget ──
 
   void _startDownload() {
@@ -910,6 +932,15 @@ class _HomePageState extends State<HomePage>
                 _isRealtimeActive ? Icons.stop : Icons.play_arrow,
                 _isRealtimeActive ? Colors.red : Colors.purple,
                 _toggleRealtimeUpdates,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildButton(
+                'Read back',
+                Icons.download_done,
+                Colors.teal,
+                _readSimpleWidgetBack,
               ),
             ),
           ],

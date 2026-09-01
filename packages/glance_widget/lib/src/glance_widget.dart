@@ -463,6 +463,43 @@ class GlanceWidget {
     );
   }
 
+  /// What [widgetId] is currently showing, or null if it is showing nothing.
+  ///
+  /// This is the widget's own copy read back, not your app's memory of it, so
+  /// it survives the app being killed and answers after a reinstall. Use it to
+  /// avoid rewriting a widget that already shows the right thing, or to decide
+  /// whether what is on the home screen is stale:
+  ///
+  /// ```dart
+  /// final snapshot = await GlanceWidget.getWidgetData('btc-price');
+  /// if (snapshot case GlanceWidgetSnapshot(data: SimpleWidgetData(:final value))) {
+  ///   if (value == latestPrice) return;   // already showing it
+  /// }
+  /// ```
+  ///
+  /// [GlanceWidgetSnapshot.data] is the sealed [WidgetData] that was sent, so
+  /// a `switch` over it is checked for exhaustiveness by the compiler. The time
+  /// of the write and the theme sent with it are on the snapshot rather than
+  /// the data, because they were never part of it.
+  ///
+  /// Returns null when there is no record: the id was never written, or
+  /// [forgetWidget] dropped it. A record this version of the plugin cannot read
+  /// -- one written by a newer one -- throws [GlanceWidgetFormatException]
+  /// instead, because "nothing there" and "something I do not understand" are
+  /// different answers and only the first means the widget is safe to
+  /// overwrite unseen.
+  ///
+  /// When the record is written differs by platform, the same way
+  /// [getActiveWidgetIds] does. iOS writes on every update, placed widget or
+  /// not. Android writes only when the update reaches one: with nothing
+  /// carrying the id on the home screen the update fails, nothing is showing,
+  /// and this answers null.
+  ///
+  /// On a platform this plugin does not support, returns null.
+  static Future<GlanceWidgetSnapshot?> getWidgetData(String widgetId) {
+    return PlatformGuard.guard(() => _platform.getWidgetData(widgetId), null);
+  }
+
   /// Drops everything stored for [widgetId].
   ///
   /// The payload, the downsampled image on disk, and the id itself. Use it

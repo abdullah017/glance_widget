@@ -1,5 +1,17 @@
 ## 2.0.0
 
+**Added:** `getWidgetData(widgetId)` reads back what a widget is currently
+showing, as the sealed `WidgetData` that was sent, wrapped in a
+`GlanceWidgetSnapshot` carrying the time of the write and the theme sent with
+it. Answers `null` when there is no record, and throws
+`GlanceWidgetFormatException` -- a new type -- when there is a record this
+version cannot read, because "nothing there" and "something I do not
+understand" are different answers and only the first means the widget is safe
+to overwrite unseen. Both platforms store the payload exactly as it arrived and
+hand it back as text; the mapping between fields and classes stays in Dart
+rather than being written a second time in Kotlin and a third in Swift. The
+record is dropped wherever the id is. See #37.
+
 **Added:** Live Activities. `startLiveActivity`, `updateLiveActivity`,
 `endLiveActivity`, `isLiveActivityRunning` and `areLiveActivitiesEnabled` put a
 card on the iOS Lock Screen and in the Dynamic Island for something in

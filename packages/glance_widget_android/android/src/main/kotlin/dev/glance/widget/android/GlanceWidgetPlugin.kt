@@ -308,6 +308,23 @@ class GlanceWidgetPlugin : FlutterPlugin, MethodCallHandler, EventChannel.Stream
                 result.success(ids)
             }
 
+            "getWidgetData" -> {
+                val widgetId = call.argument<String>("widgetId")
+                if (widgetId.isNullOrEmpty()) {
+                    result.error(
+                        "INVALID_ARGUMENTS",
+                        "getWidgetData requires a non-empty widgetId",
+                        null
+                    )
+                } else {
+                    // A JSON string, not a map. Gson hands every number back as
+                    // a Double once the static type is Object, and the standard
+                    // codec would nest the maps as Map<Object?, Object?>;
+                    // sending the text Dart can decode itself sidesteps both.
+                    result.success(GlanceWidgetManager.getWidgetRecord(context, widgetId))
+                }
+            }
+
             "forgetWidget" -> {
                 val widgetId = call.argument<String>("widgetId")
                 if (widgetId.isNullOrEmpty()) {

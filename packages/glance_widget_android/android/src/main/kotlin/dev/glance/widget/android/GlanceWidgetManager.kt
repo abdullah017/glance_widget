@@ -326,7 +326,7 @@ object GlanceWidgetManager {
             }
 
             // Track this widget as active
-            trackWidgetId(context, widgetId)
+            recordWidget(context, widgetId, "simple", data, theme)
             Log.d(TAG, "Simple widget updated successfully: $widgetId")
             UpdateResult.Success
         } catch (e: CancellationException) {
@@ -403,7 +403,7 @@ object GlanceWidgetManager {
             }
 
             // Track this widget as active
-            trackWidgetId(context, widgetId)
+            recordWidget(context, widgetId, "progress", data, theme)
             Log.d(TAG, "Progress widget updated successfully: $widgetId")
             UpdateResult.Success
         } catch (e: CancellationException) {
@@ -480,7 +480,7 @@ object GlanceWidgetManager {
             }
 
             // Track this widget as active
-            trackWidgetId(context, widgetId)
+            recordWidget(context, widgetId, "list", data, theme)
             Log.d(TAG, "List widget updated successfully: $widgetId")
             UpdateResult.Success
         } catch (e: CancellationException) {
@@ -556,7 +556,7 @@ object GlanceWidgetManager {
                 widget.update(context, glanceId)
             }
 
-            trackWidgetId(context, widgetId)
+            recordWidget(context, widgetId, "calendar", data, theme)
             Log.d(TAG, "Calendar widget updated successfully: $widgetId")
             UpdateResult.Success
         } catch (e: CancellationException) {
@@ -651,7 +651,7 @@ object GlanceWidgetManager {
                 widget.update(context, glanceId)
             }
 
-            trackWidgetId(context, widgetId)
+            recordWidget(context, widgetId, "image", data, theme)
             Log.d(TAG, "Image widget updated successfully: $widgetId")
             UpdateResult.Success
         } catch (e: CancellationException) {
@@ -741,7 +741,7 @@ object GlanceWidgetManager {
                 widget.update(context, glanceId)
             }
 
-            trackWidgetId(context, widgetId)
+            recordWidget(context, widgetId, "chart", data, theme)
             Log.d(TAG, "Chart widget updated successfully: $widgetId")
             UpdateResult.Success
         } catch (e: CancellationException) {
@@ -849,7 +849,7 @@ object GlanceWidgetManager {
                 widget.update(context, glanceId)
             }
 
-            trackWidgetId(context, widgetId)
+            recordWidget(context, widgetId, "gauge", data, theme)
             Log.d(TAG, "Gauge widget updated successfully: $widgetId")
             UpdateResult.Success
         } catch (e: CancellationException) {
@@ -1042,6 +1042,29 @@ object GlanceWidgetManager {
     /**
      * Tracks a widget ID as active.
      */
+    /**
+     * Marks [widgetId] as live and stores what it is now showing.
+     *
+     * The tracked id and the record are written together because they have to
+     * die together: `getActiveWidgetIds` listing an id whose record is gone,
+     * or a record answering for an id nothing tracks, are both states no
+     * caller can make sense of. See [WidgetRecordStore].
+     */
+    private fun recordWidget(
+        context: Context,
+        widgetId: String,
+        template: String,
+        data: Map<String, Any?>,
+        theme: Map<String, Any?>?
+    ) {
+        trackWidgetId(context, widgetId)
+        WidgetRecordStore.save(context, widgetId, template, data, theme)
+    }
+
+    /** The record of what [widgetId] is showing, or null when there is none. */
+    fun getWidgetRecord(context: Context, widgetId: String): String? =
+        WidgetRecordStore.read(context, widgetId)
+
     private fun trackWidgetId(context: Context, widgetId: String) {
         synchronized(activeWidgetIds) {
             activeWidgetIds.add(widgetId)
@@ -1061,6 +1084,7 @@ object GlanceWidgetManager {
      */
     fun forgetWidget(context: Context, widgetId: String) {
         ImageStore.evict(context, widgetId)
+        WidgetRecordStore.delete(context, widgetId)
         removeWidgetId(context, widgetId)
     }
 
