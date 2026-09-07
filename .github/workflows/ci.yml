@@ -178,7 +178,7 @@ jobs:
         run: ./gradlew :glance_widget_android:testDebugUnitTest --console=plain
       - name: Upload test report
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-unit-test-report
           path: packages/glance_widget/example/build/glance_widget_android/reports/tests/
@@ -218,7 +218,7 @@ jobs:
         run: flutter test --reporter=expanded --tags golden
       - name: Upload the images that differed
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: golden-failures
           path: packages/glance_widget/test/preview/failures/
