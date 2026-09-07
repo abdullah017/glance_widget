@@ -124,7 +124,7 @@ dependencies {
     // on the resulting tree. The templates' layout decisions cannot be checked
     // any other way without an emulator.
     testImplementation("androidx.glance:glance-appwidget-testing:1.2.0")
-    testImplementation("org.robolectric:robolectric:4.16")
+    testImplementation("org.robolectric:robolectric:4.16.1")
     testImplementation("androidx.test:core:1.7.0")
     testImplementation("junit:junit:4.13.2")
     // Glance's test harness and Robolectric are JUnit 4; the rest of this
