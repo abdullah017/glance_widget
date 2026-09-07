@@ -129,5 +129,5 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     // Glance's test harness and Robolectric are JUnit 4; the rest of this
     // module's tests are JUnit 5, so the platform needs both engines.
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.14.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:6.1.3")
 }
