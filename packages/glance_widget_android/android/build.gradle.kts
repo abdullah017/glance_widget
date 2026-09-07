@@ -117,7 +117,7 @@ dependencies {
 
     // JVM unit tests. The routing and formatting logic is kept free of Android
     // types on purpose, so these run without Robolectric or a device.
-    testImplementation("org.junit.jupiter:junit-jupiter:5.14.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.14.2")
 
     // Composes a Glance widget at a chosen slot size and lets the test assert
